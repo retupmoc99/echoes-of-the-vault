@@ -1799,3 +1799,81 @@ button {
   top: auto;
   bottom: calc(env(safe-area-inset-bottom) + 290px);
 }
+
+/* ─────────────── Hour-Thief: timeline, Echo copies ─────────────── */
+.timeline {
+  display: flex;
+  gap: 6px;
+  padding: 6px 4px 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.timeline::-webkit-scrollbar {
+  display: none;
+}
+.timeline-chip {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 36px;
+  padding: 0 10px;
+  border-radius: 999px;
+  border: 1px solid hsl(165 60% 45% / 0.6);
+  background: hsl(165 30% 7%);
+  color: hsl(165 70% 75%);
+  font-size: 12px;
+}
+.timeline-chip.soon {
+  border-color: hsl(165 90% 60%);
+  box-shadow: 0 0 12px hsl(165 90% 55% / 0.5);
+  animation: pulse 1.6s ease-in-out infinite;
+}
+.timeline-glyph {
+  font-size: 14px;
+}
+.timeline-turns {
+  font-weight: 800;
+  font-size: 14px;
+}
+.timeline-name {
+  max-width: 110px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--muted);
+}
+.card.ephemeral {
+  border-style: dashed;
+  background: linear-gradient(170deg, hsl(var(--hue) 35% 13% / 0.55), hsl(var(--hue) 25% 6% / 0.55) 70%);
+  box-shadow: 0 0 16px hsl(165 90% 60% / 0.35);
+}
+.echo-tag {
+  font-size: 9.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: hsl(165 80% 70%);
+}
+.kit.warden.locked {
+  opacity: 0.5;
+}
+@media (prefers-reduced-motion: reduce) {
+  .timeline-chip.soon {
+    animation: none;
+  }
+}
+
+/* Centred fixed panels need an entrance that keeps their -50% centring. */
+.hint,
+.update-prompt {
+  animation-name: rise-centered;
+}
+@keyframes rise-centered {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 12px);
+  }
+  to {
+    transform: translate(-50%, 0);
+  }
+}

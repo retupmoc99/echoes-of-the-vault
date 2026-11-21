@@ -52,6 +52,7 @@ export function OutpostScreen({ save, error, notice, outpost, onSettings, onEnte
             ['outpost-welcome', tab === 'descend' && save.meta.loops === 0 && !save.run],
             ['echoes', tab === 'echoes' && save.echoes.length > 0],
             ['works', tab === 'works'],
+            ['new-warden', tab === 'descend' && !save.run && save.outpost.unlocks.includes('stolen-hour') && save.outpost.classId === 'relic-breaker'],
             ['backup', tab === 'descend' && save.meta.loops >= 3],
           ]}
         />
@@ -134,7 +135,7 @@ function DescendTab({ save, outpost, onEnterRun, onAbandon }: Omit<Props, 'error
   const next = save.nextLoop;
   const scout = scoutInfo(save, CONTENT);
   const shift = next ? CONTENT.vaultShifts[next.vaultShiftId] : undefined;
-  const cls = CONTENT.classes['relic-breaker'];
+  const cls = CONTENT.classes[save.outpost.classId];
   const kits = cls.kits.filter((k) => !k.unlock || save.outpost.unlocks.includes(k.unlock));
   const I = BALANCE.idle;
   const scoutPct = Math.min(100, (scout.scouting / I.scoutMapHours) * 100);
@@ -179,6 +180,27 @@ function DescendTab({ save, outpost, onEnterRun, onAbandon }: Omit<Props, 'error
           {next.shiftRerolled ? 'The bell has rung for this loop' : 'Ring the Shift Bell (reroll the Shift)'}
         </button>
       )}
+
+      <h2 className="panel-title">Warden</h2>
+      <div className="kit-picker">
+        {Object.values(CONTENT.classes).map((c) => {
+          const locked = !!c.unlock && !save.outpost.unlocks.includes(c.unlock);
+          const unlockName = CONTENT.idle.unlocks.find((u) => u.id === c.unlock)?.name;
+          return (
+            <button
+              key={c.id}
+              className={`kit warden ${save.outpost.classId === c.id ? 'active' : ''} ${locked ? 'locked' : ''}`}
+              disabled={locked}
+              onClick={() => outpost({ type: 'selectClass', classId: c.id })}
+            >
+              <strong>
+                {c.name} · {c.maxHp} HP
+              </strong>
+              <span>{locked ? `Locked. Build ${unlockName} in Works.` : c.summary}</span>
+            </button>
+          );
+        })}
+      </div>
 
       {kits.length > 1 && (
         <div className="kit-picker">

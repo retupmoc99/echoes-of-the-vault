@@ -38,7 +38,7 @@ export function nextRunPreview(save: SaveData, content: Content): RunState | nul
   return createRun(
     {
       seed: save.nextLoop.seed,
-      classId: 'relic-breaker',
+      classId: save.outpost.classId,
       vaultShiftId: save.nextLoop.vaultShiftId,
       kitId: save.outpost.kitId,
       unlockedCards: save.outpost.cards,

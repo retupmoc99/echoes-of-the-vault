@@ -11,6 +11,7 @@ export const BALANCE = {
     drawPerTurn: 5,
     maxHandSize: 10,
     relicBreakerMaxHp: 70,
+    hourThiefMaxHp: 64,
   },
 
   status: {
@@ -31,6 +32,12 @@ export const BALANCE = {
     exposed: {
       /** Owner takes this fraction more attack damage. */
       damageIncrease: 0.5,
+    },
+    paradox: {
+      /** At the end of the owner's turn, at this many stacks, the timeline snaps back. */
+      snapThreshold: 5,
+      /** HP lost per stack when it snaps (Paradox then resets to 0). */
+      snapDamagePerStack: 2,
     },
   },
 

@@ -26,6 +26,7 @@ import { needsTarget, resolveEffects } from './effects';
 import { chooseIntent } from './intents';
 import { fireTriggers } from './relics';
 import { tickEndOfTurn, tickStartOfTurn } from './statuses';
+import { advanceTimeline, queueEcho, returnEchoes } from './time';
 
 /** Rule values for a fight with no Shift or Corruption applied. */
 export function defaultCombatModifiers(): CombatModifiers {
@@ -62,6 +63,8 @@ export function createCombat(setup: CombatSetup, content: Content): StepResult {
     relics: setup.relics.map((relicId) => ({ relicId, strain: 0, cracked: false })),
     piles: { draw: rngShuffle(rng, deck), hand: [], discard: [], faded: [] },
     overloadsThisTurn: 0,
+    timeline: [],
+    echoQueue: [],
     rng,
     nextUid: deck.length,
     modifiers,
@@ -108,8 +111,12 @@ function playCard(ctx: Ctx, uid: string, targetId: string | undefined): string |
   s.piles.hand.splice(handIndex, 1);
   ctx.events.push({ type: 'cardPlayed', uid, cardId: def.id });
 
+  ctx.sourceCardId = def.id;
   resolveEffects(ctx, def.effects, PLAYER_ID, target);
-  (def.fade ? s.piles.faded : s.piles.discard).push(card);
+  ctx.sourceCardId = undefined;
+  // Echo copies vanish once played; real cards go to discard (or fade).
+  if (!card.ephemeral) (def.fade ? s.piles.faded : s.piles.discard).push(card);
+  if (def.echo) queueEcho(ctx, def.id);
 
   if (!isOver(s)) fireTriggers(ctx, 'cardPlayed', { cardType: def.type });
   checkCombatEnd(ctx);
@@ -166,9 +173,13 @@ function startPlayerTurn(ctx: Ctx): void {
 
   tickStartOfTurn(ctx, s.player);
   if (isOver(s)) return;
+  // Delayed effects land before you draw.
+  if (s.timeline.length) advanceTimeline(ctx, 1);
+  if (isOver(s)) return;
 
   s.resonance = BALANCE.player.resonancePerTurn;
   ctx.events.push({ type: 'turnStart', turn: s.turn });
   drawCards(ctx, BALANCE.player.drawPerTurn);
+  returnEchoes(ctx);
   fireTriggers(ctx, 'turnStart');
 }

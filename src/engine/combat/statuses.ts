@@ -10,6 +10,7 @@
  * Numbers come from the fight's modifiers (BALANCE defaults, adjusted by
  * the loop's Vault Shift).
  */
+import { BALANCE } from '../../data/balance';
 import type { Combatant, StatusId } from '../types';
 import { PLAYER_ID, type Ctx } from './context';
 import { loseHp } from './damage';
@@ -46,5 +47,14 @@ export function tickEndOfTurn(ctx: Ctx, c: Combatant): void {
   }
   for (const s of ['weakened', 'exposed'] as const) {
     if ((c.statuses[s] ?? 0) > 0) addStatus(ctx, c, s, -1);
+  }
+  // Paradox: at the threshold, the timeline snaps back on you.
+  const paradox = c.statuses.paradox ?? 0;
+  const P = BALANCE.status.paradox;
+  if (paradox >= P.snapThreshold && c.hp > 0) {
+    const damage = paradox * P.snapDamagePerStack;
+    ctx.events.push({ type: 'paradoxSnap', damage });
+    removeStatus(ctx, c, 'paradox');
+    loseHp(ctx, c, damage, 'paradox');
   }
 }

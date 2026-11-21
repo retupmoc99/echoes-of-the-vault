@@ -14,7 +14,9 @@ export function hapticsSupported(): boolean {
 }
 
 export function buzz(pattern: number | readonly number[]): void {
-  if (enabled && hapticsSupported()) {
+  // Browsers refuse vibration before the first real tap; skip quietly until then.
+  const activated = (navigator as Navigator & { userActivation?: { hasBeenActive: boolean } }).userActivation?.hasBeenActive ?? true;
+  if (enabled && hapticsSupported() && activated) {
     try {
       navigator.vibrate(typeof pattern === 'number' ? pattern : [...pattern]);
     } catch {

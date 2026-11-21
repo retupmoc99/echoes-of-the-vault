@@ -1,5 +1,29 @@
 # Changelog
 
+## 0.7.0 — The Hour-Thief (2026-11-20)
+
+### Added
+- **Second Warden class: the Hour-Thief** (64 HP). Unlocked with the Outpost Work *The Stolen Hour* (120 Shards), chosen on the Descend tab.
+  - 25 cards across three archetypes: The Long Fuse (Delay), Recurrence (Echo), Unwinding (Rewind and Paradox). 6 are locked behind Research.
+  - 7 relics, including the starter Cracked Hourglass and 2 tainted relics, plus 3 shared neutral relics.
+- **Time mechanics in the engine:** Delay (a timeline of effects that land on later turns), Hasten, Echo copies that fade, and Rewind.
+  - New status Paradox, which snaps back at 5 stacks.
+  - New card type Temporal, trigger `delayFired`, and an amount that scales with the timeline.
+- **UI:**
+  - A timeline strip of countdown chips above the hand.
+  - Dashed, glowing Echo copies.
+  - A class picker; class shown on Echoes and on the end-of-loop screen.
+  - Jade particle bursts when delays land or Paradox snaps.
+  - 4 new hints.
+- Research queue gains 6 Hour-Thief cards and 2 lore fragments.
+- `ART_GUIDE.md` has prompts for all new cards and relics.
+- Save v6: existing progress becomes the Relic-Breaker's, and fights in progress gain a timeline.
+- 18 new tests (155 total): Delay timing and targeting, Hasten, timeline scaling, the `delayFired` trigger, Echo copies, Rewind order, the Paradox snap, class unlock and selection, an unchanged scouted map when switching class, a full Hour-Thief loop, the v5→v6 migration.
+
+### Fixed
+- Centred panels (hints, the update prompt) slid in from the side during their entrance animation.
+- Haptics no longer try to vibrate before the first real tap (browsers block it and log an error).
+
 ## 0.6.0 — Backups and first-run hints (2026-11-20)
 
 ### Added

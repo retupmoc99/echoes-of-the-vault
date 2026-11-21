@@ -20,6 +20,8 @@ export interface Echo {
   /** Deck at the end of the loop (hook for summoning Echoes as allies). */
   deckSnapshot: string[];
   origin: {
+    /** The Warden class that ran the loop. */
+    classId: string;
     loop: number;
     result: 'victory' | 'death';
     depth: number;
@@ -97,6 +99,9 @@ export interface OutpostState {
   lore: string[];
   /** Scout-hours spent on the next loop. */
   scouting: number;
+  /** Warden class for the next loop. */
+  classId: string;
+  /** Starter kit for the next loop (belongs to `classId`). */
   kitId: string;
 }
 

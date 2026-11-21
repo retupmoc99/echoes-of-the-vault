@@ -33,6 +33,12 @@ export const STATUS_INFO: Record<StatusId, StatusInfo> = {
     hue: 45,
     description: `Attacks deal ${pct(st.weakened.damageReduction)} less damage. Fades by 1 each turn.`,
   },
+  paradox: {
+    name: 'Paradox',
+    glyph: '⧗',
+    hue: 165,
+    description: `Built by bending time. End of turn at ${st.paradox.snapThreshold}+: the timeline snaps back, dealing ${st.paradox.snapDamagePerStack} damage per stack to you, then Paradox resets.`,
+  },
   exposed: {
     name: 'Exposed',
     glyph: '◎',

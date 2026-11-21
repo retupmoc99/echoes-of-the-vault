@@ -34,6 +34,16 @@ const LORE: LoreFragment[] = [
     title: 'Below the Lock',
     text: 'Something sleeps under the last door. It is not dead. It is counting loops, as you are.',
   },
+  {
+    id: 'lore-stolen-hour',
+    title: 'The Stolen Hour',
+    text: 'One Warden refused the loop and cut a single hour out of it. The vault has been searching for that hour ever since.',
+  },
+  {
+    id: 'lore-sand',
+    title: 'Sand',
+    text: 'The hourglasses here run on the dust of the ancients. Turn one over and you can hear them breathe.',
+  },
 ];
 
 export const IDLE_CONTENT: IdleContent = {
@@ -98,6 +108,13 @@ export const IDLE_CONTENT: IdleContent = {
 
   unlocks: [
     {
+      id: 'stolen-hour',
+      name: 'The Stolen Hour',
+      description: 'A second Warden: the Hour-Thief, who delays, echoes and rewinds time.',
+      cost: 120,
+      flavor: 'An hour that should not exist, kept in a jar at the edge of the outpost.',
+    },
+    {
       id: 'kit-fault-walker',
       name: 'Kit: The Fault-Walker',
       description: 'A starting deck already cracked: Twin Shards and Hollow Vow.',
@@ -155,6 +172,15 @@ export const IDLE_CONTENT: IdleContent = {
     { kind: 'lore', loreId: 'lore-echoes' },
     { kind: 'card', cardId: 'crack-the-seal' },
     { kind: 'lore', loreId: 'lore-below' },
+    // Hour-Thief discoveries (appended: research progress is index-based).
+    { kind: 'card', cardId: 'countdown' },
+    { kind: 'card', cardId: 'stitch-the-wound' },
+    { kind: 'lore', loreId: 'lore-stolen-hour' },
+    { kind: 'card', cardId: 'hour-bomb' },
+    { kind: 'card', cardId: 'unmake-the-hour' },
+    { kind: 'lore', loreId: 'lore-sand' },
+    { kind: 'card', cardId: 'chorus-of-moments' },
+    { kind: 'card', cardId: 'temporal-shear' },
   ],
 
   lore: Object.fromEntries(LORE.map((l) => [l.id, l])),

@@ -60,6 +60,22 @@ export const HINTS = {
     title: 'Works',
     text: 'Spend Shards on new options (starting decks, rerolls, rites), not raw power. The vault never gets easy, only more varied.',
   },
+  timeline: {
+    title: 'The timeline',
+    text: 'Delayed effects wait in the row above your hand, counting down at the start of each turn. Tap one to see what lands, and when.',
+  },
+  'echo-copy': {
+    title: 'Echoes of cards',
+    text: 'A card marked "Echo" came back as a fading copy. Play it this turn or lose it. Played copies echo again.',
+  },
+  paradox: {
+    title: 'Paradox',
+    text: 'Bending time builds Paradox. End a turn at 5 or more and the timeline snaps back: 2 damage per stack, then it resets. Spend it before then.',
+  },
+  'new-warden': {
+    title: 'A second Warden',
+    text: 'The Hour-Thief is yours. Choose your Warden above before you descend: each plays very differently.',
+  },
   backup: {
     title: 'Keep a backup',
     text: 'Your progress lives in this browser only. Copy a save code now and then from Archive → Backup.',

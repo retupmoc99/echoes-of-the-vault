@@ -139,6 +139,48 @@ Write each as: *shared style prompt* + the line below. Hue hints are optional.
 | hungering-eye | a single glowing eye set in tarnished metal, hungry, magenta iris |
 | grave-lantern | a lantern of black iron burning a pale green flame |
 
+#### Hour-Thief cards (`art-raw/cards/<id>.png`, 4:3)
+Shared accent: **pale jade and silver** (Temporal cards), with ember for strikes and cyan for wards. Add to the style prompt: `clockwork, hourglass sand, frozen motion, afterimages`.
+
+| ID | Prompt |
+|---|---|
+| second-hand | a thin silver clock hand used as a blade, slicing through still air, jade motion trail |
+| stilled-moment | a figure inside a sphere of frozen falling sand, cyan stillness, suspended droplets |
+| slow-fuse | a burning fuse of jade light coiling around an hourglass, sparks frozen mid-air |
+| stolen-second | a gloved hand pulling a glowing second out of a clock face, jade light |
+| patient-blade | a blade mid-swing with a ghostly second blade following moments behind, ember and jade |
+| held-breath | a warden holding a shimmering shield of slowed time, ripples in the air, cyan |
+| countdown | a cracked clock face with numerals falling away, each glowing jade |
+| sundial-ward | an ancient sundial casting a shadow that becomes a shield of cyan light |
+| accelerate | clock hands blurring into a spinning disc of jade light, rushing forward |
+| hour-bomb | a sphere of compressed hourglass sand about to burst, ticking glyphs, jade and white |
+| doomsday-clock | a colossal broken clock tower in the void, hands at the final hour, jade fire |
+| flicker | a blade appearing in three places at once, afterimages, jade outlines |
+| afterimage | a warden's translucent afterimages absorbing blows, cyan ghosts |
+| repeating-edge | the same sword strike repeated in overlapping transparent layers, ember and jade |
+| refrain | sheets of glowing script repeating in a spiral, a choir of faint echoes |
+| chorus-of-moments | dozens of translucent copies of one figure singing, jade halos, overwhelming |
+| undo | shattered glass flying backwards into a whole pane, reversed time, jade |
+| loop-the-moment | a ring of light where one step repeats endlessly, an ouroboros of jade |
+| fray-the-thread | a glowing thread of time unravelling into sparks, ember and jade |
+| borrowed-time | a coin made of hourglass sand pressed into a palm, jade glow, dread |
+| paradox-lance | a spear of impossible geometry, folding into itself, jade and white |
+| stitch-the-wound | glowing jade stitches sewing a torn moment shut, silver needle |
+| temporal-shear | a vast blade cutting reality into two offset halves, jade seam of light |
+| unmake-the-hour | an hourglass folding inward and vanishing, light collapsing to a point |
+| age-the-flesh | a hand withering to bone where jade time-light touches it, red mist |
+
+#### Hour-Thief relics (`art-raw/relics/<id>.png`, 1:1, transparent)
+| ID | Prompt |
+|---|---|
+| cracked-hourglass | a cracked hourglass with sand flowing both up and down, jade glow |
+| stopped-clock | a pocket watch frozen at one moment, hands fused, faint cyan |
+| gilded-gear | a single ornate gold gear tooth etched with tiny constellations |
+| reversed-compass | a compass whose needle points backward, silver with jade glass |
+| last-breath-locket | an open locket releasing a pale wisp of breath, silver, jade |
+| pendulum-of-ash | a pendulum of black ash swinging, leaving glowing jade trails |
+| thief-of-moments | a small sack spilling glowing seconds like coins, jade and gold |
+
 #### Node icons (`art-raw/ui/node-<type>.png`, transparent)
 | ID | Prompt |
 |---|---|

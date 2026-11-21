@@ -12,13 +12,13 @@ export * from './idleTypes';
 
 // ───────────────────────────── Shared ids ─────────────────────────────
 
-export type StatusId = 'fracture' | 'bleed' | 'weakened' | 'exposed';
+export type StatusId = 'fracture' | 'bleed' | 'weakened' | 'exposed' | 'paradox';
 
 /** Card type decides the accent colour and which triggers react to it. */
-export type CardType = 'strike' | 'ward' | 'overload' | 'rite' | 'curse';
+export type CardType = 'strike' | 'ward' | 'overload' | 'rite' | 'temporal' | 'curse';
 
 /** Synergy family, used for reward weighting and the card library. */
-export type Archetype = 'fracture' | 'ward' | 'overload' | 'bleed';
+export type Archetype = 'fracture' | 'ward' | 'overload' | 'bleed' | 'delay' | 'echo' | 'unwinding';
 
 export type Rarity = 'starter' | 'common' | 'uncommon' | 'rare' | 'curse';
 
@@ -31,7 +31,7 @@ export type Rarity = 'starter' | 'common' | 'uncommon' | 'rare' | 'curse';
 export type Amount =
   | number
   | { per: 'selfStatus' | 'targetStatus'; status: StatusId; times: number; plus?: number }
-  | { per: 'selfWard' | 'overloadsThisTurn'; times: number; plus?: number };
+  | { per: 'selfWard' | 'overloadsThisTurn' | 'timeline'; times: number; plus?: number };
 
 /**
  * Targets are relative to whoever is acting:
@@ -59,11 +59,17 @@ export type Effect =
   | { kind: 'clearStrain' }
   | { kind: 'retainWard' }
   | { kind: 'clearWard' }
+  /** Queue effects on the timeline; they resolve after `turns` of your turns. */
+  | { kind: 'delay'; turns: number; effects: Effect[] }
+  /** Bring every delayed effect `turns` closer (those reaching 0 resolve now). */
+  | { kind: 'hasten'; turns: number }
+  /** Return the most recent `count` cards from the discard pile to your hand. */
+  | { kind: 'rewind'; count: number }
   | { kind: 'if'; cond: Condition; then: Effect[]; else?: Effect[] };
 
 /** Something that reacts to combat events (used by relics; card "powers" later). */
 export interface Trigger {
-  on: 'combatStart' | 'turnStart' | 'turnEnd' | 'cardPlayed' | 'gainedStatus';
+  on: 'combatStart' | 'turnStart' | 'turnEnd' | 'cardPlayed' | 'gainedStatus' | 'delayFired';
   /** For cardPlayed: only react to this card type. */
   cardType?: CardType;
   /** For gainedStatus: only react to this status. */
@@ -86,6 +92,8 @@ export interface CardDef {
   unplayable?: boolean;
   /** Runs if the card is still in hand when you end your turn (curses). */
   inHandAtTurnEnd?: Effect[];
+  /** After it is played, a fading copy returns to your hand next turn. */
+  echo?: boolean;
   /** Hand-written rules text. If omitted, text is generated from effects. */
   text?: string;
   flavor: string;
@@ -170,6 +178,10 @@ export interface WardenClassDef {
   relicPool: string[];
   /** Starting decks. The first is the default; others need an Outpost unlock. */
   kits: StarterKit[];
+  /** Outpost unlock needed to play this class (none = available from the start). */
+  unlock?: string;
+  /** One line on how the class plays, for the class picker. */
+  summary: string;
   flavor: string;
 }
 
@@ -292,6 +304,20 @@ export interface RelicState {
 export interface CardInstance {
   uid: string;
   cardId: string;
+  /** An Echo copy: it fades when played, or at the end of the turn if not. */
+  ephemeral?: boolean;
+}
+
+/** An effect waiting on the timeline (from a Delay card). */
+export interface TimelineEntry {
+  id: string;
+  /** Your turns until it resolves (it resolves when this reaches 0). */
+  turnsLeft: number;
+  effects: Effect[];
+  /** The card that queued it (for display). */
+  sourceCardId: string;
+  /** Who it was aimed at; falls back to the first living enemy. */
+  targetId?: string;
 }
 
 /**
@@ -322,6 +348,10 @@ export interface CombatState {
     faded: CardInstance[];
   };
   overloadsThisTurn: number;
+  /** Delayed effects waiting to resolve. */
+  timeline: TimelineEntry[];
+  /** Echo copies that return to hand at the start of your next turn. */
+  echoQueue: CardInstance[];
   rng: RngState;
   nextUid: number;
   modifiers: CombatModifiers;
@@ -353,16 +383,23 @@ export type CombatEvent =
   | { type: 'draw'; count: number }
   | { type: 'shuffle' }
   | { type: 'attack'; sourceId: string; targetId: string; amount: number; blocked: number }
-  | { type: 'hpLoss'; targetId: string; amount: number; cause: 'bleed' | 'fracture' | 'effect' }
+  | { type: 'hpLoss'; targetId: string; amount: number; cause: HpLossCause }
   | { type: 'ward'; targetId: string; amount: number }
   | { type: 'status'; targetId: string; status: StatusId; delta: number }
   | { type: 'enemyMove'; enemyId: string; moveId: string; moveName: string }
   | { type: 'relicOverload'; relicId: string; strain: number }
   | { type: 'relicCracked'; relicId: string }
   | { type: 'overloadFizzled' }
+  | { type: 'delayQueued'; entryId: string; turns: number }
+  | { type: 'delayFired'; entryId: string; targetId?: string }
+  | { type: 'echoReturned'; count: number }
+  | { type: 'rewound'; count: number }
+  | { type: 'paradoxSnap'; damage: number }
   | { type: 'death'; targetId: string }
   | { type: 'victory' }
   | { type: 'defeat' };
+
+export type HpLossCause = 'bleed' | 'fracture' | 'paradox' | 'effect';
 
 export interface StepResult {
   state: CombatState;

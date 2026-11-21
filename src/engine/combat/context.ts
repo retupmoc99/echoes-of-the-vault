@@ -12,6 +12,8 @@ export interface Ctx {
   events: CombatEvent[];
   /** Current trigger nesting depth (guards against infinite loops). */
   depth: number;
+  /** The card whose effects are resolving (labels timeline entries). */
+  sourceCardId?: string;
 }
 
 export const PLAYER_ID = 'player';

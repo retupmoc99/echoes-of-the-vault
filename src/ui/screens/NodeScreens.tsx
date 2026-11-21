@@ -298,6 +298,7 @@ export function RunEndScreen({ run, onDone }: { run: RunState; onDone: () => voi
   const s = run.stats;
   const depth = run.position ? run.map.nodes[run.position].row + 1 : 0;
   const rows: [string, string | number][] = [
+    ['Warden', CONTENT.classes[run.classId].name],
     ['Vault Shift', CONTENT.vaultShifts[run.vaultShiftId].name],
     ['Depth reached', `${depth} / ${run.map.rows + 1}`],
     ['Fights won', s.fightsWon],

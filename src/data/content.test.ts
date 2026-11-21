@@ -8,11 +8,17 @@ import { CONTENT } from '.';
 
 describe('content integrity', () => {
   const rb = CONTENT.classes['relic-breaker'];
+  const ht = CONTENT.classes['hour-thief'];
+  const classes = Object.values(CONTENT.classes);
 
-  it('the Relic-Breaker has a 10-card starter deck of real cards', () => {
-    expect(rb.starterDeck).toHaveLength(10);
-    for (const id of [...rb.starterDeck, ...rb.cardPool]) expect(CONTENT.cards[id], id).toBeDefined();
-    for (const id of [...rb.starterRelics, ...rb.relicPool]) expect(CONTENT.relics[id], id).toBeDefined();
+  it('every class has a 10-card starter deck and real cards and relics', () => {
+    for (const cls of classes) {
+      expect(cls.starterDeck, cls.id).toHaveLength(10);
+      for (const id of [...cls.starterDeck, ...cls.cardPool]) expect(CONTENT.cards[id], `${cls.id}: ${id}`).toBeDefined();
+      for (const id of [...cls.starterRelics, ...cls.relicPool]) expect(CONTENT.relics[id], `${cls.id}: ${id}`).toBeDefined();
+      if (cls.unlock) expect(CONTENT.idle.unlocks.some((u) => u.id === cls.unlock), cls.id).toBe(true);
+    }
+    expect(rb.unlock).toBeUndefined(); // the first Warden is always available
   });
 
   it('every enemy pattern only names its own moves', () => {
@@ -26,14 +32,16 @@ describe('content integrity', () => {
     }
   });
 
-  it('every encounter uses known enemies and can start', () => {
-    for (const enc of Object.values(CONTENT.encounters)) {
-      for (const id of enc.enemies) expect(CONTENT.enemies[id], id).toBeDefined();
-      const { state } = createCombat(
-        { seed: enc.id, deck: rb.starterDeck, hp: rb.maxHp, maxHp: rb.maxHp, relics: rb.starterRelics, encounterId: enc.id },
-        CONTENT,
-      );
-      expect(state.phase).toBe('player');
+  it('every encounter uses known enemies and can start, for every class', () => {
+    for (const cls of classes) {
+      for (const enc of Object.values(CONTENT.encounters)) {
+        for (const id of enc.enemies) expect(CONTENT.enemies[id], id).toBeDefined();
+        const { state } = createCombat(
+          { seed: enc.id, deck: cls.starterDeck, hp: cls.maxHp, maxHp: cls.maxHp, relics: cls.starterRelics, encounterId: enc.id },
+          CONTENT,
+        );
+        expect(state.phase).toBe('player');
+      }
     }
   });
 
@@ -47,26 +55,32 @@ describe('content integrity', () => {
     }
   });
 
-  it('has the milestone 3 slice: ~30 cards, ~10 relics, 8 events, 5 Shifts', () => {
-    expect(Object.keys(CONTENT.cards)).toHaveLength(30);
-    expect(rb.relicPool).toHaveLength(10);
+  it('has the slice: ~30 cards and ~10 relics per class, 8 events, 5 Shifts', () => {
+    for (const cls of classes) {
+      expect(cls.starterDeck.length + cls.cardPool.length, cls.id).toBeGreaterThanOrEqual(30);
+      expect(cls.relicPool.length, cls.id).toBeGreaterThanOrEqual(9);
+    }
     expect(Object.keys(CONTENT.events)).toHaveLength(8);
     expect(Object.values(CONTENT.vaultShifts).filter((s) => s.weight > 0)).toHaveLength(5);
-    const archetypes = new Set(rb.cardPool.map((id) => CONTENT.cards[id].archetype));
-    expect([...archetypes].sort()).toEqual(['bleed', 'fracture', 'overload', 'ward']);
+    const archetypes = (ids: string[]) => [...new Set(ids.map((id) => CONTENT.cards[id].archetype))].sort();
+    expect(archetypes(rb.cardPool)).toEqual(['bleed', 'fracture', 'overload', 'ward']);
+    expect(archetypes(ht.cardPool)).toEqual(['delay', 'echo', 'unwinding']);
   });
 
   it('idle content is consistent: kits, locked cards, research, traits', () => {
-    for (const kit of rb.kits) {
-      expect(kit.deck, kit.id).toHaveLength(10);
-      for (const id of kit.deck) expect(CONTENT.cards[id], `${kit.id}: ${id}`).toBeDefined();
-      for (const id of kit.deck) expect(rb.lockedCards, `${kit.id} uses locked ${id}`).not.toContain(id);
-      if (kit.unlock) expect(CONTENT.idle.unlocks.some((u) => u.id === kit.unlock)).toBe(true);
+    for (const cls of classes) {
+      for (const kit of cls.kits) {
+        expect(kit.deck, kit.id).toHaveLength(10);
+        for (const id of kit.deck) expect(CONTENT.cards[id], `${kit.id}: ${id}`).toBeDefined();
+        for (const id of kit.deck) expect(cls.lockedCards, `${kit.id} uses locked ${id}`).not.toContain(id);
+        if (kit.unlock) expect(CONTENT.idle.unlocks.some((u) => u.id === kit.unlock)).toBe(true);
+      }
+      expect(cls.kits[0].unlock).toBeUndefined();
+      for (const id of cls.lockedCards) expect(cls.cardPool).toContain(id);
     }
-    expect(rb.kits[0].unlock).toBeUndefined();
-    for (const id of rb.lockedCards) expect(rb.cardPool).toContain(id);
+    // Research unlocks exactly the locked cards of every class, each once.
     const researchedCards = CONTENT.idle.research.flatMap((r) => (r.kind === 'card' ? [r.cardId] : []));
-    expect([...researchedCards].sort()).toEqual([...rb.lockedCards].sort());
+    expect([...researchedCards].sort()).toEqual(classes.flatMap((c) => c.lockedCards).sort());
     for (const r of CONTENT.idle.research) if (r.kind === 'lore') expect(CONTENT.idle.lore[r.loreId]).toBeDefined();
     const traits = CONTENT.idle.traits;
     expect(traits[traits.length - 1].when).toEqual([]);
@@ -80,7 +94,10 @@ describe('content integrity', () => {
     }
   });
 
-  it('generates the expected text for Shatter Lens', () => {
+  it('generates the expected text for Shatter Lens and the time cards', () => {
     expect(describeCard(CONTENT.cards['shatter-lens'])).toBe('Deal 12. Gain 2 Fracture.');
+    expect(describeCard(CONTENT.cards['slow-fuse'])).toBe('In 2 turns: Deal 16.');
+    expect(describeCard(CONTENT.cards['flicker'])).toBe('Deal 3. Echo.');
+    expect(describeCard(CONTENT.cards['stolen-second'])).toBe('Return the last card in your discard pile to your hand. Gain 1 Paradox.');
   });
 });

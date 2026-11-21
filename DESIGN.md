@@ -38,6 +38,20 @@ Living document: the current design and balance decisions. Numbers marked *(bala
 | Bleed | Lose HP equal to stacks (ignores Ward), then −1 | Start of owner's turn |
 | Weakened | Attacks deal 25% less | −1 at end of owner's turn |
 | Exposed | Takes 50% more attack damage | −1 at end of owner's turn |
+| Paradox | Nothing, until it snaps: at 5+, lose 2 HP per stack, then reset to 0 | End of owner's turn |
+
+### Time mechanics (any card can use them; the Hour-Thief is built on them)
+- **Delay N:** effects go onto the **timeline** and land at the start of your turn N turns later, before you draw. Played on turn 3 with Delay 2, it lands at the start of turn 5.
+  - The effect keeps its target; if that enemy died, it hits the first living one.
+  - Delayed text shows *base* numbers, since modifiers may change before it lands.
+  - Effects queued when a fight begins land after N turn starts, counting turn 1.
+- **Hasten N:** every waiting effect moves N closer; anything at 0 lands immediately.
+- **Echo:** after an Echo card is played, a *fading copy* returns to your hand at the start of your next turn.
+  - Copies vanish when played (no discard) or at the end of the turn if not played.
+  - Copies echo too, so a chain gives one copy per turn: bounded, never exponential.
+- **Rewind N:** returns the most recent N cards from the discard pile to your hand.
+  - It never picks the card being played (that isn't discarded until after it resolves). Play order matters.
+- New amount `timeline` (per waiting effect), trigger `delayFired`, and card type **Temporal** (pale jade).
 
 ### Relics and Overload
 - Relics can have a **passive** (triggers: `combatStart`, `turnStart`, `turnEnd`, `cardPlayed`, `gainedStatus`) and an **Overload** effect.
@@ -81,7 +95,39 @@ Living document: the current design and balance decisions. Numbers marked *(bala
 | Hungering Eye | Turn start: +1 Resonance | | +2 |
 | Grave Lantern | Turn start: gain 1 Fracture | 10 damage to all foes | +2 |
 
-Content: 30 cards (4 starter, 23 reward pool, 3 curses), 11 relics, 8 events, 5 Vault Shifts, 8 normal enemies, 2 elites, 1 boss.
+Relic-Breaker content: 30 cards (4 starter, 23 reward pool, 3 curses) and 11 relics.
+
+## Hour-Thief (class 2)
+64 HP: fragile, because its power arrives late.
+- **Starter deck:** 4× Second Hand, 4× Stilled Moment, Slow Fuse (in 2 turns: deal 16), Stolen Second (Rewind 1, gain 1 Paradox).
+- **Starter relic:** Cracked Hourglass (when a delayed effect lands: gain 3 Ward).
+- **Unlock:** the Outpost Work *The Stolen Hour* (120 Shards). Choose the class on the Descend tab; switching Warden never changes the scouted map.
+
+| Archetype | Engine | Payoff |
+|---|---|---|
+| The Long Fuse (Delay) | Slow Fuse, Patient Blade, Held Breath, Age the Flesh | Hour Bomb (in 3: 26 to all), Doomsday Clock (in 4: 50 to all), Countdown and Sundial Ward (scale with waiting effects), Accelerate (Hasten) |
+| Recurrence (Echo) | Flicker (0 cost), Afterimage, Repeating Edge | Refrain (draw 2, echo), Chorus of Moments (+2 Resonance, +2 Paradox, echo) |
+| Unwinding (Rewind and Paradox) | Stolen Second, Undo, Loop the Moment, Fray the Thread, Borrowed Time | Paradox Lance (4 per Paradox, then clear), Stitch the Wound, Temporal Shear (bonus at 3+ Paradox), Unmake the Hour |
+
+- **Relics** (6 class relics plus 3 neutral):
+  - Stopped Clock: end of turn at 3+ Paradox, 6 Ward.
+  - Gilded Gear: play a Temporal card, 2 damage to all foes.
+  - Reversed Compass: gain Paradox, 2 damage to all foes.
+  - Last-Breath Locket: fight start, delayed 12 damage to all foes.
+  - Pendulum of Ash: +1 Resonance and +1 Paradox each turn. Tainted +1.
+  - Thief of Moments: draw 1 each turn. Tainted +2.
+  - Neutral: Lodestone Heart, Mirrorglass Ward, Ash Rosary.
+- **Research:** 6 cards are locked (Countdown, Stitch the Wound, Hour Bomb, Unmake the Hour, Chorus of Moments, Temporal Shear). They're appended to the Research queue with 2 new lore fragments. The queue is index-based, so appending keeps existing progress valid.
+- **Bot check** (300 loops each, same simple bot):
+
+  | Class | Wins | Turns per fight |
+  |---|---|---|
+  | Hour-Thief | 17% | 5.5 |
+  | Relic-Breaker | 13% | 5.0 |
+
+  The Relic-Breaker's number dropped from milestone 3 because its strongest bridge cards are now locked behind Research, and the bot never researches. The Hour-Thief's fights run longer, as you'd expect when damage arrives late.
+
+**Shared content:** 8 events, 5 Vault Shifts, 8 normal enemies, 2 elites, 1 boss. Events and enemies are class-neutral by design.
 
 ## The run (one loop)
 - **Map:** 8 rows plus the boss *(balance)*. Each row has 2–4 nodes. You visit one node per row, so 9 nodes per loop.
@@ -286,7 +332,7 @@ Total 460 Shards: roughly 8 to 10 Echo lifetimes of digging.
 - `localStorage` key `eotv.save`, JSON, synchronous write after every action.
 - `SaveData.version` + `MIGRATIONS[n]` (n → n+1). The old raw save is copied to `eotv.save.backup.vN` before migrating, and the migrated save is written straight away.
 - Corrupt saves are copied to `eotv.save.corrupt.<time>`, never deleted. Saves from a newer version are never overwritten.
-- **v5** (current) contains:
+- **v6** (current) contains:
   - `run`: the whole loop, including any live fight
   - `meta`: loops, victories, deaths
   - `nextLoop`, `echoes`, `pendingEcho`, `outpost` (shards, unlocks, research, cards, lore, scouting, kit)
@@ -296,11 +342,12 @@ Total 460 Shards: roughly 8 to 10 Echo lifetimes of digging.
 - Migration history:
   - v1 → v2: the sandbox save becomes an empty v2; sandbox fights weren't loops.
   - v2 → v3: a loop in progress is *kept*. It gains Corruption 0, the Still Vault Shift, and full combat modifiers. A cache's single relic becomes a one-item list. A pending placeholder event is skipped.
+  - v5 → v6: second Warden. Adds `outpost.classId` and `Echo.origin.classId` (existing data becomes the Relic-Breaker's); live fights gain an empty `timeline` and `echoQueue`.
   - v4 → v5: adds `settings.hints` and `settings.hintsSeen`. Veterans (1+ loops) start with the basic hints dismissed.
   - v3 → v4: a loop in progress keeps the full 23-card pool it had. The pool is hard-coded in the migration, because migrations describe history. Idle time starts counting from the last save.
 
 ## Future hooks (not built)
-- **Classes:** `WardenClassDef` holds the deck, pools and HP. A new mechanic means new `Effect` kinds.
+- **Classes:** `WardenClassDef` holds the deck, pools, kits, HP and an optional unlock. The Hour-Thief proved the pattern: a new class is mostly data, plus new `Effect` kinds for genuinely new mechanics. Next candidate: the Echo-Caller, who summons Echoes as allies (needs player-side ally combatants).
 - **Factions / awakening:** `SaveData.world` exists (empty). The idle tick is where real-days progress for the awakening threat would go.
 - **Echo allies:** each Echo stores its loop's deck snapshot and origin.
 - **Multi-floor runs:** `RunState.floor` exists (always 1). The map generator takes a config, so deeper floors can use their own config.
@@ -318,3 +365,8 @@ Total 460 Shards: roughly 8 to 10 Echo lifetimes of digging.
 - **Echoes never heal.** With only 3 slots and a fresh Echo every loop, supply is steady. If Echoes feel too disposable, a slow "Rest" recovery (e.g. +2 stability per hour, up to 50%) would make them precious.
 - **Event removals are random** ("remove a random card"). That's grim on purpose, but it can delete a key card. The alternative is to let the player pick, at a higher cost.
 - **The last row is all Shrines.** That guarantees a rest before the boss, but it isn't a choice. If it feels flat, a mix of Shrine and Cache could work instead.
+- **Hour-Thief tuning to watch:**
+  - Paradox at 5 is a hard ceiling. If it feels too punishing, raise the threshold to 6 or lower the damage per stack.
+  - Doomsday Clock (50 to all foes in 4 turns) may trivialise the boss once researched.
+  - Echo-chaining Flicker is free damage every turn. Watch whether it crowds out real choices.
+- **Rewind takes the most recent discards**, not a card you choose. It's predictable and phone-friendly (no picker), and it makes play order a puzzle. A "choose a card to rewind" picker could come later as a rare card.

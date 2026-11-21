@@ -53,7 +53,7 @@ export function createEcho(run: RunState, loopNumber: number, now: number, conte
     name: `${rngPick(rng, content.idle.names.given)} ${rngPick(rng, content.idle.names.epithets)}`,
     traitId: trait.id,
     deckSnapshot: [...run.deck],
-    origin: { loop: loopNumber, result: run.result, depth, peakCorruption: run.stats.peakCorruption, vaultShiftId: run.vaultShiftId },
+    origin: { classId: run.classId, loop: loopNumber, result: run.result, depth, peakCorruption: run.stats.peakCorruption, vaultShiftId: run.vaultShiftId },
     stability: maxStability,
     maxStability,
     task: null,

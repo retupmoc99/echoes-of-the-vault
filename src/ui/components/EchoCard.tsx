@@ -33,7 +33,7 @@ export function EchoCard({ echo, researchDone, onAssign, onRelease, onInspect, o
         <div>
           <h3>{echo.name}</h3>
           <p className="echo-origin">
-            Loop {echo.origin.loop} · {echo.origin.result === 'victory' ? 'escaped' : `fell at depth ${echo.origin.depth}`} · {shift}
+            {CONTENT.classes[echo.origin.classId]?.name ?? 'Warden'} · loop {echo.origin.loop} · {echo.origin.result === 'victory' ? 'escaped' : `fell at depth ${echo.origin.depth}`} · {shift}
           </p>
         </div>
         <button className="trait-chip" onClick={() => onInspect(`${trait.name}: ${trait.description}`)}>

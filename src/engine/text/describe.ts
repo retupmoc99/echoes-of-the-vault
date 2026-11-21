@@ -8,7 +8,7 @@
 import { STATUS_INFO } from '../../data/statuses';
 import { attackDamage } from '../combat/damage';
 import { getCombatant, livingEnemies } from '../combat/context';
-import { resolveAmount } from '../combat/effects';
+import { countsOf, resolveAmount } from '../combat/effects';
 import type { Amount, CardDef, CardType, Combatant, CombatState, Condition, Effect, RelicDef, Trigger } from '../types';
 
 export interface Preview {
@@ -23,6 +23,7 @@ const TYPE_NAMES: Record<CardType, string> = {
   ward: 'Ward',
   overload: 'Overload',
   rite: 'Rite',
+  temporal: 'Temporal',
   curse: 'Curse',
 };
 
@@ -42,6 +43,8 @@ function amountPhrase(a: Amount, noun: string): string {
         : `${base}${times} ${unit}per ${statusName(a.status)} on the target`;
     case 'overloadsThisTurn':
       return `${base}${times} ${unit}per Overload this turn`;
+    case 'timeline':
+      return `${base}${times} ${unit}per delayed effect waiting`;
   }
 }
 
@@ -58,7 +61,7 @@ function damageText(e: Extract<Effect, { kind: 'damage' }>, preview?: Preview): 
 
   const s = preview.state;
   const target = (preview.targetId && getCombatant(s, preview.targetId)) || livingEnemies(s)[0] || dummy();
-  const final = attackDamage(s, s.player, target, resolveAmount(e.amount, s.player, target, s.overloadsThisTurn));
+  const final = attackDamage(s, s.player, target, resolveAmount(e.amount, s.player, target, countsOf(s)));
   return `Deal ${final}${hits}${suffix}.`;
 }
 
@@ -105,6 +108,15 @@ function effectText(e: Effect, preview?: Preview): string {
       return 'Your Ward no longer fades.';
     case 'clearWard':
       return 'Lose all Ward.';
+    case 'delay':
+      // Shown with base numbers: the live modifiers may differ when it lands.
+      return `In ${e.turns} turn${e.turns === 1 ? '' : 's'}: ${describeEffects(e.effects)}`;
+    case 'hasten':
+      return `Your delayed effects arrive ${e.turns} turn${e.turns === 1 ? '' : 's'} sooner.`;
+    case 'rewind':
+      return e.count === 1
+        ? 'Return the last card in your discard pile to your hand.'
+        : `Return the last ${e.count} cards in your discard pile to your hand.`;
     case 'if': {
       const then = describeEffects(e.then, preview);
       const otherwise = e.else?.length ? ` Otherwise: ${describeEffects(e.else, preview)}` : '';
@@ -122,6 +134,7 @@ export function describeCard(def: CardDef, preview?: Preview): string {
   if (def.unplayable) parts.push('Unplayable.');
   parts.push(def.text ?? describeEffects(def.effects, preview));
   if (def.inHandAtTurnEnd) parts.push(`If held at end of turn: ${describeEffects(def.inHandAtTurnEnd)}`);
+  if (def.echo) parts.push('Echo.');
   if (def.fade) parts.push('Fade.');
   return parts.filter(Boolean).join(' ');
 }
@@ -138,6 +151,8 @@ function triggerPrefix(t: Trigger): string {
       return t.cardType ? `Whenever you play a ${TYPE_NAMES[t.cardType]}` : 'Whenever you play a card';
     case 'gainedStatus':
       return t.status ? `Whenever you gain ${statusName(t.status)}` : 'Whenever you gain a status';
+    case 'delayFired':
+      return 'Whenever a delayed effect lands';
   }
 }
 

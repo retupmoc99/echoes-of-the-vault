@@ -17,7 +17,7 @@ import { defaultCombatModifiers } from '../combat/combat';
 import type { Echo, NextLoop, OutpostState, RunState, WorldState } from '../types';
 
 export const SAVE_KEY = 'eotv.save';
-export const SAVE_VERSION = 5;
+export const SAVE_VERSION = 6;
 
 export interface MetaProgress {
   /** Loops completed, by any means. */
@@ -126,6 +126,23 @@ export const MIGRATIONS: Record<number, Migration> = {
       hintsSeen: v4.meta.loops > 0 ? ['outpost-welcome', 'map-first', 'combat-cards', 'combat-intents'] : [],
     },
   }),
+
+  // v5 → v6: a second Warden class. Everything that existed before was the
+  // Relic-Breaker's. Fights in progress gain an empty timeline and Echo queue.
+  5: (v5: Loose) => {
+    const tagEcho = (e: Loose) => (e ? { ...e, origin: { classId: 'relic-breaker', ...e.origin } } : e);
+    if (v5.run?.combat) {
+      v5.run.combat.timeline = [];
+      v5.run.combat.echoQueue = [];
+    }
+    return {
+      ...v5,
+      version: 6,
+      outpost: { ...v5.outpost, classId: 'relic-breaker' },
+      echoes: v5.echoes.map(tagEcho),
+      pendingEcho: tagEcho(v5.pendingEcho),
+    };
+  },
 };
 
 /** The idle-layer defaults as they were introduced in v4 (history: do not change). */
@@ -138,7 +155,7 @@ function idleDefaults(now: number) {
     nextLoop: null,
     echoes: [],
     pendingEcho: null,
-    outpost: { shards: 0, unlocks: [], research: { completed: 0, progress: 0 }, cards: [], lore: [], scouting: 0, kitId: 'standard' },
+    outpost: { shards: 0, unlocks: [], research: { completed: 0, progress: 0 }, cards: [], lore: [], scouting: 0, classId: 'relic-breaker', kitId: 'standard' },
     idle: { lastTickAt: now },
     world: { factions: {}, awakening: { stage: 0, progress: 0 } },
     settings: { haptics: true, hints: true, hintsSeen: [] as string[] },

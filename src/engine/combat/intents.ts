@@ -40,7 +40,7 @@ export function previewIntent(s: CombatState, enemy: EnemyState, content: Conten
     for (const e of effects) {
       if (e.kind === 'damage') {
         kinds.add('attack');
-        damage = attackDamage(s, enemy, s.player, resolveAmount(e.amount, enemy, s.player, 0));
+        damage = attackDamage(s, enemy, s.player, resolveAmount(e.amount, enemy, s.player));
         hits = e.hits ?? 1;
       } else if (e.kind === 'ward') kinds.add('defend');
       else if (e.kind === 'applyStatus') kinds.add(e.target === 'self' ? 'buff' : 'debuff');

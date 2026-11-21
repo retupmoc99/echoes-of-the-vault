@@ -29,7 +29,7 @@ describe('save codes', () => {
 
   it('keeps non-ASCII text intact', () => {
     const save = richSave();
-    save.echoes = [{ id: 'e', name: 'Ydris, Who Wept Light ✶ ’', traitId: 'faded', deckSnapshot: [], origin: { loop: 1, result: 'death', depth: 1, peakCorruption: 0, vaultShiftId: 'still-vault' }, stability: 1, maxStability: 1, task: null, createdAt: 0 }];
+    save.echoes = [{ id: 'e', name: 'Ydris, Who Wept Light ✶ ’', traitId: 'faded', deckSnapshot: [], origin: { classId: 'relic-breaker', loop: 1, result: 'death', depth: 1, peakCorruption: 0, vaultShiftId: 'still-vault' }, stability: 1, maxStability: 1, task: null, createdAt: 0 }];
     const back = importSave(exportSave(save));
     expect(back.ok && back.save.echoes[0].name).toBe('Ydris, Who Wept Light ✶ ’');
   });
@@ -68,5 +68,26 @@ describe('v4 → v5 (hints)', () => {
     const fresh = loadSave(storage({ ...base, meta: { loops: 0, victories: 0, deaths: 0 } }));
     expect(veteran.status === 'ok' && veteran.save.settings.hintsSeen).toContain('combat-cards');
     expect(fresh.status === 'ok' && fresh.save.settings.hintsSeen).toEqual([]);
+  });
+});
+
+describe('v5 → v6 (second Warden)', () => {
+  it('tags existing progress as the Relic-Breaker’s and gives live fights a timeline', () => {
+    const run = createRun({ seed: 'v6', classId: 'relic-breaker' }, CONTENT);
+    const live = stepRun(run, { type: 'chooseNode', nodeId: run.map.startIds[0] }, CONTENT).run;
+    const old = JSON.parse(JSON.stringify(live));
+    delete old.combat.timeline;
+    delete old.combat.echoQueue;
+    const echo = { id: 'e', name: 'Old One', traitId: 'faded', deckSnapshot: [], origin: { loop: 1, result: 'death', depth: 1, peakCorruption: 0, vaultShiftId: 'still-vault' }, stability: 5, maxStability: 5, task: null, createdAt: 0 };
+    const base = newSave(0);
+    const v5 = { ...base, version: 5, run: old, echoes: [echo], outpost: { ...base.outpost, classId: undefined } };
+    const m: Record<string, string> = { [SAVE_KEY]: JSON.stringify(v5) };
+    const loaded = loadSave({ getItem: (k) => m[k] ?? null, setItem: (k, v) => void (m[k] = v) });
+    expect(loaded.status).toBe('ok');
+    if (loaded.status !== 'ok') return;
+    expect(loaded.save.outpost.classId).toBe('relic-breaker');
+    expect(loaded.save.echoes[0].origin.classId).toBe('relic-breaker');
+    expect(loaded.save.run!.combat).toMatchObject({ timeline: [], echoQueue: [] });
+    expect(stepRun(loaded.save.run!, { type: 'combat', action: { type: 'endTurn' } }, CONTENT).error).toBeUndefined();
   });
 });

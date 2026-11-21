@@ -11,6 +11,7 @@ import { BALANCE } from '../../data/balance';
 import { PLAYER_ID, livingEnemies, needsTarget, type CombatAction, type CombatState } from '../../engine';
 import { backgroundFor } from '../art';
 import { HintSlot } from '../hints';
+import { TimelineStrip } from '../components/TimelineStrip';
 import { onFx } from '../fx/fxBus';
 import { buzz, HAPTIC } from '../fx/haptics';
 import { useHitFx } from '../fx/useHitFx';
@@ -125,6 +126,9 @@ export function CombatScreen({ state, error, label, tier, dispatch, onMenu, onCo
           ['combat-cards', true],
           ['combat-intents', true],
           ['overload', state.piles.hand.some((c) => CONTENT.cards[c.cardId].type === 'overload')],
+          ['timeline', state.timeline.length > 0],
+          ['echo-copy', state.piles.hand.some((c) => c.ephemeral)],
+          ['paradox', (state.player.statuses.paradox ?? 0) > 0],
           ['statuses', [state.player, ...state.enemies].some((c) => Object.keys(c.statuses).length > 0)],
         ]}
       />
@@ -164,6 +168,8 @@ export function CombatScreen({ state, error, label, tier, dispatch, onMenu, onCo
           <StatusChips statuses={state.player.statuses} onInspect={setInfo} />
         </div>
       </section>
+
+      <TimelineStrip entries={state.timeline} onInspect={setInfo} />
 
       <section className="detail-slot">
         {selected && selectedDef && (

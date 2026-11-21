@@ -57,11 +57,20 @@ export const TEST_CONTENT: Content = {
     card('curse', 0, [], { unplayable: true, type: 'curse' }),
     card('burning-curse', 0, [], { unplayable: true, type: 'curse', inHandAtTurnEnd: [{ kind: 'loseHp', amount: 3 }] }),
     card('feedback', 0, [{ kind: 'damage', amount: { per: 'overloadsThisTurn', times: 4, plus: 1 } }]),
+    // Time mechanics
+    card('fuse', 0, [{ kind: 'delay', turns: 2, effects: [{ kind: 'damage', amount: 10 }] }], { type: 'temporal' }),
+    card('hasten', 0, [{ kind: 'hasten', turns: 1 }], { type: 'temporal' }),
+    card('flick', 0, [{ kind: 'damage', amount: 3 }], { echo: true }),
+    card('rewind', 0, [{ kind: 'rewind', count: 1 }], { type: 'temporal' }),
+    card('rewind2', 0, [{ kind: 'rewind', count: 2 }], { type: 'temporal' }),
+    card('paradox3', 0, [{ kind: 'applyStatus', status: 'paradox', amount: 3, target: 'self' }], { type: 'rite' }),
+    card('tick', 0, [{ kind: 'damage', amount: { per: 'timeline', times: 4, plus: 1 } }]),
   ]),
   relics: list([
     relic('zapper', { overload: [{ kind: 'damage', amount: 4, target: 'allFoes' }] }),
     relic('shield', { overload: [{ kind: 'ward', amount: 10 }], maxStrain: 2 }),
     relic('prism', { passive: [{ on: 'gainedStatus', status: 'fracture', effects: [{ kind: 'ward', amount: 3 }] }] }),
+    relic('hourglass', { passive: [{ on: 'delayFired', effects: [{ kind: 'ward', amount: 3 }] }] }),
   ]),
   enemies: list([
     enemy('dummy', 100, { wait: { name: 'Wait', effects: [] } }, { kind: 'cycle', order: ['wait'] }),

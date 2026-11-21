@@ -4,6 +4,8 @@
  */
 import type { Content } from '../engine/types';
 import { RELIC_BREAKER_CARDS } from './cards/relicBreaker';
+import { HOUR_THIEF_CARDS } from './cards/hourThief';
+import { HOUR_THIEF } from './classes/hourThief';
 import { RELIC_BREAKER } from './classes/relicBreaker';
 import { ENCOUNTERS, ENEMIES } from './enemies/enemies';
 import { EVENTS } from './events/events';
@@ -21,8 +23,8 @@ function byId<T extends { id: string }>(items: T[]): Record<string, T> {
 }
 
 export const CONTENT: Content = {
-  classes: byId([RELIC_BREAKER]),
-  cards: byId(RELIC_BREAKER_CARDS),
+  classes: byId([RELIC_BREAKER, HOUR_THIEF]),
+  cards: byId([...RELIC_BREAKER_CARDS, ...HOUR_THIEF_CARDS]),
   relics: byId(RELICS),
   enemies: byId(ENEMIES),
   encounters: byId(ENCOUNTERS),

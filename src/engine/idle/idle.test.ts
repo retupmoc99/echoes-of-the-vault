@@ -241,3 +241,57 @@ describe('Outpost options inside a loop', () => {
     expect(stepRun(shrine, { type: 'shrinePurge' }, CONTENT).run.corruption).toBe(4 - BALANCE.outpost.purgeAmount);
   });
 });
+
+describe('Warden classes', () => {
+  it('the Hour-Thief needs The Stolen Hour; then the next loop is an Hour-Thief loop', () => {
+    const s = newSave(T0);
+    expect(outpostStep(s, { type: 'selectClass', classId: 'hour-thief' }, T0, CONTENT).error).toMatch(/not yet yours/);
+
+    const owned = { ...s, outpost: { ...s.outpost, unlocks: ['stolen-hour'] } };
+    const picked = outpostStep(owned, { type: 'selectClass', classId: 'hour-thief' }, T0, CONTENT).save;
+    expect(picked.outpost).toMatchObject({ classId: 'hour-thief', kitId: 'hour-standard' });
+
+    const run = outpostStep(picked, { type: 'startLoop' }, T0, CONTENT).save.run!;
+    expect(run.classId).toBe('hour-thief');
+    expect(run.relics).toEqual(['cracked-hourglass']);
+    expect(run.deck).toContain('slow-fuse');
+    expect(run.maxHp).toBe(BALANCE.player.hourThiefMaxHp);
+    expect(run.cardPool.every((id) => CONTENT.classes['hour-thief'].cardPool.includes(id))).toBe(true);
+    expect(run.cardPool).not.toContain('hour-bomb'); // locked until researched
+  });
+
+  it('switching class does not change the scouted map', () => {
+    const base = prepareNextLoop({ ...newSave(T0), outpost: { ...newSave(T0).outpost, unlocks: ['stolen-hour'] } }, CONTENT);
+    const rb = outpostStep(base, { type: 'startLoop' }, T0, CONTENT).save.run!;
+    const switched = outpostStep(base, { type: 'selectClass', classId: 'hour-thief' }, T0, CONTENT).save;
+    const ht = outpostStep(switched, { type: 'startLoop' }, T0, CONTENT).save.run!;
+    expect(ht.map).toEqual(rb.map);
+    expect(ht.vaultShiftId).toBe(rb.vaultShiftId);
+  });
+
+  it('Echoes remember which Warden ran their loop', () => {
+    const run = { ...endedRun('cls'), classId: 'hour-thief' };
+    expect(createEcho(run, 1, T0, CONTENT).origin.classId).toBe('hour-thief');
+  });
+
+  it('a whole Hour-Thief loop can be played to an ending', () => {
+    let r = createRun({ seed: 'ht-full', classId: 'hour-thief' }, CONTENT);
+    for (let i = 0; i < 5000 && r.phase !== 'ended'; i++) {
+      const n = r.node;
+      let action: Parameters<typeof stepRun>[1];
+      if (r.phase === 'map') action = { type: 'chooseNode', nodeId: r.position ? r.map.nodes[r.position].next[0] : r.map.startIds[0] };
+      else if (n?.kind === 'combat') {
+        const c = r.combat!;
+        const card = c.phase === 'player' ? c.piles.hand.find((h) => CONTENT.cards[h.cardId].cost <= c.resonance && !CONTENT.cards[h.cardId].unplayable) : undefined;
+        action = c.phase !== 'player' ? { type: 'leave' } : { type: 'combat', action: card ? { type: 'playCard', uid: card.uid } : { type: 'endTurn' } };
+      } else if (n?.kind === 'shrine') action = { type: 'shrineRest' };
+      else if (n?.kind === 'reward') action = n.cardTaken ? { type: 'leave' } : { type: 'pickCard', choice: 0 };
+      else if (n?.kind === 'event' && !n.resolved) action = { type: 'chooseOption', index: CONTENT.events[n.eventId].options.length - 1 };
+      else action = { type: 'leave' };
+      const res = stepRun(r, action, CONTENT);
+      if (res.error) throw new Error(`${res.error} on ${JSON.stringify(action)}`);
+      r = res.run;
+    }
+    expect(r.phase).toBe('ended');
+  });
+});

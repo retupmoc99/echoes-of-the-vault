@@ -3,15 +3,32 @@
  * Adding a new card never touches this file unless it needs a brand new
  * kind of effect.
  */
-import type { Amount, Combatant, Condition, Effect } from '../types';
+import type { Amount, CombatState, Combatant, Condition, Effect } from '../types';
 import { PLAYER_ID, foesOf, getCombatant, isAlive, isOver, type Ctx } from './context';
 import { dealAttack, gainWard, loseHp } from './damage';
 import { drawCards } from './deck';
 import { overloadRelics } from './relics';
 import { addStatus, removeStatus } from './statuses';
+import { advanceTimeline, queueDelay, rewind } from './time';
 
-/** `overloads` is how many relic Overloads happened this turn (player only). */
-export function resolveAmount(amount: Amount, source: Combatant, target: Combatant | undefined, overloads = 0): number {
+/** Counters some amounts scale with (they only apply to the player). */
+export interface AmountCounts {
+  /** Relic Overloads this turn. */
+  overloads: number;
+  /** Delayed effects waiting on the timeline. */
+  timeline: number;
+}
+
+export function countsOf(s: CombatState): AmountCounts {
+  return { overloads: s.overloadsThisTurn, timeline: s.timeline.length };
+}
+
+export function resolveAmount(
+  amount: Amount,
+  source: Combatant,
+  target: Combatant | undefined,
+  counts: AmountCounts = { overloads: 0, timeline: 0 },
+): number {
   if (typeof amount === 'number') return amount;
   const plus = amount.plus ?? 0;
   switch (amount.per) {
@@ -22,7 +39,9 @@ export function resolveAmount(amount: Amount, source: Combatant, target: Combata
     case 'selfWard':
       return plus + source.ward * amount.times;
     case 'overloadsThisTurn':
-      return plus + (source.id === PLAYER_ID ? overloads : 0) * amount.times;
+      return plus + (source.id === PLAYER_ID ? counts.overloads : 0) * amount.times;
+    case 'timeline':
+      return plus + (source.id === PLAYER_ID ? counts.timeline : 0) * amount.times;
   }
 }
 
@@ -53,17 +72,17 @@ function resolveEffect(ctx: Ctx, effect: Effect, source: Combatant, targetId: st
       const hits = effect.hits ?? 1;
       for (const target of targetsFor(ctx, effect.target ?? 'target', source, targetId)) {
         for (let i = 0; i < hits && target.hp > 0 && !isOver(ctx.s); i++) {
-          dealAttack(ctx, source, target, resolveAmount(effect.amount, source, target, ctx.s.overloadsThisTurn));
+          dealAttack(ctx, source, target, resolveAmount(effect.amount, source, target, countsOf(ctx.s)));
         }
       }
       return;
     }
     case 'ward':
-      gainWard(ctx, source, resolveAmount(effect.amount, source, undefined, ctx.s.overloadsThisTurn));
+      gainWard(ctx, source, resolveAmount(effect.amount, source, undefined, countsOf(ctx.s)));
       return;
     case 'applyStatus':
       for (const target of targetsFor(ctx, effect.target, source, targetId)) {
-        addStatus(ctx, target, effect.status, resolveAmount(effect.amount, source, target, ctx.s.overloadsThisTurn));
+        addStatus(ctx, target, effect.status, resolveAmount(effect.amount, source, target, countsOf(ctx.s)));
       }
       return;
     case 'removeStatus':
@@ -102,6 +121,15 @@ function resolveEffect(ctx: Ctx, effect: Effect, source: Combatant, targetId: st
     case 'clearWard':
       ctx.s.player.ward = 0;
       return;
+    case 'delay':
+      queueDelay(ctx, effect.effects, effect.turns, targetId);
+      return;
+    case 'hasten':
+      advanceTimeline(ctx, effect.turns);
+      return;
+    case 'rewind':
+      rewind(ctx, effect.count);
+      return;
   }
 }
 
@@ -122,6 +150,7 @@ function checkCondition(ctx: Ctx, cond: Condition, source: Combatant, targetId: 
 export function needsTarget(effects: Effect[]): boolean {
   return effects.some((e) => {
     if (e.kind === 'if') return needsTarget(e.then) || needsTarget(e.else ?? []);
+    if (e.kind === 'delay') return needsTarget(e.effects);
     if (e.kind === 'damage') return (e.target ?? 'target') === 'target';
     if (e.kind === 'applyStatus' || e.kind === 'removeStatus') return e.target === 'target';
     return false;

@@ -4,7 +4,7 @@
  * applies it.
  */
 import { BALANCE } from '../../data/balance';
-import type { CombatState, Combatant } from '../types';
+import type { CombatState, Combatant, HpLossCause } from '../types';
 import { PLAYER_ID, type Ctx } from './context';
 
 /**
@@ -31,7 +31,7 @@ export function dealAttack(ctx: Ctx, attacker: Combatant, defender: Combatant, b
 }
 
 /** Direct HP loss (Bleed, Fracture, self-harm). Ignores Ward. */
-export function loseHp(ctx: Ctx, target: Combatant, amount: number, cause: 'bleed' | 'fracture' | 'effect'): void {
+export function loseHp(ctx: Ctx, target: Combatant, amount: number, cause: HpLossCause): void {
   if (amount <= 0 || target.hp <= 0) return;
   ctx.events.push({ type: 'hpLoss', targetId: target.id, amount, cause });
   reduceHp(ctx, target, amount);

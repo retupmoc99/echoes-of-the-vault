@@ -23,6 +23,7 @@ export function drawCards(ctx: Ctx, count: number): void {
 
 export function discardHand(ctx: Ctx): void {
   const piles = ctx.s.piles;
-  piles.discard.push(...piles.hand);
+  // Unplayed Echo copies fade instead of going to the discard pile.
+  piles.discard.push(...piles.hand.filter((c) => !c.ephemeral));
   piles.hand = [];
 }

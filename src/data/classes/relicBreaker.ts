@@ -44,5 +44,6 @@ export const RELIC_BREAKER: WardenClassDef = {
       unlock: 'kit-bastion',
     },
   ],
+  summary: 'Overload ancient relics and crack yourself open for power. Brutal now, costly later.',
   flavor: 'They break what the ancients built, and are broken by it in turn.',
 };

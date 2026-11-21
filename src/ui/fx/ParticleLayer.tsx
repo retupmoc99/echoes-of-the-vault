@@ -107,6 +107,16 @@ export function ParticleLayer() {
         case 'relicCracked':
           burst(centerOf(`relic-${e.relicId}`) ?? centerOf('player'), 15, 26, 160);
           return;
+        case 'delayFired':
+          burst((e.targetId && centerOf(e.targetId)) || centerOf('player'), 165, 28, 180);
+          return;
+        case 'paradoxSnap':
+          burst(centerOf('player'), 165, 40, 240);
+          return;
+        case 'echoReturned':
+        case 'rewound':
+          burst(centerOf('player'), 175, 10, 70);
+          return;
       }
     };
     const unsubscribe = onFx(onEvent);

@@ -16,6 +16,7 @@ export type OutpostAction =
   | { type: 'keepPending'; replaceId?: string }
   | { type: 'releasePending' }
   | { type: 'releaseEcho'; echoId: string }
+  | { type: 'selectClass'; classId: string }
   | { type: 'selectKit'; kitId: string }
   | { type: 'ringBell' }
   | { type: 'startLoop' }
@@ -63,8 +64,15 @@ function apply(s: SaveData, action: OutpostAction, now: number, content: Content
     case 'releaseEcho':
       if (!s.echoes.some((e) => e.id === action.echoId)) return 'That Echo is gone.';
       return { ...s, echoes: s.echoes.filter((e) => e.id !== action.echoId) };
+    case 'selectClass': {
+      const cls = content.classes[action.classId];
+      if (!cls) return 'No such Warden.';
+      if (cls.unlock && !s.outpost.unlocks.includes(cls.unlock)) return 'That Warden is not yet yours.';
+      // Each class has its own kits; switching picks its default kit.
+      return { ...s, outpost: { ...s.outpost, classId: cls.id, kitId: cls.kits[0].id } };
+    }
     case 'selectKit': {
-      const kit = content.classes['relic-breaker'].kits.find((k) => k.id === action.kitId);
+      const kit = content.classes[s.outpost.classId].kits.find((k) => k.id === action.kitId);
       if (!kit) return 'No such kit.';
       if (kit.unlock && !s.outpost.unlocks.includes(kit.unlock)) return 'That kit is not yet yours.';
       return { ...s, outpost: { ...s.outpost, kitId: kit.id } };

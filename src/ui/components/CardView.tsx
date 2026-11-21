@@ -16,13 +16,16 @@ interface Props {
 export function CardView({ card, preview, affordable, selected, variant, onClick }: Props) {
   const def = CONTENT.cards[card.cardId];
   const hue = CARD_HUE[def.type];
-  const classes = ['card', `card-${variant}`, selected && 'selected', !affordable && 'unaffordable'].filter(Boolean).join(' ');
+  const classes = ['card', `card-${variant}`, selected && 'selected', !affordable && 'unaffordable', card.ephemeral && 'ephemeral']
+    .filter(Boolean)
+    .join(' ');
 
   return (
     <button className={classes} style={{ ['--hue' as string]: hue }} onClick={onClick} data-card-uid={card.uid}>
       <ArtImg src={artUrl('cards', def.id, def.image)} className="card-art" fallback={null} />
       <span className="card-cost">{def.unplayable ? '—' : def.cost}</span>
       <span className="card-name">{def.name}</span>
+      {card.ephemeral && <span className="echo-tag">Echo · fades</span>}
       {variant === 'detail' && <span className="card-type">{CARD_TYPE_LABEL[def.type]}</span>}
       <span className="card-text">{describeCard(def, preview)}</span>
       {variant === 'detail' && <span className="card-flavor">{def.flavor}</span>}

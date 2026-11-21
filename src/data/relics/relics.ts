@@ -91,4 +91,70 @@ export const RELICS: RelicDef[] = [
     overload: [{ kind: 'damage', amount: 10, target: 'allFoes' }],
     flavor: 'It burns on whatever is closest. You are always closest.',
   },
+
+  // ─── Hour-Thief relics ───
+  {
+    id: 'cracked-hourglass',
+    name: 'Cracked Hourglass',
+    rarity: 'starter',
+    passive: [{ on: 'delayFired', effects: [{ kind: 'ward', amount: 3 }] }],
+    flavor: 'The sand runs both ways now.',
+  },
+  {
+    id: 'stopped-clock',
+    name: 'Stopped Clock',
+    rarity: 'common',
+    passive: [
+      {
+        on: 'turnEnd',
+        effects: [{ kind: 'if', cond: { kind: 'selfStatusAtLeast', status: 'paradox', n: 3 }, then: [{ kind: 'ward', amount: 6 }] }],
+      },
+    ],
+    flavor: 'Right twice a day. Wrong forever in between.',
+  },
+  {
+    id: 'gilded-gear',
+    name: 'Gilded Gear',
+    rarity: 'common',
+    passive: [{ on: 'cardPlayed', cardType: 'temporal', effects: [{ kind: 'damage', amount: 2, target: 'allFoes' }] }],
+    flavor: 'One tooth of a machine that turned the stars.',
+  },
+  {
+    id: 'reversed-compass',
+    name: 'Reversed Compass',
+    rarity: 'uncommon',
+    passive: [{ on: 'gainedStatus', status: 'paradox', effects: [{ kind: 'damage', amount: 2, target: 'allFoes' }] }],
+    flavor: 'It points at where you have already been.',
+  },
+  {
+    id: 'last-breath-locket',
+    name: 'Last-Breath Locket',
+    rarity: 'uncommon',
+    passive: [{ on: 'combatStart', effects: [{ kind: 'delay', turns: 3, effects: [{ kind: 'damage', amount: 12, target: 'allFoes' }] }] }],
+    flavor: 'Open it, and someone’s final moment spills out.',
+  },
+  {
+    id: 'pendulum-of-ash',
+    name: 'Pendulum of Ash',
+    rarity: 'rare',
+    corruption: 1,
+    passive: [
+      {
+        on: 'turnStart',
+        effects: [
+          { kind: 'gainResonance', amount: 1 },
+          { kind: 'applyStatus', status: 'paradox', amount: 1, target: 'self' },
+        ],
+      },
+    ],
+    flavor: 'Each swing buys you a moment. Each swing costs one.',
+  },
+  {
+    id: 'thief-of-moments',
+    name: 'Thief of Moments',
+    rarity: 'rare',
+    corruption: 2,
+    passive: [{ on: 'turnStart', effects: [{ kind: 'draw', amount: 1 }] }],
+    flavor: 'It steals for you. It keeps a share.',
+  },
 ];

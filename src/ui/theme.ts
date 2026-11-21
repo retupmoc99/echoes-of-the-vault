@@ -6,6 +6,7 @@ export const CARD_HUE: Record<CardType, number> = {
   ward: 190, // cold cyan
   overload: 275, // violet arc
   rite: 42, // tarnished gold
+  temporal: 165, // pale jade
   curse: 95, // sick green
 };
 
@@ -14,6 +15,7 @@ export const CARD_TYPE_LABEL: Record<CardType, string> = {
   ward: 'Ward',
   overload: 'Overload',
   rite: 'Rite',
+  temporal: 'Temporal',
   curse: 'Curse',
 };
 
