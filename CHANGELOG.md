@@ -1,0 +1,94 @@
+# Changelog
+
+## 0.5.0 — Milestone 5: Visual polish, PWA and the art pipeline (2026-11-20)
+
+### Added
+- **PWA:**
+  - Installable to the home screen, with a manifest, code-drawn icons (`npm run icons`) and iOS support.
+  - Plays fully offline: the app shell is precached and art is cached on first view.
+  - An in-game "new version ready" prompt.
+- **Polish:**
+  - Bundled Inter and Cinzel fonts.
+  - A canvas particle layer (ambient motes; bursts on hits, Ward, deaths and Overloads).
+  - Card flight on play, enemy lunges, pulsing attack intents, and an End Turn hint when out of moves.
+  - A haptics setting; reduced-motion support.
+- **Art slots:**
+  - Optional images for every card, enemy, relic, map node and background (including per-Vault-Shift backgrounds), with code-drawn fallbacks.
+  - `src/data/assets.generated.ts` lists the art that exists.
+- **`npm run art`:** converts `art-raw/` into spec-sized WebP, enforcing transparency and file-size budgets.
+- **`ART_GUIDE.md`:** specs, budgets, a shared ComfyUI style prompt and negative prompt, workflow and seed strategy, background removal, a prompt for every piece of content (30 cards, 11 enemies, 11 relics, 6 node icons, 8 backgrounds), and Blender guidance with render settings.
+- **Deployment:** a GitHub Pages workflow (tests, then build, then publish) and `netlify.toml`.
+
+### Changed
+- Build output moved to `dist/app/`, so `dist/assets/` holds only art.
+
+## 0.4.0 — Milestone 4: Echoes, the Outpost, offline progress and saving (2026-11-20)
+
+### Added
+- **Echoes:** every closed loop leaves one, with a generated name, a deck snapshot, one of 8 traits based on how the loop went, and a stability set by depth and outcome. 3 slots; a new Echo waits when they're full.
+- **Tasks:** Dig (Shards), Research (unlocks 6 locked cards and 6 lore fragments, alternating), Scout (reveals the next Vault Shift, then the first 4 rows of the real next map). Work drains stability until the Echo Unravels.
+- **Offline progress** from real timestamps, capped at 8 hours. It ticks every 15 seconds while open and catches up on return. A "while you were away" report appears after long absences.
+- **Outpost works** (460 Shards in total): two alternate starter kits, Second Sight, Shrine of Ash, The Shift Bell, Reliquary Key.
+- **The next loop is rolled in advance**, so scouting reveals exactly what you will face.
+- **Outpost screen** with Descend, Echoes, Works and Archive tabs. The end-of-loop screen previews the loop's Echo.
+- Save v4, with a migration that keeps loops in progress.
+- 22 new tests (130 total):
+  - idle math: rates, the 8-hour cap, a clock set backwards, small ticks equal one long absence, exact Unravel timing, trait modifiers
+  - research order and the locked card pool
+  - the scout preview matching the real map
+  - Echo slots and the pending Echo
+  - Outpost purchases, kits, the Shift Bell, and in-loop options
+  - the v3→v4 migration
+
+### Changed
+- Run reward pools come from the loop's own card pool (class pool minus unresearched cards).
+- Closing a loop moved from the save module to the idle module, since it now creates an Echo and rolls the next loop.
+
+## 0.3.0 — Milestone 3: Rewards, relics, events, Corruption and Vault Shifts (2026-11-20)
+
+### Added
+- **Card rewards** after every fight: pick 1 of 3, or take nothing. A **tainted** rare is also on offer at +1 Corruption. Elites also drop a relic.
+- **Corruption meter**, thresholds 3/6/9: enemies get tougher, rares get more common, and curses are planted at tiers 2 and 3.
+- **8 text events** with grim tradeoffs. Unaffordable options are shown but disabled, and random outcomes are seeded.
+- **5 Vault Shifts** (one per loop): Drowned Halls, Choir Awake, Fractured Sky, Restless Engines, Hollow Bargain.
+- **11 new cards** (30 total), including archetype bridges and 2 new curses. **7 new relics** (11 total), including 3 tainted ones.
+- Relic Caches offer a choice of 2 relics.
+- Engine:
+  - Combat rules (Bleed decay, Fracture strength, Strain limit, enemy bonuses) come from per-fight modifiers.
+  - New amounts: `plus`, `overloadsThisTurn`. New effect: `clearWard`.
+  - Curses can punish being held at end of turn.
+- UI: Reward, Event and Cache screens; Corruption meter; Vault Shift chip and loop intro; toast notices for curses and thresholds.
+- Save v3, with a migration that keeps loops in progress.
+- 29 new tests (108 total): Corruption tiers and curses, loot quality, reward rules, every Vault Shift, events (costs, disabled options, seeded outcomes), turn-end curses, the v2→v3 migration with a fight in progress.
+
+## 0.2.0 — Milestone 2: Map and the full run loop (2026-11-20)
+
+### Added
+- Seeded branching map: 8 rows plus the boss, paths never cross. At least one Elite and one Event per map.
+- Run loop engine (`src/engine/run/`): walk the map; HP, deck and relics carry between fights; victory on beating the boss, death on dying or abandoning.
+- Node types:
+  - Fight, Elite and Boss start a fight.
+  - Shrine: rest, or remove a card.
+  - Relic Cache: take one random class relic.
+  - Event: a placeholder until milestone 3.
+- New enemies: Rust Seraph, Vein Crawler, Ash Hound, Tithe Engine; elites Warden Unmade and Lens Tyrant; boss The Grieving Lock. Early and late encounter pools.
+- Screens: map (start at the bottom, tap twice to enter), Shrine, Relic Cache, Event, end of loop with stats, and a deck viewer. The outpost title screen shows Continue, Abandon (two taps) and loop records.
+- Save v2 with a real migration from the v1 sandbox save.
+- 27 new tests (79 total): map shape and fairness over 200 seeds, run flow, bot-played full loops, save/reload equivalence across a whole loop, the v1→v2 migration.
+
+### Changed
+- The milestone 1 combat sandbox is replaced by real loops.
+
+## 0.1.0 — Milestone 1: Engine and combat (2026-11-20)
+
+### Added
+- Project setup: Vite, React, TypeScript, Vitest.
+- Deterministic combat engine (`src/engine/`): seeded RNG, effect interpreter, 4 statuses (Fracture, Bleed, Weakened, Exposed), Ward, enemy intents, relic passives, Overload with Strain and cracking.
+- Relic-Breaker content: 19 cards across the Fracture, Ward, Overload and Bleed archetypes; 4 relics; 4 enemies in 4 encounters.
+- Rules text generated from card data, with live damage previews.
+- Versioned save system with migrations, backups of corrupt saves, and protection for saves from newer versions.
+- Combat sandbox UI: portrait layout, two-tap card play, code-drawn enemy sigils, floating numbers, hit flashes, screen shake, haptics. Auto-saves after every action.
+- 52 engine tests: combat math, statuses, intents, Overload, determinism, save/reload resume, content integrity.
+
+### Fixed
+- An enemy dying to Bleed on its own turn could hand control back to the player after the fight had already ended.

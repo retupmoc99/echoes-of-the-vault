@@ -1,0 +1,173 @@
+/**
+ * Versioned save data.
+ *
+ * Rules for future updates:
+ * 1. Never change the shape of SaveData without bumping SAVE_VERSION.
+ * 2. Add a migration MIGRATIONS[oldVersion] that turns version N into N+1.
+ * 3. Before migrating, the old raw save is copied to a backup key, so a bad
+ *    migration can never destroy progress.
+ * 4. Migrations describe history: they hard-code the content as it was,
+ *    rather than reading today's content files.
+ *
+ * Storage is anything with getItem/setItem (localStorage in the browser,
+ * an in-memory map in tests). Writes are synchronous so closing the tab
+ * right after an action cannot lose it.
+ */
+import { defaultCombatModifiers } from '../combat/combat';
+import type { Echo, NextLoop, OutpostState, RunState, WorldState } from '../types';
+
+export const SAVE_KEY = 'eotv.save';
+export const SAVE_VERSION = 4;
+
+export interface MetaProgress {
+  /** Loops completed, by any means. */
+  loops: number;
+  victories: number;
+  deaths: number;
+}
+
+export interface SaveData {
+  version: typeof SAVE_VERSION;
+  createdAt: number;
+  updatedAt: number;
+  /** The loop in progress, if any. Includes the live fight, if any. */
+  run: RunState | null;
+  meta: MetaProgress;
+  /** Pre-rolled next loop (null until the Outpost prepares one). */
+  nextLoop: NextLoop | null;
+  echoes: Echo[];
+  /** A new Echo waiting for a free slot (or to be released). */
+  pendingEcho: Echo | null;
+  outpost: OutpostState;
+  /** Last real time idle progress was counted up to. */
+  idle: { lastTickAt: number };
+  world: WorldState;
+  settings: { haptics: boolean };
+}
+
+export interface SaveStorage {
+  getItem(key: string): string | null;
+  setItem(key: string, value: string): void;
+}
+
+/* Migrations work on old, untyped shapes, so `any` is deliberate here. */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type Migration = (old: any) => any;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type Loose = any;
+
+/** The Relic-Breaker reward pool as it was in save v3 (milestone 3). */
+const V3_CARD_POOL = [
+  'twin-shards', 'hollow-vow', 'fault-line', 'blood-price', 'release-the-fault', 'glyph-wall', 'mirror-sigil',
+  'bulwark-slam', 'bastion-rite', 'arc-conduit', 'coolant-litany', 'cascade', 'serrate', 'hemorrhage-glyph',
+  'scar-tissue', 'crack-the-seal', 'sigil-lattice', 'rampart-breaker', 'spark-tithe', 'resonant-feedback',
+  'unbind', 'open-veins', 'red-harvest',
+];
+
+/** MIGRATIONS[n] upgrades a version-n save to version n+1. */
+export const MIGRATIONS: Record<number, Migration> = {
+  // v1 (milestone 1) only held a combat sandbox. Sandbox fights were not
+  // loops, so nothing carries over except the timestamps.
+  1: (v1: { createdAt: number; updatedAt: number }) => ({
+    version: 2,
+    createdAt: v1.createdAt,
+    updatedAt: v1.updatedAt,
+    run: null,
+    meta: { loops: 0, victories: 0, deaths: 0 },
+  }),
+
+  // v2 → v3 (milestone 3): runs gain Corruption, a Vault Shift, events seen,
+  // richer combat modifiers, and caches offer several relics. A loop in
+  // progress is kept and given the neutral "Still Vault" Shift.
+  2: (v2: { run: Loose }) => {
+    const run = v2.run;
+    if (run) {
+      run.corruption = 0;
+      run.vaultShiftId = 'still-vault';
+      run.seenEvents = [];
+      run.stats = { ...run.stats, peakCorruption: 0, cursesGained: 0 };
+      if (run.combat) run.combat.modifiers = { ...defaultCombatModifiers(), ...run.combat.modifiers };
+      if (run.node?.kind === 'cache') run.node = { kind: 'cache', nodeId: run.node.nodeId, relicIds: run.node.relicId ? [run.node.relicId] : [] };
+      // The old placeholder event had no choices: treat it as passed.
+      if (run.node?.kind === 'event') {
+        run.node = null;
+        run.phase = 'map';
+      }
+    }
+    return { ...v2, version: 3 };
+  },
+
+  // v3 → v4 (milestone 4): the idle layer. A loop in progress keeps the full
+  // card pool it already had. Idle time starts counting from the last save.
+  3: (v3: { run: Loose; updatedAt: number }) => {
+    if (v3.run) {
+      v3.run.cardPool = [...V3_CARD_POOL];
+      v3.run.options = { shrinePurge: false, cacheChoices: 2, rewardRerolls: 0 };
+    }
+    return { ...v3, version: 4, ...idleDefaults(v3.updatedAt) };
+  },
+};
+
+function idleDefaults(now: number) {
+  return {
+    nextLoop: null,
+    echoes: [],
+    pendingEcho: null,
+    outpost: { shards: 0, unlocks: [], research: { completed: 0, progress: 0 }, cards: [], lore: [], scouting: 0, kitId: 'standard' },
+    idle: { lastTickAt: now },
+    world: { factions: {}, awakening: { stage: 0, progress: 0 } },
+    settings: { haptics: true },
+  };
+}
+
+export function newSave(now: number): SaveData {
+  return {
+    version: SAVE_VERSION,
+    createdAt: now,
+    updatedAt: now,
+    run: null,
+    meta: { loops: 0, victories: 0, deaths: 0 },
+    ...idleDefaults(now),
+  };
+}
+
+export type LoadResult =
+  | { status: 'empty' }
+  | { status: 'ok'; save: SaveData; migratedFrom?: number }
+  | { status: 'corrupt'; backupKey: string }
+  | { status: 'tooNew'; version: number };
+
+export function loadSave(storage: SaveStorage, migrations: Record<number, Migration> = MIGRATIONS): LoadResult {
+  const raw = storage.getItem(SAVE_KEY);
+  if (raw === null) return { status: 'empty' };
+
+  let data: { version?: unknown };
+  try {
+    data = JSON.parse(raw);
+    if (typeof data !== 'object' || data === null || typeof data.version !== 'number') throw new Error('no version');
+  } catch {
+    const backupKey = `${SAVE_KEY}.corrupt.${Date.now()}`;
+    storage.setItem(backupKey, raw);
+    return { status: 'corrupt', backupKey };
+  }
+
+  const version = data.version as number;
+  // A save from a newer build: refuse to touch it rather than downgrade it.
+  if (version > SAVE_VERSION) return { status: 'tooNew', version };
+  if (version === SAVE_VERSION) return { status: 'ok', save: data as SaveData };
+
+  storage.setItem(`${SAVE_KEY}.backup.v${version}`, raw);
+  let migrated: unknown = data;
+  for (let v = version; v < SAVE_VERSION; v++) {
+    const migrate = migrations[v];
+    if (!migrate) throw new Error(`No migration from save version ${v}`);
+    migrated = migrate(migrated);
+  }
+  return { status: 'ok', save: migrated as SaveData, migratedFrom: version };
+}
+
+export function writeSave(storage: SaveStorage, save: SaveData, now: number): SaveData {
+  const stamped = { ...save, updatedAt: now };
+  storage.setItem(SAVE_KEY, JSON.stringify(stamped));
+  return stamped;
+}
