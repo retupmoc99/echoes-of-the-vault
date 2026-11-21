@@ -14,7 +14,7 @@ import { BackupPanel } from '../components/BackupPanel';
 import { HintSlot } from '../hints';
 import { EchoCard } from '../components/EchoCard';
 import { hapticsSupported } from '../fx/haptics';
-import { backgroundFor } from '../art';
+import { useScreenBackground } from '../art';
 import { NodeIcon } from '../components/NodeIcon';
 
 type Tab = 'descend' | 'echoes' | 'works' | 'archive';
@@ -34,10 +34,10 @@ export function OutpostScreen({ save, error, notice, outpost, onSettings, onEnte
   const [tab, setTab] = useState<Tab>(save.pendingEcho ? 'echoes' : 'descend');
   const [info, setInfo] = useState<string>();
   const shards = Math.floor(save.outpost.shards);
-  const bg = backgroundFor('outpost');
+  useScreenBackground('outpost');
 
   return (
-    <div className={`screen outpost ${bg.className}`} style={bg.style}>
+    <div className="screen outpost">
       <header className="outpost-head">
         <h1>The Outpost</h1>
         <span className="shards" aria-label={`${shards} Shards`}>

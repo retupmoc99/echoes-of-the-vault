@@ -1578,17 +1578,25 @@ button {
   z-index: 1;
 }
 
-/* Optional painted background (art pipeline); the gradient stays as fallback. */
-.has-bg {
-  background-size: cover;
-  background-position: center;
-}
-.has-bg::before {
+/* Optional painted background (art pipeline); the gradient stays as fallback.
+   A fixed layer on <body>, set by useScreenBackground(): it fills the whole
+   screen (wide screens included, past the 480px game column) and stays put
+   when combat shakes. #root sits above it and must stay transparent. */
+body.has-screen-art::before {
   content: '';
-  position: absolute;
+  position: fixed;
   inset: 0;
-  z-index: -1;
-  background: linear-gradient(180deg, hsl(260 30% 3% / 0.55), hsl(260 30% 3% / 0.85));
+  z-index: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, hsl(260 30% 3% / 0.55), hsl(260 30% 3% / 0.85)),
+    var(--screen-art) center / cover no-repeat,
+    var(--bg);
+}
+#root {
+  position: relative;
+  z-index: 1;
+  background: transparent;
 }
 
 /* Played card flies to its target and burns out. */

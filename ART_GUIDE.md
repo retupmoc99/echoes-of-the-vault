@@ -13,16 +13,20 @@ The game never waits on art. Every card, enemy, relic, node type and background 
 
 `art-raw/` is git-ignored. Keep your masters there (or anywhere) at full size.
 
-### Generating card art automatically
+### Generating art automatically
 With ComfyUI running locally (SDXL base and the LaxpeintXL LoRA installed), run:
 ```bash
-COMFY_URL=http://127.0.0.1:8188 npm run art:gen -- [card ids...] [--seeds 101,303] [--force]
+COMFY_URL=http://127.0.0.1:8188 npm run art:gen -- [ids...] [--folder cards|backgrounds] [--seeds 101,303] [--force]
 ```
-The script reads each card's prompt from the tables below, plus the style and negative prompts. It writes one image per seed to `art-raw/_candidates/cards/<id>_<seed>.png`. With no IDs, it does every card and skips images that already exist. Copy the keeper to `art-raw/cards/<id>.png` and run `npm run art`. `art-raw/_candidates/SEEDS.txt` records which seed won for each card.
+The script reads each item's prompt from the tables below (cards by default), plus the style and negative prompts. It writes one image per seed to `art-raw/_candidates/<folder>/<id>_<seed>.png`. With no IDs, it does every item in the folder and skips images that already exist. Copy the keeper to `art-raw/<folder>/<id>.png` and run `npm run art`. `art-raw/_candidates/SEEDS.txt` records which seed won for each image.
 
 Comfy Desktop users: the desktop app may not expose a local API. You can run the install's server directly, from its `ComfyUI` folder: `.venv/Scripts/python.exe main.py --port 8190 --extra-model-paths-config <yaml pointing at your models folder>`.
 
-**Current set (0.8.0):** all 55 cards, picked from ~180 generated images on an RTX 5080 (~6 s each). Weakest, worth a reroll: *Second Hand* (a clock, not a blade), *Loop the Moment* and *Unmake the Hour* (pale backgrounds), *Twin Shards* (pillars, not crossed blades). Enemies, relics and node icons still need a background-removal model before they can be generated.
+**Current set (0.9.0):**
+- All 55 cards, picked from ~180 generated images on an RTX 5080 (~6 s each). Weakest, worth a reroll: *Second Hand* (a clock, not a blade), *Loop the Moment*, *Unmake the Hour* and *Mirror Sigil* (pale backgrounds), *Twin Shards* (pillars, not crossed blades).
+- All 8 backgrounds: `npm run art:gen -- --folder backgrounds`. 768×1344 plus a built-in second pass (latent upscale ×1.5, denoise 0.45) to 1152×2016, ~16 s each.
+- Enemies, relics and node icons still need a background-removal model before they can be generated.
+
 You can also point a content entry at a specific file with its `image` field (path relative to `public/assets/`), e.g. `image: 'cards/shatter-lens-alt.webp'`.
 
 ## Specs
@@ -75,7 +79,7 @@ text, letters, watermark, signature, logo, frame, border, ui, white background, 
 - **Resolution** (generate at native SDXL buckets, then let the script resize):
   - cards 1152×864 (4:3)
   - enemies and relics 1024×1024
-  - backgrounds 768×1344 (9:16), upscaled ×1.5 with a tiled upscaler
+  - backgrounds 768×1344 (9:16), then a second pass: latent upscale ×1.5 and re-sample at denoise 0.45 (built-in nodes, no upscaler model needed)
   - node icons 1024×1024
 - **Sampler:** DPM++ 2M Karras, 28–34 steps, CFG 5–6.5. Low CFG keeps the glow soft.
 - **Seed strategy:**
@@ -213,11 +217,14 @@ Shared accent: **pale jade and silver** (Temporal cards), with ember for strikes
 Add to the negative prompt for icons: `scene, background detail, perspective`.
 
 #### Backgrounds (`art-raw/backgrounds/<key>.png`, 9:16)
+Add to the negative prompt: `person, figure, silhouette, character, monk, robed figure, moon, clouds`.
+Add to the style prompt: `vast empty environment, calm open space in the middle, tall vertical composition, environment concept art, mid-tones`. The game darkens these and puts UI on top, so a busy centre fights the cards and enemies.
+
 | Key | Prompt |
 |---|---|
-| outpost | a lonely outpost of salvaged relic-tech at the edge of vast black ruins, a single cold lantern, distant glowing vault gate |
-| vault | endless dark vault corridors of obsidian and rune-carved arches, faint violet light in the depths |
-| combat | a ruined circular arena inside the vault, cracked floor sigil, darkness pressing in from all sides |
+| outpost | a lonely outpost of salvaged relic-tech huddled in vast black ruins underground, a single cold blue lantern, a distant glowing vault gate, cold blue and teal light |
+| vault | endless dark vault corridors of obsidian and rune-carved arches receding into the distance, faint violet light in the depths, violet glow |
+| combat | a ruined circular arena deep inside the vault, a cracked glowing floor sigil in the foreground, darkness pressing in from all sides, ember-orange and crimson glow |
 | shift-drowned-halls | flooded vault halls, black water reflecting cyan runes, drowned statues |
 | shift-choir-awake | a vaulted chamber of singing crystal pillars, teal sound rings in the air |
 | shift-fractured-sky | a vault ceiling cracked open, blinding white light lancing down through fractures |

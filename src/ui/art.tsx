@@ -8,7 +8,7 @@
  *   (path relative to public/assets/).
  * - If an image fails to load anyway, <ArtImg> falls back to the drawn version.
  */
-import { useState, type CSSProperties, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { AVAILABLE_ART } from '../data/assets.generated';
 
 export type ArtFolder = 'cards' | 'enemies' | 'relics' | 'backgrounds' | 'ui';
@@ -35,11 +35,24 @@ export function ArtImg({ src, className, size, fallback }: ArtImgProps) {
   return <img className={className} src={src} width={size} height={size} alt="" loading="lazy" decoding="async" onError={() => setFailed(true)} />;
 }
 
-/** Background for a screen: the first key with art wins; otherwise the CSS gradient shows. */
-export function backgroundFor(...keys: string[]): { className: string; style?: CSSProperties } {
-  for (const key of keys) {
-    const url = artUrl('backgrounds', key);
-    if (url) return { className: 'has-bg', style: { backgroundImage: `url("${url}")` } };
-  }
-  return { className: '' };
+/**
+ * Sets the screen's background art: the first key with art wins; otherwise
+ * the CSS gradient shows.
+ *
+ * The image is drawn by a fixed layer on <body> (see `.has-screen-art` in
+ * styles.css), not by the screen itself. That way it fills wide screens
+ * beyond the 480px game column, and doesn't jump when combat shakes.
+ */
+export function useScreenBackground(...keys: string[]): void {
+  const url = keys.map((k) => artUrl('backgrounds', k)).find(Boolean);
+  useEffect(() => {
+    if (!url) return;
+    const body = document.body;
+    body.style.setProperty('--screen-art', `url("${url}")`);
+    body.classList.add('has-screen-art');
+    return () => {
+      body.classList.remove('has-screen-art');
+      body.style.removeProperty('--screen-art');
+    };
+  }, [url]);
 }

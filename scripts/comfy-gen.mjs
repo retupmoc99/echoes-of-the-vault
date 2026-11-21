@@ -1,17 +1,20 @@
 /**
- * Generate card art candidates with a local ComfyUI server.
+ * Generate art candidates with a local ComfyUI server.
  *
- *   npm run art:gen -- [ids...] [--seeds 101,303] [--force]
+ *   npm run art:gen -- [ids...] [--folder cards|backgrounds] [--seeds 101,303] [--force]
  *
- * Prompts come straight from the card tables in ART_GUIDE.md, so the guide
- * stays the single source. Each card gets one image per seed, written to
- * art-raw/_candidates/cards/<id>_<seed>.png. Copy the keeper to
- * art-raw/cards/<id>.png and run `npm run art`.
+ * Prompts come straight from the tables in ART_GUIDE.md, so the guide stays
+ * the single source. Each item gets one image per seed, written to
+ * art-raw/_candidates/<folder>/<id>_<seed>.png. Copy the keeper to
+ * art-raw/<folder>/<id>.png and run `npm run art`.
  *
  * Settings match "Tested setup" in ART_GUIDE.md. Point COMFY_URL at your
  * server (default http://127.0.0.1:8188). Model and LoRA names can be
  * overridden with COMFY_CKPT and COMFY_LORA (set COMFY_LORA= to skip it).
  * Existing candidates are skipped unless --force is passed.
+ *
+ * Only folders without transparency are supported: enemies, relics and
+ * node icons also need a background-removal step.
  */
 import { existsSync } from 'node:fs';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
@@ -21,7 +24,30 @@ const API = process.env.COMFY_URL ?? 'http://127.0.0.1:8188';
 const CKPT = process.env.COMFY_CKPT ?? 'sd_xl_base_1.0.safetensors';
 const LORA = process.env.COMFY_LORA ?? 'LaxpeintXL-2.0.safetensors';
 const LORA_STRENGTH = 0.45;
-const OUT = path.resolve('art-raw/_candidates/cards');
+
+/**
+ * Per-folder setup. `upscale` adds a second pass ("hires fix"): the latent
+ * is enlarged and re-sampled at partial denoise, which adds real detail
+ * using only built-in nodes (no upscaler model to download).
+ */
+const FOLDERS = {
+  cards: { sections: ['#### Cards (', '#### Hour-Thief cards'], width: 1152, height: 864 },
+  backgrounds: { sections: ['#### Backgrounds ('], width: 768, height: 1344, upscale: { by: 1.5, denoise: 0.45, steps: 20 } },
+};
+
+// --- Arguments ---------------------------------------------------------------
+
+const args = process.argv.slice(2);
+const flag = (name) => {
+  const i = args.indexOf(name);
+  return i < 0 ? undefined : args.splice(i, 2)[1];
+};
+const folder = flag('--folder') ?? 'cards';
+const setup = FOLDERS[folder];
+if (!setup) throw new Error(`--folder must be one of: ${Object.keys(FOLDERS).join(', ')}`);
+const seeds = (flag('--seeds') ?? '101,303').split(',').map(Number);
+const force = args.includes('--force');
+const wanted = args.filter((a) => !a.startsWith('--'));
 
 // --- Read prompts from ART_GUIDE.md -----------------------------------------
 
@@ -40,30 +66,22 @@ const comfy = guide.slice(guide.indexOf('## ComfyUI'));
 const [STYLE, NEGATIVE] = [...comfy.matchAll(/```\n([^`]+?)\n```/g)].map((m) => m[1].trim());
 if (!STYLE || !NEGATIVE) throw new Error('ART_GUIDE.md: style or negative prompt block not found under "## ComfyUI"');
 
-const heroSection = sectionOf('#### Hour-Thief cards');
-const heroExtra = heroSection.match(/Add to the style prompt: `([^`]+)`/)?.[1] ?? '';
-const CARDS = [
-  ...rows(sectionOf('#### Cards (')).map((r) => ({ ...r, extra: '' })),
-  ...rows(heroSection).map((r) => ({ ...r, extra: heroExtra })),
-];
-
-// --- Arguments ---------------------------------------------------------------
-
-const args = process.argv.slice(2);
-const flag = (name) => {
-  const i = args.indexOf(name);
-  return i < 0 ? undefined : args.splice(i, 2)[1];
-};
-const seeds = (flag('--seeds') ?? '101,303').split(',').map(Number);
-const force = args.includes('--force');
-const wanted = args.filter((a) => !a.startsWith('--'));
-const unknown = wanted.filter((id) => !CARDS.some((c) => c.id === id));
-if (unknown.length) throw new Error(`Not in ART_GUIDE.md: ${unknown.join(', ')}`);
-const cards = wanted.length ? CARDS.filter((c) => wanted.includes(c.id)) : CARDS;
+// A section can add to the prompts with lines like
+//   Add to the style prompt: `...`    Add to the negative prompt: `...`
+const ITEMS = setup.sections.flatMap((heading) => {
+  const section = sectionOf(heading);
+  const extra = section.match(/Add to the style prompt: `([^`]+)`/)?.[1] ?? '';
+  const extraNeg = section.match(/Add to the negative prompt[^:\n]*: `([^`]+)`/)?.[1] ?? '';
+  return rows(section).map((r) => ({ ...r, extra, extraNeg }));
+});
+const unknown = wanted.filter((id) => !ITEMS.some((c) => c.id === id));
+if (unknown.length) throw new Error(`Not in ART_GUIDE.md (${folder}): ${unknown.join(', ')}`);
+const items = wanted.length ? ITEMS.filter((c) => wanted.includes(c.id)) : ITEMS;
+const OUT = path.resolve('art-raw/_candidates', folder);
 
 // --- ComfyUI -----------------------------------------------------------------
 
-function graph(card, seed) {
+function graph(item, seed) {
   const g = { ckpt: { class_type: 'CheckpointLoaderSimple', inputs: { ckpt_name: CKPT } } };
   let model = ['ckpt', 0];
   let clip = ['ckpt', 1];
@@ -73,18 +91,24 @@ function graph(card, seed) {
     clip = ['lora', 1];
   }
   // Subject first: with the style in front, SDXL ignores the subject.
-  const text = [card.prompt, STYLE, card.extra].filter(Boolean).join(', ');
-  return Object.assign(g, {
+  const text = [item.prompt, STYLE, item.extra].filter(Boolean).join(', ');
+  const sampler = { model, positive: ['pos', 0], negative: ['neg', 0], seed, cfg: 6, sampler_name: 'dpmpp_2m', scheduler: 'karras' };
+  Object.assign(g, {
     pos: { class_type: 'CLIPTextEncode', inputs: { clip, text } },
-    neg: { class_type: 'CLIPTextEncode', inputs: { clip, text: NEGATIVE } },
-    lat: { class_type: 'EmptyLatentImage', inputs: { width: 1152, height: 864, batch_size: 1 } },
-    ks: {
-      class_type: 'KSampler',
-      inputs: { model, positive: ['pos', 0], negative: ['neg', 0], latent_image: ['lat', 0], seed, steps: 30, cfg: 6, sampler_name: 'dpmpp_2m', scheduler: 'karras', denoise: 1 },
-    },
-    dec: { class_type: 'VAEDecode', inputs: { samples: ['ks', 0], vae: ['ckpt', 2] } },
-    save: { class_type: 'SaveImage', inputs: { images: ['dec', 0], filename_prefix: `eotv/${card.id}_${seed}` } },
+    neg: { class_type: 'CLIPTextEncode', inputs: { clip, text: [NEGATIVE, item.extraNeg].filter(Boolean).join(', ') } },
+    lat: { class_type: 'EmptyLatentImage', inputs: { width: setup.width, height: setup.height, batch_size: 1 } },
+    ks: { class_type: 'KSampler', inputs: { ...sampler, latent_image: ['lat', 0], steps: 30, denoise: 1 } },
   });
+  let samples = ['ks', 0];
+  if (setup.upscale) {
+    const { by, denoise, steps } = setup.upscale;
+    g.up = { class_type: 'LatentUpscaleBy', inputs: { samples, upscale_method: 'bislerp', scale_by: by } };
+    g.ks2 = { class_type: 'KSampler', inputs: { ...sampler, latent_image: ['up', 0], steps, denoise } };
+    samples = ['ks2', 0];
+  }
+  g.dec = { class_type: 'VAEDecode', inputs: { samples, vae: ['ckpt', 2] } };
+  g.save = { class_type: 'SaveImage', inputs: { images: ['dec', 0], filename_prefix: `eotv/${folder}/${item.id}_${seed}` } };
+  return g;
 }
 
 async function api(route, body) {
@@ -100,12 +124,12 @@ try {
 }
 
 await mkdir(OUT, { recursive: true });
-const jobs = cards.flatMap((card) => seeds.map((seed) => ({ card, seed, file: path.join(OUT, `${card.id}_${seed}.png`) })));
+const jobs = items.flatMap((item) => seeds.map((seed) => ({ item, seed, file: path.join(OUT, `${item.id}_${seed}.png`) })));
 const todo = jobs.filter((j) => force || !existsSync(j.file));
-console.log(`${todo.length} image(s) to make (${jobs.length - todo.length} already exist).`);
+console.log(`${todo.length} ${folder} image(s) to make (${jobs.length - todo.length} already exist).`);
 
 // Queue everything up front so the GPU never waits on this script.
-for (const job of todo) job.promptId = (await (await api('/prompt', { prompt: graph(job.card, job.seed) })).json()).prompt_id;
+for (const job of todo) job.promptId = (await (await api('/prompt', { prompt: graph(job.item, job.seed) })).json()).prompt_id;
 
 const t0 = Date.now();
 for (const [i, job] of todo.entries()) {
@@ -113,7 +137,7 @@ for (const [i, job] of todo.entries()) {
     const entry = (await (await api(`/history/${job.promptId}`)).json())[job.promptId];
     if (entry) {
       const img = Object.values(entry.outputs ?? {}).flatMap((o) => o.images ?? [])[0];
-      if (!img) throw new Error(`${job.card.id} ${job.seed} failed: ${JSON.stringify(entry.status)}`);
+      if (!img) throw new Error(`${job.item.id} ${job.seed} failed: ${JSON.stringify(entry.status)}`);
       const q = new URLSearchParams({ filename: img.filename, subfolder: img.subfolder, type: img.type });
       await writeFile(job.file, Buffer.from(await (await api(`/view?${q}`)).arrayBuffer()));
       console.log(`  [${i + 1}/${todo.length}] ${path.basename(job.file)}  ${((Date.now() - t0) / 1000).toFixed(0)}s`);

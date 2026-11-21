@@ -9,7 +9,7 @@ import { useEffect, useState } from 'react';
 import { CONTENT } from '../../data';
 import { BALANCE } from '../../data/balance';
 import { PLAYER_ID, livingEnemies, needsTarget, type CombatAction, type CombatState } from '../../engine';
-import { backgroundFor } from '../art';
+import { useScreenBackground } from '../art';
 import { HintSlot } from '../hints';
 import { TimelineStrip } from '../components/TimelineStrip';
 import { onFx } from '../fx/fxBus';
@@ -56,7 +56,7 @@ const OUTCOME = {
 } as const;
 
 export function CombatScreen({ state, error, label, tier, dispatch, onMenu, onContinue, bgKeys = ['combat'] }: Props) {
-  const bg = backgroundFor(...bgKeys);
+  useScreenBackground(...bgKeys);
   const [selectedUid, setSelectedUid] = useState<string>();
   const [targetId, setTargetId] = useState<string>();
   const [info, setInfo] = useState<string>('Tap a card to read it. Tap an enemy to aim.');
@@ -111,7 +111,7 @@ export function CombatScreen({ state, error, label, tier, dispatch, onMenu, onCo
   const over = state.phase === 'won' || state.phase === 'lost';
 
   return (
-    <div className={`combat ${shaking ? 'shake' : ''} ${bg.className}`} style={bg.style}>
+    <div className={`combat ${shaking ? 'shake' : ''}`}>
       <header className="topbar">
         <button className="ghost-btn" onClick={onMenu}>
           ☰

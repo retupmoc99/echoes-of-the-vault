@@ -7,7 +7,7 @@ import { useLayoutEffect, useRef, useState } from 'react';
 import { CONTENT } from '../../data';
 import { NODE_INFO } from '../../data/nodeTypes';
 import { reachableNodes, type MapNode, type RunAction, type RunState } from '../../engine';
-import { backgroundFor } from '../art';
+import { useScreenBackground } from '../art';
 import { HintSlot } from '../hints';
 import { NodeIcon } from '../components/NodeIcon';
 import { RunHeader } from '../components/RunHeader';
@@ -74,10 +74,10 @@ export function MapScreen({ run, error, dispatch, onMenu }: Props) {
     return from.row < currentRow ? 'edge past' : 'edge';
   };
 
-  const bg = backgroundFor(`shift-${run.vaultShiftId}`, 'vault');
+  useScreenBackground(`shift-${run.vaultShiftId}`, 'vault');
 
   return (
-    <div className={`screen map-screen ${bg.className}`} style={bg.style}>
+    <div className="screen map-screen">
       <RunHeader run={run} onMenu={onMenu} onInspect={setInfo} />
       <HintSlot candidates={[['map-first', true], ['corruption', run.corruption > 0]]} />
 

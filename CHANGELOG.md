@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.9.0 — Painted backgrounds (2026-11-21)
+
+### Added
+- **Painted backgrounds for all 8 screens:** the Outpost, the Vault, combat, and one for each of the 5 Vault Shifts, each lit in its Shift's colour. They total 710 KB and load on demand.
+- `npm run art:gen -- --folder backgrounds`. Backgrounds get a second detail pass using built-in ComfyUI nodes, so no upscaler model is needed. Guide sections can now add to the negative prompt too.
+
+### Fixed
+- **Backgrounds fill wide screens,** such as a foldable's inner screen, instead of stopping at the 480px game column with black bars at the sides. They also stay still when combat shakes.
+- The darkening layer over backgrounds never showed, so background art would have been at full brightness behind the UI.
+- Spoils cards size themselves to the screen: art scales with card width and cards grow to fit their text, from 320px phones to wide inner screens.
+- Card names and text no longer spill out of wide reward cards onto the description line.
+
 ## 0.8.0 — Card art (2026-11-21)
 
 ### Added
