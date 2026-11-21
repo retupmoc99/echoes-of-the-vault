@@ -17,7 +17,7 @@ import { defaultCombatModifiers } from '../combat/combat';
 import type { Echo, NextLoop, OutpostState, RunState, WorldState } from '../types';
 
 export const SAVE_KEY = 'eotv.save';
-export const SAVE_VERSION = 4;
+export const SAVE_VERSION = 5;
 
 export interface MetaProgress {
   /** Loops completed, by any means. */
@@ -42,7 +42,15 @@ export interface SaveData {
   /** Last real time idle progress was counted up to. */
   idle: { lastTickAt: number };
   world: WorldState;
-  settings: { haptics: boolean };
+  settings: Settings;
+}
+
+export interface Settings {
+  haptics: boolean;
+  /** Show first-time hints. */
+  hints: boolean;
+  /** Hint ids already dismissed. */
+  hintsSeen: string[];
 }
 
 export interface SaveStorage {
@@ -104,9 +112,26 @@ export const MIGRATIONS: Record<number, Migration> = {
       v3.run.cardPool = [...V3_CARD_POOL];
       v3.run.options = { shrinePurge: false, cacheChoices: 2, rewardRerolls: 0 };
     }
-    return { ...v3, version: 4, ...idleDefaults(v3.updatedAt) };
+    return { ...v3, version: 4, ...v4IdleDefaults(v3.updatedAt) };
   },
+
+  // v4 → v5: first-time hints. Players who have already finished a loop
+  // know the basics, so those hints start dismissed for them.
+  4: (v4: { meta: { loops: number }; settings: { haptics: boolean } }) => ({
+    ...v4,
+    version: 5,
+    settings: {
+      haptics: v4.settings.haptics,
+      hints: true,
+      hintsSeen: v4.meta.loops > 0 ? ['outpost-welcome', 'map-first', 'combat-cards', 'combat-intents'] : [],
+    },
+  }),
 };
+
+/** The idle-layer defaults as they were introduced in v4 (history: do not change). */
+function v4IdleDefaults(now: number) {
+  return { ...idleDefaults(now), settings: { haptics: true } };
+}
 
 function idleDefaults(now: number) {
   return {
@@ -116,7 +141,7 @@ function idleDefaults(now: number) {
     outpost: { shards: 0, unlocks: [], research: { completed: 0, progress: 0 }, cards: [], lore: [], scouting: 0, kitId: 'standard' },
     idle: { lastTickAt: now },
     world: { factions: {}, awakening: { stage: 0, progress: 0 } },
-    settings: { haptics: true },
+    settings: { haptics: true, hints: true, hintsSeen: [] as string[] },
   };
 }
 

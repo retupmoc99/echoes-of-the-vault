@@ -12,6 +12,7 @@ export { corruptionTier, combatModifiersFor } from './run/corruption';
 export { optionAvailable } from './run/events';
 export { describeCard, describeEffects, describeRelic, type Preview } from './text/describe';
 export * from './save/save';
+export { exportSave, importSave, type ImportResult } from './save/transfer';
 export { createEcho, traitOf, hoursLeft, drainPerHour, loopDepth } from './idle/echoes';
 export { advanceIdle, researchCost, researchComplete, reportIsEmpty, mergeReports, emptyReport } from './idle/idle';
 export { closeLoop, prepareNextLoop, startLoop, nextRunPreview, runOptionsFor } from './idle/loop';

@@ -5,6 +5,9 @@ import type { SaveStorage } from '../engine';
  * otherwise crash the game; instead we fall back to memory and warn.
  */
 export function createSafeStorage(): SaveStorage & { persistent: boolean } {
+  // Ask the browser not to evict our data under storage pressure (granted
+  // silently for installed apps on most browsers; harmless if refused).
+  navigator.storage?.persist?.().catch(() => undefined);
   try {
     const probe = '__eotv_probe__';
     window.localStorage.setItem(probe, '1');

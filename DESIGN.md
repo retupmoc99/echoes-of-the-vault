@@ -271,11 +271,22 @@ Total 460 Shards: roughly 8 to 10 Echo lifetimes of digging.
 - Background keys: `outpost`, `vault`, `combat`, and optional `shift-<id>` per Vault Shift.
 - Specs, budgets, ComfyUI prompts and Blender settings: see `ART_GUIDE.md`.
 
+## Backups and hints
+- **Save codes:** `EOTV1.<checksum>.<base64 UTF-8 JSON>`.
+  - The FNV-1a checksum rejects truncated or edited pastes, and whitespace is ignored.
+  - Importing runs the normal migrations, so an old backup restores into a newer build.
+  - Restoring keeps the replaced save at `eotv.save.beforeImport`.
+- **Last backup** time is stored per device (`eotv.lastBackup`), outside the save, so restoring doesn't reset it.
+- **Hints:** texts live in `src/data/hints.ts`.
+  - Each screen lists `[hintId, appliesNow]` candidates in priority order, and `<HintSlot>` shows the first unseen one.
+  - Dismissed ids are kept in `settings.hintsSeen`.
+  - In fights, hints sit above the player panel, so the intent and the cards stay visible.
+
 ## Save system
 - `localStorage` key `eotv.save`, JSON, synchronous write after every action.
 - `SaveData.version` + `MIGRATIONS[n]` (n → n+1). The old raw save is copied to `eotv.save.backup.vN` before migrating, and the migrated save is written straight away.
 - Corrupt saves are copied to `eotv.save.corrupt.<time>`, never deleted. Saves from a newer version are never overwritten.
-- **v4** (current) contains:
+- **v5** (current) contains:
   - `run`: the whole loop, including any live fight
   - `meta`: loops, victories, deaths
   - `nextLoop`, `echoes`, `pendingEcho`, `outpost` (shards, unlocks, research, cards, lore, scouting, kit)
@@ -285,6 +296,7 @@ Total 460 Shards: roughly 8 to 10 Echo lifetimes of digging.
 - Migration history:
   - v1 → v2: the sandbox save becomes an empty v2; sandbox fights weren't loops.
   - v2 → v3: a loop in progress is *kept*. It gains Corruption 0, the Still Vault Shift, and full combat modifiers. A cache's single relic becomes a one-item list. A pending placeholder event is skipped.
+  - v4 → v5: adds `settings.hints` and `settings.hintsSeen`. Veterans (1+ loops) start with the basic hints dismissed.
   - v3 → v4: a loop in progress keeps the full 23-card pool it had. The pool is hard-coded in the migration, because migrations describe history. Idle time starts counting from the last save.
 
 ## Future hooks (not built)

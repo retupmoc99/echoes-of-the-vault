@@ -8,6 +8,7 @@ import { CONTENT } from '../../data';
 import { NODE_INFO } from '../../data/nodeTypes';
 import { reachableNodes, type MapNode, type RunAction, type RunState } from '../../engine';
 import { backgroundFor } from '../art';
+import { HintSlot } from '../hints';
 import { NodeIcon } from '../components/NodeIcon';
 import { RunHeader } from '../components/RunHeader';
 
@@ -78,6 +79,7 @@ export function MapScreen({ run, error, dispatch, onMenu }: Props) {
   return (
     <div className={`screen map-screen ${bg.className}`} style={bg.style}>
       <RunHeader run={run} onMenu={onMenu} onInspect={setInfo} />
+      <HintSlot candidates={[['map-first', true], ['corruption', run.corruption > 0]]} />
 
       <div className="map-scroll" ref={scroller}>
         <div className="map" style={{ height }}>

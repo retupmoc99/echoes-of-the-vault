@@ -14,7 +14,10 @@ import { CONTENT } from '../data';
 import { BALANCE } from '../data/balance';
 import {
   advanceIdle,
+  exportSave,
+  importSave,
   loadSave,
+  SAVE_KEY,
   newSave,
   outpostStep,
   prepareNextLoop,
@@ -71,6 +74,9 @@ function boot(storage: ReturnType<typeof createSafeStorage>): Boot {
 }
 
 type Notice = { id: number; text: string };
+
+/** Per-device note of the last backup (not part of the save, so restoring doesn't overwrite it). */
+const LAST_BACKUP_KEY = 'eotv.lastBackup';
 
 /** Turn an idle report into short toasts (used for progress while the app is open). */
 function reportToNotices(r: IdleReport): string[] {
@@ -156,6 +162,32 @@ export function useGame() {
 
   const dismissNotice = useCallback((id: number) => setNotices((n) => n.filter((x) => x.id !== id)), []);
 
+  // ── Backup and restore ──
+  const [lastBackupAt, setLastBackupAt] = useState<number | null>(() => Number(storage.getItem(LAST_BACKUP_KEY)) || null);
+
+  const exportCode = useCallback(() => {
+    const now = Date.now();
+    storage.setItem(LAST_BACKUP_KEY, String(now));
+    setLastBackupAt(now);
+    return exportSave(saveRef.current);
+  }, [storage]);
+
+  const importCode = useCallback(
+    (code: string): string | undefined => {
+      const result = importSave(code);
+      if (!result.ok) return result.error;
+      // Keep the save being replaced, just in case.
+      storage.setItem(`${SAVE_KEY}.beforeImport`, JSON.stringify(saveRef.current));
+      const now = Date.now();
+      commit(advanceIdle(prepareNextLoop(result.save, CONTENT), now, CONTENT).save);
+      setAwayReport(null);
+      setError(undefined);
+      pushNotices(['Save restored. The loop remembers you.']);
+      return undefined;
+    },
+    [commit, pushNotices, storage],
+  );
+
   const updateSettings = useCallback(
     (patch: Partial<SaveData['settings']>) => commit({ ...saveRef.current, settings: { ...saveRef.current.settings, ...patch } }),
     [commit],
@@ -173,6 +205,9 @@ export function useGame() {
     outpost,
     dispatch,
     updateSettings,
+    exportCode,
+    importCode,
+    lastBackupAt,
     newRun: () => outpost({ type: 'startLoop' }),
     finishLoop: () => outpost({ type: 'closeLoop' }),
   };

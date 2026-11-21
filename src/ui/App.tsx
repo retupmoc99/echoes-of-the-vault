@@ -5,6 +5,7 @@ import { AwayReport } from './components/AwayReport';
 import { Toasts } from './components/Toasts';
 import { UpdatePrompt } from './components/UpdatePrompt';
 import { ParticleLayer } from './fx/ParticleLayer';
+import { HintsProvider } from './hints';
 import { OutpostScreen } from './screens/OutpostScreen';
 import { RunView } from './screens/RunView';
 
@@ -33,6 +34,7 @@ export function App() {
         notice={game.notice}
         outpost={game.outpost}
         onSettings={game.updateSettings}
+        backup={{ lastBackupAt: game.lastBackupAt, exportCode: game.exportCode, importCode: game.importCode }}
         onEnterRun={() => setView('run')}
         onAbandon={() => {
           game.dispatch({ type: 'abandon' });
@@ -41,13 +43,20 @@ export function App() {
       />
     );
 
+  const { hints, hintsSeen } = game.save.settings;
+  const hintsApi = {
+    enabled: hints,
+    seen: hintsSeen,
+    dismiss: (id: string) => game.updateSettings({ hintsSeen: [...hintsSeen, id] }),
+  };
+
   return (
-    <>
+    <HintsProvider value={hintsApi}>
       <ParticleLayer />
       {screen}
       <Toasts items={game.notices} onDismiss={game.dismissNotice} />
       {game.awayReport && <AwayReport report={game.awayReport} onClose={game.dismissAwayReport} />}
       <UpdatePrompt />
-    </>
+    </HintsProvider>
   );
 }

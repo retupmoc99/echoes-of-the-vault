@@ -18,6 +18,7 @@ import {
   type RunState,
 } from '../../engine';
 import { ArtImg, artUrl, backgroundFor } from '../art';
+import { HintSlot, type HintCandidate } from '../hints';
 import { CardView } from '../components/CardView';
 import { DeckSheet } from '../components/DeckSheet';
 import { NodeIcon } from '../components/NodeIcon';
@@ -40,14 +41,16 @@ interface ChamberProps {
   actions: ReactNode;
   /** Compact chambers hide the big icon to make room (rewards). */
   compact?: boolean;
+  hints?: HintCandidate[];
 }
 
-function Chamber({ run, type, title, onMenu, error, children, actions, compact }: ChamberProps) {
+function Chamber({ run, type, title, onMenu, error, children, actions, compact, hints = [] }: ChamberProps) {
   const [info, setInfo] = useState<string>();
   const bg = backgroundFor(`shift-${run.vaultShiftId}`, 'vault');
   return (
     <div className={`screen ${bg.className}`} style={bg.style}>
       <RunHeader run={run} onMenu={onMenu} onInspect={setInfo} />
+      <HintSlot candidates={[...hints, ['corruption', run.corruption > 0]]} />
       <section className={`chamber ${compact ? 'compact' : ''}`} style={{ ['--hue' as string]: NODE_INFO[type].hue }}>
         {!compact && (
           <div className="chamber-icon">
@@ -95,6 +98,7 @@ export function ShrineScreen({ run, error, dispatch, onMenu }: ScreenProps) {
       run={run}
       type="shrine"
       title="Shrine"
+      hints={[['shrine', true]]}
       onMenu={onMenu}
       error={error}
       actions={
@@ -178,6 +182,7 @@ export function EventScreen({ run, error, dispatch, onMenu }: ScreenProps) {
       run={run}
       type="event"
       title={event.title}
+      hints={[['event', true]]}
       onMenu={onMenu}
       error={error}
       compact
@@ -221,6 +226,7 @@ export function RewardScreen({ run, error, dispatch, onMenu }: ScreenProps) {
       run={run}
       type={node.relicId ? 'elite' : 'fight'}
       title="Spoils"
+      hints={[['reward', true]]}
       onMenu={onMenu}
       error={error}
       compact
@@ -304,6 +310,7 @@ export function RunEndScreen({ run, onDone }: { run: RunState; onDone: () => voi
 
   return (
     <main className={`run-end ${won ? 'won' : 'lost'}`}>
+      <HintSlot candidates={[['run-end', true]]} />
       <div className="title-rune" aria-hidden>
         {won ? 'ᛞ' : 'ᛉ'}
       </div>

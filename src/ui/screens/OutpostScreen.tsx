@@ -10,6 +10,8 @@ import { CONTENT } from '../../data';
 import { BALANCE } from '../../data/balance';
 import { NODE_INFO } from '../../data/nodeTypes';
 import { researchComplete, researchCost, scoutInfo, traitOf, type OutpostAction, type SaveData } from '../../engine';
+import { BackupPanel } from '../components/BackupPanel';
+import { HintSlot } from '../hints';
 import { EchoCard } from '../components/EchoCard';
 import { hapticsSupported } from '../fx/haptics';
 import { backgroundFor } from '../art';
@@ -25,9 +27,10 @@ interface Props {
   onSettings: (patch: Partial<SaveData['settings']>) => void;
   onEnterRun: () => void;
   onAbandon: () => void;
+  backup: { lastBackupAt: number | null; exportCode: () => string; importCode: (code: string) => string | undefined };
 }
 
-export function OutpostScreen({ save, error, notice, outpost, onSettings, onEnterRun, onAbandon }: Props) {
+export function OutpostScreen({ save, error, notice, outpost, onSettings, onEnterRun, onAbandon, backup }: Props) {
   const [tab, setTab] = useState<Tab>(save.pendingEcho ? 'echoes' : 'descend');
   const [info, setInfo] = useState<string>();
   const shards = Math.floor(save.outpost.shards);
@@ -44,10 +47,18 @@ export function OutpostScreen({ save, error, notice, outpost, onSettings, onEnte
 
       <section className="outpost-body">
         {notice && <p className="notice">{notice}</p>}
+        <HintSlot
+          candidates={[
+            ['outpost-welcome', tab === 'descend' && save.meta.loops === 0 && !save.run],
+            ['echoes', tab === 'echoes' && save.echoes.length > 0],
+            ['works', tab === 'works'],
+            ['backup', tab === 'descend' && save.meta.loops >= 3],
+          ]}
+        />
         {tab === 'descend' && <DescendTab save={save} outpost={outpost} onEnterRun={onEnterRun} onAbandon={onAbandon} />}
         {tab === 'echoes' && <EchoesTab save={save} outpost={outpost} onInspect={setInfo} />}
         {tab === 'works' && <WorksTab save={save} outpost={outpost} />}
-        {tab === 'archive' && <ArchiveTab save={save} onSettings={onSettings} />}
+        {tab === 'archive' && <ArchiveTab save={save} onSettings={onSettings} backup={backup} onRestored={() => setTab('descend')} />}
       </section>
 
       <p className="info-line">{error ?? info}</p>
@@ -79,7 +90,7 @@ export function OutpostScreen({ save, error, notice, outpost, onSettings, onEnte
 
 // ───────────────────────────── Descend ─────────────────────────────
 
-function DescendTab({ save, outpost, onEnterRun, onAbandon }: Omit<Props, 'error' | 'notice' | 'onSettings'>) {
+function DescendTab({ save, outpost, onEnterRun, onAbandon }: Omit<Props, 'error' | 'notice' | 'onSettings' | 'backup'>) {
   const [confirmAbandon, setConfirmAbandon] = useState(false);
   const run = save.run;
 
@@ -284,15 +295,36 @@ function WorksTab({ save, outpost }: { save: SaveData; outpost: Props['outpost']
 
 // ───────────────────────────── Archive ─────────────────────────────
 
-function ArchiveTab({ save, onSettings }: { save: SaveData; onSettings: Props['onSettings'] }) {
+interface ArchiveProps {
+  save: SaveData;
+  onSettings: Props['onSettings'];
+  backup: Props['backup'];
+  onRestored: () => void;
+}
+
+function ArchiveTab({ save, onSettings, backup, onRestored }: ArchiveProps) {
   const { loops, victories, deaths } = save.meta;
+  const s = save.settings;
   return (
     <div className="panel">
+      <h2 className="panel-title">Backup</h2>
+      <BackupPanel {...backup} onRestored={onRestored} />
+
       <h2 className="panel-title">Settings</h2>
-      <button className="ghost-btn wide setting" onClick={() => onSettings({ haptics: !save.settings.haptics })}>
+      <button className="ghost-btn wide setting" onClick={() => onSettings({ haptics: !s.haptics })}>
         <span>Haptics</span>
-        <span>{hapticsSupported() ? (save.settings.haptics ? 'On' : 'Off') : 'Not supported on this device'}</span>
+        <span>{hapticsSupported() ? (s.haptics ? 'On' : 'Off') : 'Not supported on this device'}</span>
       </button>
+      <button className="ghost-btn wide setting" onClick={() => onSettings({ hints: !s.hints })}>
+        <span>Hints</span>
+        <span>{s.hints ? 'On' : 'Off'}</span>
+      </button>
+      {s.hintsSeen.length > 0 && (
+        <button className="ghost-btn wide setting" onClick={() => onSettings({ hints: true, hintsSeen: [] })}>
+          <span>Show all hints again</span>
+          <span>{s.hintsSeen.length} seen</span>
+        </button>
+      )}
       <h2 className="panel-title">Records</h2>
       <p className="record">
         Loops {loops} · Escaped {victories} · Fallen {deaths}

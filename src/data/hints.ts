@@ -1,0 +1,69 @@
+/**
+ * First-time hints: one short note the first time each mechanic appears.
+ * Clarity first, atmosphere second. Each is dismissed once, for good.
+ */
+export interface HintDef {
+  title: string;
+  text: string;
+}
+
+export const HINTS = {
+  'outpost-welcome': {
+    title: 'The loop',
+    text: 'You are a Warden, caught in a time loop. Each descent is one run through a vault that changes every time. Win or die, you wake here. Tap Descend.',
+  },
+  'map-first': {
+    title: 'Choose your path',
+    text: 'Lit chambers are open to you. Tap one to read it, tap again to enter. The Vault Shift at the top bends the rules for this whole loop.',
+  },
+  'combat-cards': {
+    title: 'Playing cards',
+    text: 'Tap a card to read it, then tap Play (or the card again). Cards cost Resonance ◆: you get 3 each turn and draw 5 cards.',
+  },
+  'combat-intents': {
+    title: 'Read the enemy',
+    text: 'The badge above an enemy shows its next move and damage. Ward ⬡ blocks damage but fades at the start of your turn. End Turn when you are done.',
+  },
+  statuses: {
+    title: 'Tap to learn',
+    text: 'Tap any status, relic or intent to see exactly what it does. Nothing here needs guessing.',
+  },
+  overload: {
+    title: 'Overload',
+    text: 'Overload cards wake your relics. Each use adds Strain (the dots under a relic); at full Strain it cracks and goes dark for the rest of the fight.',
+  },
+  reward: {
+    title: 'Spoils',
+    text: 'Take one card, or none: a lean deck draws its best cards more often. The Tainted card is rare and strong, but adds Corruption.',
+  },
+  corruption: {
+    title: 'Corruption',
+    text: 'Power has a price. At 3, 6 and 9 Corruption, enemies grow stronger and rares grow common; at 6 and 9, a curse joins your deck.',
+  },
+  event: {
+    title: 'Choices',
+    text: 'Every option costs something. Options you cannot afford are shown, but greyed out.',
+  },
+  shrine: {
+    title: 'Shrines',
+    text: 'Rest to heal, or cut a weak card from your deck. HP does not return between fights otherwise.',
+  },
+  'run-end': {
+    title: 'An Echo remains',
+    text: 'Every loop, won or lost, leaves an Echo at the Outpost. Echoes work while you are away.',
+  },
+  echoes: {
+    title: 'Echoes',
+    text: 'Give each Echo a task: Dig for Shards, Research new cards and lore, or Scout the next loop. Work wears them down; when it runs out, they Unravel for good.',
+  },
+  works: {
+    title: 'Works',
+    text: 'Spend Shards on new options (starting decks, rerolls, rites), not raw power. The vault never gets easy, only more varied.',
+  },
+  backup: {
+    title: 'Keep a backup',
+    text: 'Your progress lives in this browser only. Copy a save code now and then from Archive → Backup.',
+  },
+} satisfies Record<string, HintDef>;
+
+export type HintId = keyof typeof HINTS;

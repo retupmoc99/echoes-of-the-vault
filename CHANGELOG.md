@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.6.0 — Backups and first-run hints (2026-11-20)
+
+### Added
+- **Save backup and restore** (Archive → Backup):
+  - Copy a save code, or save it as a file.
+  - Restore from a pasted code or a file. Restoring takes a second tap, and the replaced save is kept as a safety copy.
+  - Codes carry a checksum, tolerate line breaks, and restore old backups through the save migrations.
+  - The panel shows how long since the last backup, and warns after 7 days.
+- **Persistent storage request,** so the browser is less likely to evict the save.
+- **First-run hints:** 14 one-time notes, shown one at a time the first time each mechanic appears (cards, intents, Overload, statuses, rewards, Corruption, events, Shrines, Echoes, Works, backups). There's a toggle and "show all again" in Settings.
+- Save v5 (hint settings). Players who have already finished loops skip the basic hints.
+- 7 new tests (137 total): save code round-trips, damaged and foreign codes, Unicode, old-version restores, the v4→v5 migration.
+
 ## 0.5.0 — Milestone 5: Visual polish, PWA and the art pipeline (2026-11-20)
 
 ### Added
