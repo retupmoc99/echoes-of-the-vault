@@ -22,7 +22,7 @@ The script reads each item's prompt from the tables below (cards by default), pl
 
 Comfy Desktop users: the desktop app may not expose a local API. You can run the install's server directly, from its `ComfyUI` folder: `.venv/Scripts/python.exe main.py --port 8190 --extra-model-paths-config <yaml pointing at your models folder>`.
 
-**Current set (0.13.0):** the full set, 101 images, 3.3 MB (the Sleeper, its Eye and The Sleeper's Breath background added in 0.13).
+**Current set (0.14.1):** the full set, 132 images, 3.8 MB. The Sleeper, its Eye and The Sleeper's Breath background came in 0.13; the Echo-Caller's 24 cards and 7 relics in 0.14.1. Weakest of those: *Soul Lance* (a ghost with spears, not a literal spear of souls) and *Severed Thread* (a glowing thread in a ring).
 - All 55 cards, picked from ~180 generated images on an RTX 5080 (~6 s each). Weakest, worth a reroll: *Second Hand* (a clock, not a blade), *Loop the Moment*, *Unmake the Hour* and *Mirror Sigil* (pale backgrounds), *Twin Shards* (pillars, not crossed blades).
 - All 8 backgrounds: `npm run art:gen -- --folder backgrounds`. 768×1344 plus a built-in second pass (latent upscale ×1.5, denoise 0.45) to 1152×2016, ~16 s each.
 - All 11 enemies, 18 relics and 6 node icons: `--folder enemies|relics|ui`. Cut out with ComfyUI's built-in Remove Background node and BiRefNet (`birefnet.safetensors`, 424 MB, from huggingface.co/Comfy-Org/BiRefNet, in the `background_removal` models folder). Over budget but kept for detail: *Vein Crawler* (166 KB), *Bone Abacus* (34 KB), *Gilded Gear* (26 KB).
@@ -210,6 +210,50 @@ Add to the style prompt: `a single small object, centred, floating alone in tota
 | last-breath-locket | an open locket releasing a pale wisp of breath, silver, jade |
 | pendulum-of-ash | a pendulum of black ash swinging, leaving glowing jade trails |
 | thief-of-moments | a small sack spilling glowing seconds like coins, jade and gold |
+
+#### Echo-Caller cards (`art-raw/cards/<id>.png`, 4:3)
+Shared accent: **spectral pale blue and silver**: the dead, called back. Add to the style prompt: `spectral pale blue and silver glow, cold grave light`. Subjects are deliberately varied (objects, hands, crowds), so the set isn't 24 hooded ghosts.
+
+| ID | Prompt |
+|---|---|
+| grave-strike | a heavy broken gravestone swung like a hammer through the dark, cold blue light trailing from its cracks |
+| shroud | a tattered burial shroud billowing outward into the shape of a shield, faint cyan glow along its torn edges |
+| call-the-fallen | an iron lantern held up in the dark, its pale blue flame drawing faint translucent faces up out of the blackness |
+| whispered-name | a pale blue breath of mist leaving parted lips in the dark, curling into the shape of a reaching hand |
+| gathering-dark | two translucent ghostly warriors rising side by side out of still black water, cold blue light |
+| requiem | a choir of faint translucent figures singing in the dark, mouths open, blue-white light pouring from their throats |
+| hymn-of-iron | a ghostly iron helmet and gauntlets floating in the dark, bound together by bands of cyan light like armour forming |
+| stand-before-me | a translucent ghost warrior standing with arms spread in front of a kneeling figure, shielding it, cyan glow |
+| kindred-blade | a single sword gripped by many translucent hands at once, all reaching out of the dark, ember-orange edge |
+| rally-the-dead | translucent warriors lifting themselves from the floor of a dark battlefield, pale blue light in their eyes |
+| choir-of-the-lost | countless glowing translucent faces pressed together in the dark like a wall of souls, mouths open in song, blue and silver light, no architecture |
+| release | a ghostly figure bursting apart into hundreds of white-blue shards of light flying outward |
+| grave-tithe | a translucent hand dropping a glowing coin of blue light into a dark stone offering bowl |
+| soul-lance | a long spear of pale blue light made of twisting wailing ghostly faces, flying diagonally through the dark, its point blazing white |
+| mourning | a wall of dark stacked gravestones glowing faintly cyan, standing like a shield in the dark |
+| last-rites | a single candle flame being snuffed between two ghostly fingers, a thin trail of blue smoke rising |
+| final-chorus | a ring of translucent figures erupting outward together into a shockwave of white and blue light |
+| borrowed-hand | a translucent ghostly hand guiding a living hand that grips a dagger, faint blue glow |
+| remembered-ward | a faint translucent round shield made of blue mist hovering in total darkness, ghostly glowing edges, black void behind it |
+| echoing-cut | a blade slash through the dark with a fainter translucent copy of the same slash following just behind it, ember and pale blue |
+| what-they-knew | a translucent face leaning close out of the dark to whisper, cold blue light on its features |
+| memory-of-victory | a ghostly warrior raising a sword in triumph atop a shattered vault lock, pale gold and blue light |
+| shared-wound | two hands, one living and one translucent, joined palm to palm across a single glowing red wound |
+| hollow-choir | a row of empty hooded robes floating in the dark with no one inside them, faint blue glow from within |
+
+#### Echo-Caller relics (`art-raw/relics/<id>.png`, 1:1, transparent)
+Add to the negative prompt: `white background, grey background, studio backdrop, floor, table, shadow, pedestal, wall, paper, parchment`.
+Add to the style prompt: `a single small object, centred, floating alone in total black darkness, black void around it, bold readable silhouette, nothing else in the frame, pale blue glow`.
+
+| ID | Prompt |
+|---|---|
+| lantern-of-names | an iron lantern burning a cold blue flame, faint faces visible inside the flame |
+| bell-of-the-drowned | a small corroded bronze bell dripping black water, cyan glow inside its mouth |
+| ashen-locket | an open silver locket spilling a little grey ash, faint blue glow inside |
+| choir-stone | a smooth dark stone carved with many tiny open mouths, faint blue light glowing inside them |
+| mourners-veil | a folded black lace veil with a faint silver shimmer |
+| grave-ledger | a thick black ledger book bound shut with chains, sickly green light leaking from its pages |
+| severed-thread | a short length of glowing silver thread hanging in the dark, cut through in the middle, its two loose ends curling apart |
 
 #### Node icons (`art-raw/ui/node-<type>.png`, transparent)
 Add to the style prompt: `a simple bold symmetrical glyph emblem, centred, floating in total black darkness, flat graphic icon, thick glowing lines`.

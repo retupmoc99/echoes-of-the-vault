@@ -33,11 +33,11 @@ const LORA_STRENGTH = 0.45;
  * using only built-in nodes (no upscaler model to download).
  */
 const FOLDERS = {
-  cards: { sections: ['#### Cards (', '#### Hour-Thief cards'], width: 1152, height: 864 },
+  cards: { sections: ['#### Cards (', '#### Hour-Thief cards', '#### Echo-Caller cards'], width: 1152, height: 864 },
   backgrounds: { sections: ['#### Backgrounds ('], width: 768, height: 1344, upscale: { by: 1.5, denoise: 0.45, steps: 20 } },
   // Sprites: generated on black, then cut out (see cutOut below).
   enemies: { sections: ['#### Enemies ('], width: 1024, height: 1024, cutout: true },
-  relics: { sections: ['#### Relics (', '#### Hour-Thief relics'], width: 1024, height: 1024, cutout: true },
+  relics: { sections: ['#### Relics (', '#### Hour-Thief relics', '#### Echo-Caller relics'], width: 1024, height: 1024, cutout: true },
   ui: { sections: ['#### Node icons'], width: 1024, height: 1024, cutout: true },
 };
 const BG_REMOVAL_MODEL = process.env.COMFY_BG_MODEL ?? 'birefnet.safetensors';

@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.14.1 — Echo-Caller art (2026-11-21)
+
+### Added
+- **Painted art for all 24 Echo-Caller cards and 7 relics,** in a spectral blue-and-silver style. Subjects vary on purpose: lanterns, hands, crowds, armour and gravestones as well as ghosts. Every art slot in the game now has an image: 132 images, 3.8 MB, loaded on demand.
+- `npm run art:gen` reads the new Echo-Caller sections in `ART_GUIDE.md`.
+
 ## 0.14.0 — The Echo-Caller (2026-11-21)
 
 ### Added

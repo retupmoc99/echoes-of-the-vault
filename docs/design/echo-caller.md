@@ -1,6 +1,6 @@
 # Design proposal: the Echo-Caller (third Warden)
 
-*Status: milestone 1 built in 0.14.0 (engine, class, all cards and relics, UI). Milestone 2 (card and relic art, deeper tuning) still to come.*
+*Status: built. Milestone 1 (engine, class, cards, relics, UI) in 0.14.0; card and relic art in 0.14.1. A tuning pass from real play is still worth doing.*
 *Decided: the Echo-Caller summons your **real** Outpost Echoes.*
 
 > The loop remembers every one of you. The Echo-Caller makes it answer.
