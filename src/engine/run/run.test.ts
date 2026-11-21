@@ -173,6 +173,39 @@ describe('shrines and caches', () => {
   });
 });
 
+describe('Choices pass', () => {
+  it('an event can ask you to choose cards to remove; leaving waits until you have', () => {
+    const r = structuredClone(enter('event'));
+    (r.node as { eventId: string }).eventId = 'tithe-collector';
+    const index = CONTENT.events['tithe-collector'].options.findIndex((o) => o.label === 'Pay in chosen memory');
+    let s = go(r, { type: 'chooseOption', index });
+    expect(s.node?.kind === 'event' && s.node.toRemove).toBe(2);
+    expect(stepRun(s, { type: 'leave' }, CONTENT).error).toBeDefined();
+    const before = s.deck.length;
+    const target = s.deck.indexOf('overcharge');
+    s = go(s, { type: 'removeCard', deckIndex: target });
+    expect(s.deck).not.toContain('overcharge');
+    s = go(s, { type: 'removeCard', deckIndex: 0 });
+    expect(s.deck).toHaveLength(before - 2);
+    expect(stepRun(s, { type: 'removeCard', deckIndex: 0 }, CONTENT).error).toBeDefined();
+    expect(go(s, { type: 'leave' }).phase).toBe('map');
+  });
+
+  it('only last-row Shrines can be searched, and searching opens a relic cache', () => {
+    const early = enter('shrine');
+    expect(stepRun(early, { type: 'shrineSearch' }, CONTENT).error).toBeDefined();
+    const r = structuredClone(newRun());
+    const lastRow = r.map.nodes[r.map.bossId].row - 1;
+    const node = Object.values(r.map.nodes).find((n) => n.row === lastRow)!;
+    r.phase = 'node';
+    r.position = node.id;
+    r.node = { kind: 'shrine', nodeId: node.id };
+    const searched = go(r, { type: 'shrineSearch' });
+    expect(searched.node?.kind).toBe('cache');
+    expect(searched.node?.kind === 'cache' && searched.node.relicIds.length).toBe(r.options.cacheChoices);
+  });
+});
+
 describe('a whole loop, played by a simple bot', () => {
   /** Plays a full loop: first path, first affordable card, rest at shrines. */
   function botPlay(seed: string, reload = false): RunState {
@@ -191,6 +224,7 @@ describe('a whole loop, played by a simple bot', () => {
     if (node.kind === 'cache') return node.relicIds.length ? { type: 'takeRelic', index: 0 } : { type: 'leave' };
     if (node.kind === 'reward') return node.cardTaken ? { type: 'leave' } : { type: 'pickCard', choice: 0 };
     if (node.kind === 'event') {
+      if (node.toRemove) return { type: 'removeCard', deckIndex: 0 };
       if (node.resolved) return { type: 'leave' };
       const options = CONTENT.events[node.eventId].options;
       return { type: 'chooseOption', index: options.findIndex((o) => optionAvailable(r, o)) };

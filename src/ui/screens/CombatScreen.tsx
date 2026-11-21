@@ -8,7 +8,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { CONTENT } from '../../data';
 import { BALANCE } from '../../data/balance';
-import { PLAYER_ID, livingEnemies, needsTarget, type CombatAction, type CombatState, type Effect } from '../../engine';
+import { PLAYER_ID, cardCost, livingEnemies, needsTarget, type CombatAction, type CombatState, type Effect } from '../../engine';
 import { useScreenAtmosphere } from '../art';
 import { HintSlot } from '../hints';
 import { TimelineStrip } from '../components/TimelineStrip';
@@ -17,6 +17,7 @@ import { onFx } from '../fx/fxBus';
 import { buzz, HAPTIC } from '../fx/haptics';
 import { useHitFx } from '../fx/useHitFx';
 import { CardView } from '../components/CardView';
+import { DeckSheet } from '../components/DeckSheet';
 import { EnemyView } from '../components/EnemyView';
 import { Floaters } from '../components/Floaters';
 import { HpBar } from '../components/HpBar';
@@ -89,7 +90,9 @@ export function CombatScreen({ state, error, label, tier, dispatch, onMenu, onCo
 
   const selected = state.piles.hand.find((c) => c.uid === selectedUid);
   const selectedDef = selected && CONTENT.cards[selected.cardId];
-  const canPlay = !!selectedDef && !selectedDef.unplayable && selectedDef.cost <= state.resonance;
+  const canPlay = !!selected && !!selectedDef && !selectedDef.unplayable && cardCost(selected, selectedDef) <= state.resonance;
+  // Rewrite: choose which discarded card comes back before the card is played.
+  const [recalling, setRecalling] = useState(false);
 
   useEffect(() => {
     if (error) {
@@ -100,8 +103,13 @@ export function CombatScreen({ state, error, label, tier, dispatch, onMenu, onCo
 
   const [ghosts, setGhosts] = useState<Ghost[]>([]);
 
-  const playSelected = () => {
+  const playSelected = (pickUid?: string) => {
     if (!selected || !selectedDef) return;
+    if (pickUid === undefined && selectedDef.effects.some((e) => e.kind === 'recall') && state.piles.discard.length > 1) {
+      setRecalling(true);
+      return;
+    }
+    setRecalling(false);
     buzz(HAPTIC.cardPlay);
     // Launch a ghost of the card from its spot in the hand toward its target.
     const fromEl = document.querySelector(`.hand [data-card-uid="${selected.uid}"]`);
@@ -115,7 +123,7 @@ export function CombatScreen({ state, error, label, tier, dispatch, onMenu, onCo
       setGhosts((g) => [...g, ghost]);
       setTimeout(() => setGhosts((g) => g.filter((x) => x.key !== ghost.key)), GHOST_MS);
     }
-    dispatch({ type: 'playCard', uid: selected.uid, targetId: aim });
+    dispatch({ type: 'playCard', uid: selected.uid, targetId: aim, pickUid });
     setSelectedUid(undefined);
   };
 
@@ -132,7 +140,7 @@ export function CombatScreen({ state, error, label, tier, dispatch, onMenu, onCo
     state.phase === 'player' &&
     !state.piles.hand.some((c) => {
       const def = CONTENT.cards[c.cardId];
-      return !def.unplayable && def.cost <= state.resonance;
+      return !def.unplayable && cardCost(c, def) <= state.resonance;
     });
   const over = state.phase === 'won' || state.phase === 'lost';
 
@@ -209,7 +217,7 @@ export function CombatScreen({ state, error, label, tier, dispatch, onMenu, onCo
               <button className="ghost-btn" onClick={() => setSelectedUid(undefined)}>
                 Cancel
               </button>
-              <button className="primary-btn" disabled={!canPlay} onClick={playSelected}>
+              <button className="primary-btn" disabled={!canPlay} onClick={() => playSelected()}>
                 {selectedDef.unplayable ? 'Unplayable' : canPlay ? (needsTarget(selectedDef.effects) && alive.length > 1 ? 'Play on target' : 'Play') : 'No Resonance'}
               </button>
             </div>
@@ -226,7 +234,7 @@ export function CombatScreen({ state, error, label, tier, dispatch, onMenu, onCo
               card={card}
               variant="hand"
               preview={{ state, targetId: aim }}
-              affordable={!def.unplayable && def.cost <= state.resonance}
+              affordable={!def.unplayable && cardCost(card, def) <= state.resonance}
               selected={card.uid === selectedUid}
               onClick={() => tapCard(card.uid)}
             />
@@ -252,6 +260,15 @@ export function CombatScreen({ state, error, label, tier, dispatch, onMenu, onCo
           End Turn
         </button>
       </footer>
+
+      {recalling && (
+        <DeckSheet
+          deck={state.piles.discard.map((c) => c.cardId)}
+          title="Rewrite: choose a card to return"
+          onClose={() => setRecalling(false)}
+          pick={{ label: 'Return', onPick: (i) => playSelected(state.piles.discard[i].uid) }}
+        />
+      )}
 
       {ghosts.map((g) => (
         <div

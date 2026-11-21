@@ -23,7 +23,7 @@ export function optionAvailable(r: RunState, option: EventOption): boolean {
     if (e.kind === 'loseHp' && r.hp <= e.amount) return false;
     if (e.kind === 'maxHp' && e.amount < 0 && r.maxHp + e.amount < 10) return false;
     if (e.kind === 'loseRandomRelic' && r.relics.length === 0) return false;
-    if (e.kind === 'removeRandomCard' && r.deck.length - e.count < BALANCE.shrine.minDeckSize) return false;
+    if ((e.kind === 'removeRandomCard' || e.kind === 'removeChosenCard') && r.deck.length - e.count < BALANCE.shrine.minDeckSize) return false;
   }
   return true;
 }

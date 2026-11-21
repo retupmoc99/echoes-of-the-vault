@@ -2245,3 +2245,9 @@ body.has-screen-art::before {
   height: max(100%, 44px);
   transform: translate(-50%, -50%);
 }
+
+/* Rewrite made this card free this turn: a gold cost gem. */
+.card-cost.free {
+  background: hsl(45 95% 65%);
+  box-shadow: 0 0 10px hsl(45 95% 60%);
+}

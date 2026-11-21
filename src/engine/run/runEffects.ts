@@ -47,6 +47,12 @@ function applyRunEffect(r: RunState, e: RunEffect, content: Content, notices: st
         notices.push(`${content.cards[removed].name} is gone.`);
       }
       return;
+    case 'removeChosenCard': {
+      // The event screen then asks which cards; leaving waits until they're chosen.
+      const count = Math.min(e.count, r.deck.length - BALANCE.shrine.minDeckSize);
+      if (count > 0 && r.node?.kind === 'event') r.node.toRemove = (r.node.toRemove ?? 0) + count;
+      return;
+    }
     case 'gainRelic': {
       const [id] = rollRelics(r, content, 1, { allowTainted: true });
       if (!id) return;

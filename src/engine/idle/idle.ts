@@ -8,6 +8,9 @@
  *
  * Unraveling is deterministic: an Echo works until its stability runs out,
  * and output stops at that exact moment. No dice are rolled while you're away.
+ *
+ * Resting Echoes slowly recover stability, but only up to half of what they
+ * started with (restCap), so new Echoes stay worth keeping.
  */
 import { BALANCE } from '../../data/balance';
 import type { Content, Echo, IdleReport } from '../types';
@@ -20,6 +23,11 @@ const HOUR = 3_600_000;
 
 export function researchCost(index: number): number {
   return I.researchCostBase + I.researchCostStep * index;
+}
+
+/** The most stability resting can bring an Echo back to. */
+export function restCap(echo: Echo): number {
+  return echo.maxStability * I.restRecoveryCap;
 }
 
 export function researchComplete(save: SaveData, content: Content): boolean {
@@ -54,6 +62,9 @@ export function advanceIdle(save: SaveData, now: number, content: Content): { sa
 
   for (const echo of s.echoes) {
     if (!echo.task) {
+      // Recovery never pushes an Echo past the cap, nor lowers one already above it.
+      const cap = restCap(echo);
+      if (echo.stability < cap) echo.stability = Math.min(cap, echo.stability + I.restRecoveryPerHour * hours);
       survivors.push(echo);
       continue;
     }

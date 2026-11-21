@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.16.0 — The Choices pass (2026-11-21)
+
+### Added
+- **Choose what events take.** Altar of Cinders and The Door That Breathes let you pick the card you give up, for 3 more HP than before. The Tithe Collector keeps its random "Pay in memory" and adds "Pay in chosen memory" for 3 HP more.
+- **Search the last Shrines.** Shrines in the row before the boss gain a third rite: open a sealed relic cache instead of resting or cutting a card.
+- **Resting Echoes recover** 2 stability per hour, up to half their starting stability. The Echo card says when one is recovering.
+- **Rewrite**, a rare Hour-Thief card (1, Fade): choose a card in your discard pile and return it to your hand; it costs 0 this turn (gold cost gem). Includes painted art.
+
+### Balance
+- **The Relic-Breaker's kits are evened out** (bot sim, 600 loops): Fault-Walker 45% → 40%, Bastion 24% → 40%, standard 36%. Both now drop Overcharge:
+  - **Fault-Walker:** Twin Shards and Hollow Vow in place of a Strike and Overcharge.
+  - **Bastion:** keeps Shatter Lens; Mirror Sigil and Bulwark Slam in place of a Strike and Overcharge. *(The proposal guessed at swapping Bulwark Slam for a damage card. In the sim, the missing lens was the real problem.)*
+
 ## 0.15.0 — Starting kits (2026-11-21)
 
 ### Added

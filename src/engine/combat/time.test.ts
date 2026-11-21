@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { BALANCE } from '../../data/balance';
-import { act, play, startFight, withHand } from '../testing/fixtures';
+import { step } from '../combat/combat';
+import { TEST_CONTENT, act, play, startFight, withHand } from '../testing/fixtures';
 
 const endTurn = { type: 'endTurn' } as const;
 
@@ -94,6 +95,30 @@ describe('Echo', () => {
     s = act(s, endTurn).state;
     const all = [...s.piles.draw, ...s.piles.hand, ...s.piles.discard, ...s.piles.faded];
     expect(all.filter((c) => c.ephemeral)).toHaveLength(0);
+  });
+});
+
+describe('Recall (Rewrite)', () => {
+  it('returns the chosen discard, free this turn; it costs full price again once discarded', () => {
+    let s = withHand(startFight(), ['hit6', 'ward5', 'recall']);
+    s = play(s, 0).state; // hit6
+    s = play(s, 0).state; // ward5
+    const hitUid = s.piles.discard.find((c) => c.cardId === 'hit6')!.uid;
+    s = step(s, { type: 'playCard', uid: s.piles.hand[0].uid, pickUid: hitUid }, TEST_CONTENT).state;
+    expect(s.piles.hand.map((c) => [c.cardId, c.freeThisTurn])).toEqual([['hit6', true]]);
+    s.resonance = 0;
+    const free = play(s, 0);
+    expect(free.error).toBeUndefined();
+    expect(free.state.piles.discard.find((c) => c.uid === hitUid)?.freeThisTurn).toBeUndefined();
+  });
+
+  it('without a choice it takes the last discard; a held free card loses the discount at turn end', () => {
+    let s = withHand(startFight(), ['hit6', 'ward5', 'recall']);
+    s = play(play(s, 0).state, 0).state;
+    s = play(s, 0).state;
+    expect(s.piles.hand[0].cardId).toBe('ward5');
+    s = act(s, endTurn).state;
+    expect([...s.piles.draw, ...s.piles.hand, ...s.piles.discard].some((c) => c.freeThisTurn)).toBe(false);
   });
 });
 

@@ -65,6 +65,7 @@ export const AVAILABLE_ART: readonly string[] = [
   'cards/repeating-edge',
   'cards/requiem',
   'cards/resonant-feedback',
+  'cards/rewrite',
   'cards/scar-tissue',
   'cards/second-hand',
   'cards/serrate',

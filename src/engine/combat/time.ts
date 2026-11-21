@@ -83,6 +83,16 @@ export function returnEchoes(ctx: Ctx): void {
   if (count) ctx.events.push({ type: 'echoReturned', count });
 }
 
+/** Return one chosen card (ctx.pickUid, else the last one) from the discard pile to the hand. */
+export function recall(ctx: Ctx, free: boolean): void {
+  const piles = ctx.s.piles;
+  if (!piles.discard.length || piles.hand.length >= BALANCE.player.maxHandSize) return;
+  const found = piles.discard.findIndex((c) => c.uid === ctx.pickUid);
+  const [card] = piles.discard.splice(found >= 0 ? found : piles.discard.length - 1, 1);
+  piles.hand.push(free ? { ...card, freeThisTurn: true } : card);
+  ctx.events.push({ type: 'rewound', count: 1 });
+}
+
 export function rewind(ctx: Ctx, count: number): void {
   const piles = ctx.s.piles;
   let moved = 0;

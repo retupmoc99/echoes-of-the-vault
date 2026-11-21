@@ -22,7 +22,7 @@ The script reads each item's prompt from the tables below (cards by default), pl
 
 Comfy Desktop users: the desktop app may not expose a local API. You can run the install's server directly, from its `ComfyUI` folder: `.venv/Scripts/python.exe main.py --port 8190 --extra-model-paths-config <yaml pointing at your models folder>`.
 
-**Current set (0.14.1):** the full set, 132 images, 3.8 MB. The Sleeper, its Eye and The Sleeper's Breath background came in 0.13; the Echo-Caller's 24 cards and 7 relics in 0.14.1. *Soul Lance* and *Severed Thread* were rerolled in 0.14.2.
+**Current set (0.16.0):** the full set, 133 images, 3.85 MB (Rewrite added in 0.16). The Sleeper, its Eye and The Sleeper's Breath background came in 0.13; the Echo-Caller's 24 cards and 7 relics in 0.14.1. *Soul Lance* and *Severed Thread* were rerolled in 0.14.2.
 - All 55 cards, picked from ~180 generated images on an RTX 5080 (~6 s each). Weakest, worth a reroll: *Second Hand* (a clock, not a blade), *Loop the Moment*, *Unmake the Hour* and *Mirror Sigil* (pale backgrounds), *Twin Shards* (pillars, not crossed blades).
 - All 8 backgrounds: `npm run art:gen -- --folder backgrounds`. 768×1344 plus a built-in second pass (latent upscale ×1.5, denoise 0.45) to 1152×2016, ~16 s each.
 - All 11 enemies, 18 relics and 6 node icons: `--folder enemies|relics|ui`. Cut out with ComfyUI's built-in Remove Background node and BiRefNet (`birefnet.safetensors`, 424 MB, from huggingface.co/Comfy-Org/BiRefNet, in the `background_removal` models folder). Over budget but kept for detail: *Vein Crawler* (166 KB), *Bone Abacus* (34 KB), *Gilded Gear* (26 KB).
@@ -189,6 +189,7 @@ Shared accent: **pale jade and silver** (Temporal cards), with ember for strikes
 | refrain | sheets of glowing script repeating in a spiral, a choir of faint echoes |
 | chorus-of-moments | dozens of translucent copies of one figure singing, jade halos, overwhelming |
 | undo | shattered glass flying backwards into a whole pane, reversed time, jade |
+| rewrite | a quill of jade light writing glowing script in the dark, older lines of the script unravelling and re-forming as new words, floating letters |
 | loop-the-moment | a glowing ring of jade light hanging in a black void, a single step of light repeating around it endlessly like an ouroboros, deep darkness all around |
 | fray-the-thread | a glowing thread of time unravelling into sparks, ember and jade |
 | borrowed-time | a coin made of hourglass sand pressed into a palm, jade glow, dread |

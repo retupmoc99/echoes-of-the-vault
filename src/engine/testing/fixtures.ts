@@ -63,6 +63,7 @@ export const TEST_CONTENT: Content = {
     card('flick', 0, [{ kind: 'damage', amount: 3 }], { echo: true }),
     card('rewind', 0, [{ kind: 'rewind', count: 1 }], { type: 'temporal' }),
     card('rewind2', 0, [{ kind: 'rewind', count: 2 }], { type: 'temporal' }),
+    card('recall', 0, [{ kind: 'recall', free: true }], { type: 'temporal' }),
     card('paradox3', 0, [{ kind: 'applyStatus', status: 'paradox', amount: 3, target: 'self' }], { type: 'rite' }),
     card('tick', 0, [{ kind: 'damage', amount: { per: 'timeline', times: 4, plus: 1 } }]),
   ]),

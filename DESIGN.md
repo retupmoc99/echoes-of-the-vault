@@ -139,7 +139,7 @@ Relic-Breaker content: 30 cards (4 starter, 23 reward pool, 3 curses) and 11 rel
 - **Fight pools:** rows 0–3 draw from the *early* pool, rows 4+ from the *late* pool. Encounters you've already seen this loop are avoided.
 - **Fight seeds:** each fight's seed is `runSeed:nodeId`, so a fight replays identically whatever path led to it.
 - **HP carries over** between fights. There's no healing except at Shrines.
-- **Shrine:** rest (heal 30% of max HP), or remove a card (deck can't drop below 5).
+- **Shrine:** rest (heal 30% of max HP), or remove a card (deck can't drop below 5). Shrines in the last row before the boss add a third rite, **Search**: open a sealed relic cache instead (Tainted relics possible; the Reliquary Key adds a third relic).
 - **Relic Cache:** two sealed relics, take one (or neither). Tainted relics can appear here.
 - **Event:** one of 8 text events, never repeated within a loop.
 - **Ending:** beating the boss is a *victory*. Dying or abandoning is a *death*. Either way the loop closes and is counted on the outpost screen.
@@ -254,7 +254,7 @@ Target: about 1 minute (3–5 turns) per normal fight.
 **Unraveling is deterministic** (a decision I made; flagged below):
 - An Echo works until its stability is gone, then Unravels at that exact moment, and output stops then too.
 - The UI shows hours of work left, so the risk is visible and planned around, not a dice roll while you're away.
-- Echoes never regain stability. Resting only pauses the drain.
+- **Resting Echoes recover** 2 stability per hour, up to half their starting stability, and never above it (0.16). Working Echoes don't recover.
 
 **Offline progress:**
 - `advanceIdle(save, now)` counts real time since `lastTickAt`, at most **8 hours** per absence.
@@ -417,6 +417,11 @@ All sound is generated in code with Web Audio (`src/ui/audio/`): no audio files,
   - v4 → v5: adds `settings.hints` and `settings.hintsSeen`. Veterans (1+ loops) start with the basic hints dismissed.
   - v3 → v4: a loop in progress keeps the full 23-card pool it had. The pool is hard-coded in the migration, because migrations describe history. Idle time starts counting from the last save.
 
+## Next builds (proposed 2026-11-21)
+1. **The Choices pass** (0.16, built): settles the open questions below: pick-your-card event removals, a Search rite on the last Shrines, Echoes recovering while resting, evening out the Relic-Breaker's kits, and a Rewrite card. See `docs/design/choices-pass.md`.
+2. **The Daily Descent** (0.17, not yet agreed): one shared, date-seeded loop a day, with a rule-bending Omen and a shareable result. It leaves no Echo, doesn't move the Awakening, and there's no streak to break. See `docs/design/daily-descent.md`.
+3. **The Deeper Vault** (0.18–0.19, not yet agreed): Escape or Descend after the boss, into a shorter, harsher second floor with 9 new enemies; Echoes born there are stronger. See `docs/design/deeper-vault.md`.
+
 ## Future hooks (not built)
 - **Classes:** `WardenClassDef` holds the deck, pools, kits, HP and an optional unlock. The Hour-Thief proved the pattern: a new class is mostly data, plus new `Effect` kinds for genuinely new mechanics. Built in 0.14.0 (see "Echo-Caller (class 3)"). **Decided (2026-11-21):** it summons your *real* Outpost Echoes as allies, each fighting from its own deck snapshot, with its trait shaping how it fights. Needs player-side ally combatants. Full design to be agreed before building.
 - **Factions / awakening:** `SaveData.world` exists (empty). **Decided (2026-11-21):** the Awakening rises with *activity only* (loops played, Echo work done), never with real time away, so breaks are never punished. As it rises, loops get new dangers and new rewards, and the Outpost can push it back. Stages 1–3 built in 0.12.0; see "The Awakening" above.
@@ -425,7 +430,6 @@ All sound is generated in code with Web Audio (`src/ui/audio/`): no audio files,
 - **Multiplayer:** not planned. To revisit in a later milestone.
 
 ## Open questions / flagged
-- **Relic-Breaker kit spread (flagged 0.15):** in the bot sim the Fault-Walker wins 46% and the Bastion 24%, against 36% for the standard deck. Not changed yet; worth evening out (or accepting, since the Bastion may suit real players better than the bot).
 - **Hand overflow.** Past 5 cards, the hand scrolls sideways instead of overlapping, so every card stays a full-size tap target. Revisit if scrolling feels clumsy.
 - **Targeting reach.** Enemies sit at the top of the screen, which is a stretch for one thumb. They're only tapped to switch targets in multi-enemy fights, and the default target is the first living enemy.
 - **iOS haptics.** Safari doesn't support vibration, so iPhones get visual feedback only.
@@ -435,11 +439,10 @@ All sound is generated in code with Web Audio (`src/ui/audio/`): no audio files,
 - **Locked Wardens' cards are visible in the library** (greyed out). That previews what's coming; hide them if you'd rather keep it a surprise.
 - **The tainted offer appears after every fight.** Alternative if it feels like too much: show it only on elite rewards, or on 50% of rewards.
 - **Unraveling is a countdown, not a dice roll.** The brief said tasks "risk" Unraveling. I made the risk deterministic and visible (hours of work left), because losing an Echo to a hidden roll while the app is closed feels unfair. If you want real tension, an alternative: once stability falls below 25%, each hour carries a chance to Unravel early.
-- **Echoes never heal.** With only 3 slots and a fresh Echo every loop, supply is steady. If Echoes feel too disposable, a slow "Rest" recovery (e.g. +2 stability per hour, up to 50%) would make them precious.
-- **Event removals are random** ("remove a random card"). That's grim on purpose, but it can delete a key card. The alternative is to let the player pick, at a higher cost.
-- **The last row is all Shrines.** That guarantees a rest before the boss, but it isn't a choice. If it feels flat, a mix of Shrine and Cache could work instead.
+- **Event removals** (settled 0.16): Altar of Cinders and The Door That Breathes now let you choose the card, at 3 more HP. The Tithe Collector keeps its random "Pay in memory" (that one is the gamble) and adds "Pay in chosen memory" for 3 HP more.
+- **The last row is all Shrines** (settled 0.16): kept, so every path rests before the boss, but those Shrines gain the Search rite.
 - **Hour-Thief tuning to watch:**
   - Paradox at 5 is a hard ceiling. If it feels too punishing, raise the threshold to 6 or lower the damage per stack.
   - Doomsday Clock (50 to all foes in 4 turns) may trivialise the boss once researched.
   - Echo-chaining Flicker is free damage every turn. Watch whether it crowds out real choices.
-- **Rewind takes the most recent discards**, not a card you choose. It's predictable and phone-friendly (no picker), and it makes play order a puzzle. A "choose a card to rewind" picker could come later as a rare card.
+- **Rewind takes the most recent discards**, not a card you choose. It's predictable and phone-friendly (no picker), and it makes play order a puzzle. Since 0.16 the rare **Rewrite** (1, Fade) lets you choose: it returns any discarded card, free this turn.

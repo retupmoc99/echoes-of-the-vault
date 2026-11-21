@@ -214,6 +214,17 @@ export const HOUR_THIEF_CARDS: CardDef[] = [
     flavor: 'It never happened. Do it again.',
   },
   {
+    id: 'rewrite',
+    name: 'Rewrite',
+    type: 'temporal',
+    cost: 1,
+    rarity: 'rare',
+    archetype: 'unwinding',
+    fade: true,
+    effects: [{ kind: 'recall', free: true }],
+    flavor: 'Not undone. Done differently.',
+  },
+  {
     id: 'loop-the-moment',
     name: 'Loop the Moment',
     type: 'temporal',

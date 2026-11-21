@@ -21,7 +21,7 @@ import type {
 } from '../types';
 import { PLAYER_ID, isOver, livingEnemies, type Ctx } from './context';
 import { checkCombatEnd } from './damage';
-import { discardHand, drawCards } from './deck';
+import { cardCost, discardHand, drawCards } from './deck';
 import { needsTarget, resolveEffects } from './effects';
 import { chooseIntent } from './intents';
 import { allyPhase } from './allies';
@@ -100,7 +100,7 @@ export function step(state: CombatState, action: CombatAction, content: Content)
   if (state.phase !== 'player') return { state, events: [], error: 'Combat is not awaiting the player.' };
 
   const ctx: Ctx = { s: structuredClone(state), content, events: [], depth: 0 };
-  const error = action.type === 'playCard' ? playCard(ctx, action.uid, action.targetId) : endTurn(ctx);
+  const error = action.type === 'playCard' ? playCard(ctx, action.uid, action.targetId, action.pickUid) : endTurn(ctx);
 
   // A refused action leaves the original state untouched.
   if (error) return { state, events: [], error };
@@ -109,7 +109,7 @@ export function step(state: CombatState, action: CombatAction, content: Content)
 
 // ───────────────────────────── Player actions ─────────────────────────────
 
-function playCard(ctx: Ctx, uid: string, targetId: string | undefined): string | undefined {
+function playCard(ctx: Ctx, uid: string, targetId: string | undefined, pickUid?: string): string | undefined {
   const s = ctx.s;
   const handIndex = s.piles.hand.findIndex((c) => c.uid === uid);
   if (handIndex < 0) return 'That card is not in your hand.';
@@ -117,7 +117,8 @@ function playCard(ctx: Ctx, uid: string, targetId: string | undefined): string |
   const card = s.piles.hand[handIndex];
   const def = ctx.content.cards[card.cardId];
   if (def.unplayable) return `${def.name} cannot be played.`;
-  if (def.cost > s.resonance) return 'Not enough Resonance.';
+  const cost = cardCost(card, def);
+  if (cost > s.resonance) return 'Not enough Resonance.';
 
   let target: string | undefined;
   if (needsTarget(def.effects)) {
@@ -127,16 +128,21 @@ function playCard(ctx: Ctx, uid: string, targetId: string | undefined): string |
     s.focusId = target; // your allies aim where you aim
   }
 
-  s.resonance -= def.cost;
+  s.resonance -= cost;
   // The card leaves the hand while it resolves, so draw effects cannot redraw it.
   s.piles.hand.splice(handIndex, 1);
   ctx.events.push({ type: 'cardPlayed', uid, cardId: def.id });
 
   ctx.sourceCardId = def.id;
+  ctx.pickUid = pickUid;
   resolveEffects(ctx, def.effects, PLAYER_ID, target);
   ctx.sourceCardId = undefined;
+  ctx.pickUid = undefined;
   // Echo copies vanish once played; real cards go to discard (or fade).
-  if (!card.ephemeral) (def.fade ? s.piles.faded : s.piles.discard).push(card);
+  if (!card.ephemeral) {
+    const { freeThisTurn: _, ...played } = card;
+    (def.fade ? s.piles.faded : s.piles.discard).push(played);
+  }
   if (def.echo) queueEcho(ctx, def.id);
 
   if (!isOver(s)) fireTriggers(ctx, 'cardPlayed', { cardType: def.type });

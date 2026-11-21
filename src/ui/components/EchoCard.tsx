@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { CONTENT } from '../../data';
-import { giveValue, hoursLeft, traitOf, type Echo, type EchoTaskKind } from '../../engine';
+import { giveValue, hoursLeft, restCap, traitOf, type Echo, type EchoTaskKind } from '../../engine';
 import { formatHours } from '../format';
 
 const TASKS: { kind: EchoTaskKind | null; label: string }[] = [
@@ -28,7 +28,11 @@ export function EchoCard({ echo, researchDone, onAssign, onRelease, onInspect, o
   const trait = traitOf(echo, CONTENT);
   const shift = CONTENT.vaultShifts[echo.origin.vaultShiftId]?.name ?? 'an unknown vault';
   const pct = Math.max(0, (echo.stability / echo.maxStability) * 100);
-  const left = echo.task ? `${formatHours(hoursLeft(echo, echo.task.kind, CONTENT))} of work left` : 'Resting. Not fading.';
+  const left = echo.task
+    ? `${formatHours(hoursLeft(echo, echo.task.kind, CONTENT))} of work left`
+    : echo.stability < restCap(echo)
+      ? `Resting. Recovering, up to ${Math.round((restCap(echo) / echo.maxStability) * 100)}%.`
+      : 'Resting. Not fading.';
 
   return (
     <article className={`echo-card ${echo.task ? `task-${echo.task.kind}` : ''}`}>

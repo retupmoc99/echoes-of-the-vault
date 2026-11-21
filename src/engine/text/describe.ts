@@ -125,6 +125,10 @@ function effectText(e: Effect, preview?: Preview): string {
       return e.count === 1
         ? 'Return the last card in your discard pile to your hand.'
         : `Return the last ${e.count} cards in your discard pile to your hand.`;
+    case 'recall':
+      return e.free
+        ? 'Choose a card in your discard pile. Return it to your hand. It costs 0 this turn.'
+        : 'Choose a card in your discard pile. Return it to your hand.';
     case 'call':
       return e.count === 1 ? 'Call an Echo.' : `Call ${e.count} Echoes.`;
     case 'allyAct':

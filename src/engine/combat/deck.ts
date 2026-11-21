@@ -1,6 +1,12 @@
 import { BALANCE } from '../../data/balance';
 import { rngShuffle } from '../rng';
+import type { CardDef, CardInstance } from '../types';
 import type { Ctx } from './context';
+
+/** What a card in hand costs right now (Rewrite can make a card free this turn). */
+export function cardCost(card: CardInstance, def: CardDef): number {
+  return card.freeThisTurn ? 0 : def.cost;
+}
 
 /** Draw up to `count` cards, reshuffling the discard pile when the draw pile runs out. */
 export function drawCards(ctx: Ctx, count: number): void {
@@ -24,6 +30,7 @@ export function drawCards(ctx: Ctx, count: number): void {
 export function discardHand(ctx: Ctx): void {
   const piles = ctx.s.piles;
   // Unplayed Echo copies fade instead of going to the discard pile.
-  piles.discard.push(...piles.hand.filter((c) => !c.ephemeral));
+  // A free-this-turn card stops being free once it leaves the hand.
+  piles.discard.push(...piles.hand.filter((c) => !c.ephemeral).map(({ freeThisTurn: _, ...c }) => c));
   piles.hand = [];
 }

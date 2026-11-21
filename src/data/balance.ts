@@ -160,6 +160,10 @@ export const BALANCE = {
   idle: {
     /** Offline progress is capped at this many hours per absence. */
     offlineCapHours: 8,
+    /** A resting Echo recovers this much stability per hour... */
+    restRecoveryPerHour: 2,
+    /** ...up to this share of its starting stability (never past it). */
+    restRecoveryCap: 0.5,
     /** Shards per hour from one digging Echo (before trait). */
     shardsPerHour: 12,
     /** Research points per hour from one researching Echo (before trait). */

@@ -10,7 +10,7 @@
  * - Events: the first option it can afford. Caches: the first clean relic.
  */
 import type { CardDef, CombatAction, Content, RunAction, RunState } from '../engine';
-import { livingEnemies, needsTarget, optionAvailable, previewIntent, reachableNodes } from '../engine';
+import { canSearchShrine, cardCost, livingEnemies, needsTarget, optionAvailable, previewIntent, reachableNodes } from '../engine';
 
 const RARITY_RANK: Record<string, number> = { curse: -1, starter: 0, common: 1, uncommon: 2, rare: 3 };
 
@@ -27,6 +27,7 @@ export function nextBotAction(r: RunState, content: Content): RunAction {
       if (curse >= 0) return { type: 'shrineRemove', deckIndex: curse };
       const starter = r.deck.findIndex((id) => content.cards[id].rarity === 'starter' && content.cards[id].type === 'strike');
       if (starter >= 0 && r.deck.length > 8) return { type: 'shrineRemove', deckIndex: starter };
+      if (canSearchShrine(r)) return { type: 'shrineSearch' };
       return { type: 'shrineRest' };
     }
     case 'cache': {
@@ -43,6 +44,7 @@ export function nextBotAction(r: RunState, content: Content): RunAction {
       return { type: 'pickCard', choice: best };
     }
     case 'event': {
+      if (node.toRemove) return { type: 'removeCard', deckIndex: worstCard(r, content) };
       if (node.resolved) return { type: 'leave' };
       const options = content.events[node.eventId].options;
       return { type: 'chooseOption', index: Math.max(0, options.findIndex((o) => optionAvailable(r, o))) };
@@ -52,6 +54,16 @@ export function nextBotAction(r: RunState, content: Content): RunAction {
       if (r.combat!.phase !== 'player') return { type: 'leave' };
       return { type: 'combat', action: combatAction(r, content) };
   }
+}
+
+/** The card the bot gives up first: a curse, then a starter strike, then a starter, then the first card. */
+function worstCard(r: RunState, content: Content): number {
+  const find = (test: (id: string) => boolean) => r.deck.findIndex(test);
+  const curse = find((id) => content.cards[id].type === 'curse');
+  if (curse >= 0) return curse;
+  const strike = find((id) => content.cards[id].rarity === 'starter' && content.cards[id].type === 'strike');
+  if (strike >= 0) return strike;
+  return Math.max(0, find((id) => content.cards[id].rarity === 'starter'));
 }
 
 function chooseNode(r: RunState): string {
@@ -82,7 +94,7 @@ function combatAction(r: RunState, content: Content): CombatAction {
   const incoming = intents + dreams;
   const playable = c.piles.hand
     .map((card) => ({ card, def: content.cards[card.cardId] as CardDef }))
-    .filter(({ def }) => !def.unplayable && def.type !== 'curse' && def.cost <= c.resonance)
+    .filter(({ card, def }) => !def.unplayable && def.type !== 'curse' && cardCost(card, def) <= c.resonance)
     .sort((a, b) => b.def.cost - a.def.cost);
   if (!playable.length) return { type: 'endTurn' };
 

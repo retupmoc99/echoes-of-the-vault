@@ -61,10 +61,29 @@ describe('offline progress', () => {
     expect(save.echoes[0].stability).toBeCloseTo(100 - 2 * BALANCE.echoes.drainPerHour.dig);
   });
 
-  it('idle Echoes neither work nor fade', () => {
+  it('resting Echoes neither work nor fade', () => {
     const { save } = advanceIdle(saveWith([echo(null)]), T0 + 5 * HOUR, CONTENT);
     expect(save.outpost.shards).toBe(0);
     expect(save.echoes[0].stability).toBe(100);
+  });
+
+  it('resting Echoes recover stability, but only up to half their starting stability', () => {
+    const worn = echo(null, { stability: 20 });
+    const after3h = advanceIdle(saveWith([worn]), T0 + 3 * HOUR, CONTENT).save;
+    expect(after3h.echoes[0].stability).toBeCloseTo(20 + 3 * I.restRecoveryPerHour);
+    // Many long breaks still stop at the cap.
+    let s = saveWith([worn]);
+    for (let day = 1; day <= 10; day++) s = advanceIdle(s, T0 + day * 24 * HOUR, CONTENT).save;
+    expect(s.echoes[0].stability).toBe(100 * I.restRecoveryCap);
+    // Working Echoes don't recover; Echoes above the cap aren't pulled down.
+    expect(advanceIdle(saveWith([echo(null, { stability: 80 })]), T0 + 5 * HOUR, CONTENT).save.echoes[0].stability).toBe(80);
+  });
+
+  it('recovery in small ticks matches one long absence', () => {
+    let ticked = saveWith([echo(null, { stability: 10 })]);
+    for (let m = 15; m <= 4 * 60; m += 15) ticked = advanceIdle(ticked, T0 + m * 60_000, CONTENT).save;
+    const once = advanceIdle(saveWith([echo(null, { stability: 10 })]), T0 + 4 * HOUR, CONTENT).save;
+    expect(ticked.echoes[0].stability).toBeCloseTo(once.echoes[0].stability);
   });
 
   it(`caps offline time at ${I.offlineCapHours} hours`, () => {

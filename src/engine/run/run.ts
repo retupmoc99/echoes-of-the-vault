@@ -140,6 +140,21 @@ function apply(r: RunState, action: RunAction, content: Content, events: CombatE
       Object.assign(node, rollCardReward(r, content, tier));
       return undefined;
     }
+    case 'shrineSearch':
+      if (r.node?.kind !== 'shrine') return 'There is no shrine here.';
+      if (!canSearchShrine(r)) return 'Only the last shrines hide anything.';
+      r.node = { kind: 'cache', nodeId: r.node.nodeId, relicIds: rollRelics(r, content, r.options.cacheChoices, { allowTainted: true }) };
+      return undefined;
+    case 'removeCard': {
+      const node = r.node;
+      if (node?.kind !== 'event' || !node.toRemove) return 'Nothing asks for a card.';
+      if (!r.deck[action.deckIndex]) return 'No such card.';
+      const [removed] = r.deck.splice(action.deckIndex, 1);
+      r.stats.cardsRemoved++;
+      node.toRemove--;
+      notices.push(`${content.cards[removed].name} is gone.`);
+      return undefined;
+    }
     case 'shrineRemove':
       if (r.node?.kind !== 'shrine') return 'There is no shrine here.';
       if (r.deck.length <= BALANCE.shrine.minDeckSize) return 'Your deck is already thin.';
@@ -161,6 +176,12 @@ function apply(r: RunState, action: RunAction, content: Content, events: CombatE
       endRun(r, 'death');
       return undefined;
   }
+}
+
+/** Shrines in the last row before the boss can be searched for a relic cache. */
+export function canSearchShrine(r: RunState): boolean {
+  if (r.node?.kind !== 'shrine') return false;
+  return r.map.nodes[r.node.nodeId].row === r.map.nodes[r.map.bossId].row - 1;
 }
 
 /** HP restored by resting at a Shrine (the Vault Shift may reduce it). */
@@ -331,6 +352,7 @@ function leave(r: RunState, content: Content): string | undefined {
     return undefined;
   }
 
+  if (node.kind === 'event' && node.toRemove) return 'Choose what you give up first.';
   backToMap(r);
   return undefined;
 }

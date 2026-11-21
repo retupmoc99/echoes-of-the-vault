@@ -16,6 +16,8 @@ export interface Ctx {
   sourceCardId?: string;
   /** The enemy move resolving (labels an enemy's delayed attacks). */
   moveName?: string;
+  /** The discard-pile card chosen for a Recall effect, if any. */
+  pickUid?: string;
   /** Strength multiplier for amounts (allies play at half). Undefined = full. */
   potency?: number;
 }

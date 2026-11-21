@@ -68,6 +68,8 @@ export type Effect =
   | { kind: 'hasten'; turns: number }
   /** Return the most recent `count` cards from the discard pile to your hand. */
   | { kind: 'rewind'; count: number }
+  /** Return a card you choose from your discard pile (default: the last one); `free` makes it cost 0 this turn. */
+  | { kind: 'recall'; free?: boolean }
   // Echo-Caller: allies. "Newest" is the most recently Called living ally.
   /** Bring Echoes from your Chorus into the fight as allies (a Nameless one if none are left). */
   | { kind: 'call'; count: number }
@@ -252,6 +254,8 @@ export type RunEffect =
   | { kind: 'addRandomCard'; rarity: 'common' | 'uncommon' | 'rare' }
   | { kind: 'addCurse' }
   | { kind: 'removeRandomCard'; count: number }
+  /** The player picks which cards go (after the event's text shows). */
+  | { kind: 'removeChosenCard'; count: number }
   | { kind: 'gainRelic' }
   | { kind: 'loseRandomRelic' };
 
@@ -413,6 +417,8 @@ export interface CardInstance {
   cardId: string;
   /** An Echo copy: it fades when played, or at the end of the turn if not. */
   ephemeral?: boolean;
+  /** Costs 0 until it leaves your hand (Rewrite). */
+  freeThisTurn?: boolean;
 }
 
 /** An effect waiting on the timeline (from a Delay card). */
@@ -512,7 +518,8 @@ export interface EliteAffixDef {
 // ───────────────────────────── Actions & events ─────────────────────────────
 
 export type CombatAction =
-  | { type: 'playCard'; uid: string; targetId?: string }
+  /** `pickUid`: the discard-pile card chosen for a Recall effect (Rewrite). */
+  | { type: 'playCard'; uid: string; targetId?: string; pickUid?: string }
   | { type: 'endTurn' };
 
 /**
@@ -582,7 +589,14 @@ export type NodeState =
   | { kind: 'combat'; nodeId: string; encounterId: string; hpBefore: number }
   | { kind: 'shrine'; nodeId: string }
   | { kind: 'cache'; nodeId: string; relicIds: string[] }
-  | { kind: 'event'; nodeId: string; eventId: string; resolved: { optionIndex: number; text: string } | null }
+  | {
+      kind: 'event';
+      nodeId: string;
+      eventId: string;
+      resolved: { optionIndex: number; text: string } | null;
+      /** Cards the player still has to choose to remove (removeChosenCard). */
+      toRemove?: number;
+    }
   | {
       kind: 'reward';
       nodeId: string;
@@ -679,6 +693,10 @@ export type RunAction =
   | { type: 'shrineRest' }
   | { type: 'shrineRemove'; deckIndex: number }
   | { type: 'shrinePurge' }
+  /** Last-row Shrines: open a sealed relic cache instead of resting. */
+  | { type: 'shrineSearch' }
+  /** An event asked you to remove cards of your choice. */
+  | { type: 'removeCard'; deckIndex: number }
   | { type: 'rerollReward' }
   /** Cache: which of the offered relics. Reward: the elite relic (index ignored). */
   | { type: 'takeRelic'; index?: number }

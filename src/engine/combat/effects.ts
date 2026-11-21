@@ -10,7 +10,7 @@ import { dealAttack, gainWard, loseHp } from './damage';
 import { drawCards } from './deck';
 import { overloadRelics } from './relics';
 import { addStatus, removeStatus } from './statuses';
-import { advanceTimeline, queueDelay, rewind } from './time';
+import { advanceTimeline, queueDelay, recall, rewind } from './time';
 
 /** Counters some amounts scale with (they only apply to the player). */
 export interface AmountCounts {
@@ -156,6 +156,9 @@ function resolveEffect(ctx: Ctx, effect: Effect, source: Combatant, targetId: st
       return;
     case 'rewind':
       rewind(ctx, effect.count);
+      return;
+    case 'recall':
+      recall(ctx, !!effect.free);
       return;
     case 'call':
       callAllies(ctx, effect.count);

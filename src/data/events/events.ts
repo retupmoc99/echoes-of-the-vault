@@ -73,8 +73,8 @@ export const EVENTS: EventDef[] = [
     options: [
       {
         label: 'Give blood',
-        hint: 'Lose 9 HP. Remove a random card.',
-        outcomes: [{ text: 'The ash drinks. Something in your deck goes quiet forever.', effects: [{ kind: 'loseHp', amount: 9 }, { kind: 'removeRandomCard', count: 1 }] }],
+        hint: 'Lose 12 HP. Remove a card of your choice.',
+        outcomes: [{ text: 'The ash drinks, and waits for you to name what it takes.', effects: [{ kind: 'loseHp', amount: 12 }, { kind: 'removeChosenCard', count: 1 }] }],
       },
       {
         label: 'Give a relic',
@@ -150,6 +150,11 @@ export const EVENTS: EventDef[] = [
         label: 'Pay in memory',
         hint: 'Remove 2 random cards. Lose 1 Corruption.',
         outcomes: [{ text: 'You forget two things. You will never know which.', effects: [{ kind: 'removeRandomCard', count: 2 }, { kind: 'corruption', amount: -1 }] }],
+      },
+      {
+        label: 'Pay in chosen memory',
+        hint: 'Lose 3 HP. Remove 2 cards of your choice. Lose 1 Corruption.',
+        outcomes: [{ text: 'It lets you choose what to forget. Choosing hurts more.', effects: [{ kind: 'loseHp', amount: 3 }, { kind: 'removeChosenCard', count: 2 }, { kind: 'corruption', amount: -1 }] }],
       },
       {
         label: 'Refuse',
@@ -256,8 +261,8 @@ export const AWAKENING_EVENTS: EventDef[] = [
       },
       {
         label: 'Wedge it shut',
-        hint: 'Lose 5 HP. Remove a random card.',
-        outcomes: [{ text: 'You jam something of yours into the gap. It holds. You do not get it back.', effects: [{ kind: 'loseHp', amount: 5 }, { kind: 'removeRandomCard', count: 1 }] }],
+        hint: 'Lose 8 HP. Remove a card of your choice.',
+        outcomes: [{ text: 'You jam something of yours into the gap. It holds. You do not get it back.', effects: [{ kind: 'loseHp', amount: 8 }, { kind: 'removeChosenCard', count: 1 }] }],
       },
       {
         label: 'Leave it breathing',

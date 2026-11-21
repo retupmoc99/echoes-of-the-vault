@@ -7,6 +7,7 @@ import { CONTENT } from '../../data';
 import { BALANCE } from '../../data/balance';
 import { NODE_INFO } from '../../data/nodeTypes';
 import {
+  canSearchShrine,
   chorusCost,
   createEcho,
   describeCard,
@@ -110,6 +111,11 @@ export function ShrineScreen({ run, error, dispatch, onMenu }: ScreenProps) {
           <button className="ghost-btn wide" disabled={!canRemove} onClick={() => setRemoving(true)}>
             {canRemove ? 'Cut away a card' : 'Your deck is already thin'}
           </button>
+          {canSearchShrine(run) && (
+            <button className="ghost-btn wide" onClick={() => dispatch({ type: 'shrineSearch' })}>
+              Search · open a relic cache
+            </button>
+          )}
           {run.options.shrinePurge && (
             <button className="ghost-btn wide" disabled={run.corruption === 0} onClick={() => dispatch({ type: 'shrinePurge' })}>
               Purge in ash · lose {BALANCE.outpost.purgeAmount} Corruption
@@ -174,9 +180,12 @@ export function CacheScreen({ run, error, dispatch, onMenu }: ScreenProps) {
 }
 
 export function EventScreen({ run, error, dispatch, onMenu }: ScreenProps) {
+  const [picking, setPicking] = useState(true);
   if (run.node?.kind !== 'event') return null;
   const event = CONTENT.events[run.node.eventId];
   const resolved = run.node.resolved;
+  // The event asked you to choose cards to give up; leaving waits for that.
+  const toRemove = run.node.toRemove ?? 0;
 
   return (
     <Chamber
@@ -188,7 +197,11 @@ export function EventScreen({ run, error, dispatch, onMenu }: ScreenProps) {
       error={error}
       compact
       actions={
-        resolved ? (
+        resolved && toRemove > 0 ? (
+          <button className="primary-btn wide" onClick={() => setPicking(true)}>
+            Choose {toRemove === 1 ? 'a card' : `${toRemove} cards`} to give up
+          </button>
+        ) : resolved ? (
           <button className="primary-btn wide" onClick={() => dispatch({ type: 'leave' })}>
             Move on
           </button>
@@ -210,6 +223,16 @@ export function EventScreen({ run, error, dispatch, onMenu }: ScreenProps) {
         <p className="chamber-text outcome">
           <strong>{event.options[resolved.optionIndex].label}.</strong> {resolved.text}
         </p>
+      )}
+      {resolved && toRemove > 0 && picking && (
+        <DeckSheet
+          // Remount after each removal so the selection clears.
+          key={run.deck.length}
+          deck={run.deck}
+          title={toRemove === 1 ? 'Give up a card' : `Give up ${toRemove} cards`}
+          onClose={() => setPicking(false)}
+          pick={{ label: 'Give up', onPick: (deckIndex) => dispatch({ type: 'removeCard', deckIndex }) }}
+        />
       )}
     </Chamber>
   );
