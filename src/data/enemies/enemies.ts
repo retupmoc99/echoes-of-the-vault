@@ -205,7 +205,7 @@ export const ENEMIES: EnemyDef[] = [
     id: 'grieving-lock',
     name: 'The Grieving Lock',
     tier: 'boss',
-    hp: [140, 150],
+    hp: [140, 148],
     moves: {
       toll: {
         name: 'Toll',

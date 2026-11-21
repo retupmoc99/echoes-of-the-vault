@@ -10,6 +10,7 @@
  */
 import { useEffect, useState, type ReactNode } from 'react';
 import { AVAILABLE_ART } from '../data/assets.generated';
+import { setMusicMood } from './audio/music';
 
 export type ArtFolder = 'cards' | 'enemies' | 'relics' | 'backgrounds' | 'ui';
 
@@ -36,15 +37,18 @@ export function ArtImg({ src, className, size, fallback }: ArtImgProps) {
 }
 
 /**
- * Sets the screen's background art: the first key with art wins; otherwise
- * the CSS gradient shows.
+ * Sets a screen's atmosphere from its keys (e.g. 'shift-drowned-halls',
+ * 'combat'): the background art and the music mood.
  *
+ * Background: the first key with art wins; otherwise the CSS gradient shows.
  * The image is drawn by a fixed layer on <body> (see `.has-screen-art` in
  * styles.css), not by the screen itself. That way it fills wide screens
  * beyond the 480px game column, and doesn't jump when combat shakes.
  */
-export function useScreenBackground(...keys: string[]): void {
+export function useScreenAtmosphere(...keys: string[]): void {
   const url = keys.map((k) => artUrl('backgrounds', k)).find(Boolean);
+  const moodKey = keys.join('|');
+  useEffect(() => setMusicMood(moodKey.split('|')), [moodKey]);
   useEffect(() => {
     if (!url) return;
     const body = document.body;

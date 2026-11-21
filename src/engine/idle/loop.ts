@@ -6,7 +6,7 @@ import { BALANCE } from '../../data/balance';
 import { createRng, rngWeighted } from '../rng';
 import { createRun } from '../run/run';
 import type { Content, NextLoop, OutpostState, RunOptions, RunState } from '../types';
-import type { SaveData } from '../save/save';
+import type { LoopRecord, SaveData } from '../save/save';
 import { createEcho } from './echoes';
 
 function rollShift(seed: string, content: Content, exclude?: string): string {
@@ -76,14 +76,29 @@ export function closeLoop(save: SaveData, content: Content, now: number): SaveDa
   const loops = save.meta.loops + 1;
   const echo = createEcho(run, loops, now, content);
   const hasRoom = save.echoes.length < BALANCE.echoes.slots;
+  const result = run.result ?? 'death';
+  const record: LoopRecord = {
+    loop: loops,
+    endedAt: now,
+    classId: run.classId,
+    vaultShiftId: run.vaultShiftId,
+    result,
+    depth: echo.origin.depth,
+    stats: run.stats,
+    deck: run.deck,
+    relics: run.relics,
+    echoName: echo.name,
+    echoTraitId: echo.traitId,
+  };
 
   const closed: SaveData = {
     ...save,
     run: null,
     meta: {
       loops,
-      victories: save.meta.victories + (run.result === 'victory' ? 1 : 0),
-      deaths: save.meta.deaths + (run.result === 'death' ? 1 : 0),
+      victories: save.meta.victories + (result === 'victory' ? 1 : 0),
+      deaths: save.meta.deaths + (result === 'death' ? 1 : 0),
+      history: [record, ...save.meta.history].slice(0, BALANCE.history.limit),
     },
     echoes: hasRoom ? [...save.echoes, echo] : save.echoes,
     pendingEcho: hasRoom ? save.pendingEcho : echo,

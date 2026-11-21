@@ -9,7 +9,7 @@ import { useEffect, useState } from 'react';
 import { CONTENT } from '../../data';
 import { BALANCE } from '../../data/balance';
 import { PLAYER_ID, livingEnemies, needsTarget, type CombatAction, type CombatState } from '../../engine';
-import { useScreenBackground } from '../art';
+import { useScreenAtmosphere } from '../art';
 import { HintSlot } from '../hints';
 import { TimelineStrip } from '../components/TimelineStrip';
 import { onFx } from '../fx/fxBus';
@@ -56,7 +56,7 @@ const OUTCOME = {
 } as const;
 
 export function CombatScreen({ state, error, label, tier, dispatch, onMenu, onContinue, bgKeys = ['combat'] }: Props) {
-  useScreenBackground(...bgKeys);
+  useScreenAtmosphere(...bgKeys);
   const [selectedUid, setSelectedUid] = useState<string>();
   const [targetId, setTargetId] = useState<string>();
   const [info, setInfo] = useState<string>('Tap a card to read it. Tap an enemy to aim.');

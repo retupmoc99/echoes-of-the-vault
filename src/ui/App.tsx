@@ -1,5 +1,9 @@
 import { useEffect, useState } from 'react';
 import { setHapticsEnabled } from './fx/haptics';
+import { setVolumes, unlockAudio } from './audio/core';
+import { refreshMusic } from './audio/music';
+import { playSfx } from './audio/sfx';
+import { onFx } from './fx/fxBus';
 import { useGame } from '../store/useGame';
 import { AwayReport } from './components/AwayReport';
 import { Toasts } from './components/Toasts';
@@ -11,7 +15,23 @@ import { RunView } from './screens/RunView';
 
 export function App() {
   const game = useGame();
+  // Defaults guard saves without these fields (only dev saves; v7 adds them).
+  const sound = game.save.settings.sound ?? 0.65;
+  const music = game.save.settings.music ?? 0.35;
   useEffect(() => setHapticsEnabled(game.save.settings.haptics), [game.save.settings.haptics]);
+  useEffect(() => {
+    setVolumes(sound, music);
+    refreshMusic();
+  }, [sound, music]);
+  useEffect(() => {
+    // Browsers only allow audio after a tap; the first one starts it.
+    window.addEventListener('pointerdown', unlockAudio);
+    const unsubscribe = onFx(playSfx);
+    return () => {
+      window.removeEventListener('pointerdown', unlockAudio);
+      unsubscribe();
+    };
+  }, []);
   // Resume straight into a loop in progress; otherwise open at the Outpost.
   const [view, setView] = useState<'outpost' | 'run'>(() => (game.run && game.run.phase !== 'ended' ? 'run' : 'outpost'));
 

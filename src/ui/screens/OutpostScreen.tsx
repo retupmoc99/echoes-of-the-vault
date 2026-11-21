@@ -11,10 +11,12 @@ import { BALANCE } from '../../data/balance';
 import { NODE_INFO } from '../../data/nodeTypes';
 import { researchComplete, researchCost, scoutInfo, traitOf, type OutpostAction, type SaveData } from '../../engine';
 import { BackupPanel } from '../components/BackupPanel';
+import { CardLibrary } from '../components/CardLibrary';
+import { LoopHistory } from '../components/LoopHistory';
 import { HintSlot } from '../hints';
 import { EchoCard } from '../components/EchoCard';
 import { hapticsSupported } from '../fx/haptics';
-import { useScreenBackground } from '../art';
+import { useScreenAtmosphere } from '../art';
 import { NodeIcon } from '../components/NodeIcon';
 
 type Tab = 'descend' | 'echoes' | 'works' | 'archive';
@@ -34,7 +36,7 @@ export function OutpostScreen({ save, error, notice, outpost, onSettings, onEnte
   const [tab, setTab] = useState<Tab>(save.pendingEcho ? 'echoes' : 'descend');
   const [info, setInfo] = useState<string>();
   const shards = Math.floor(save.outpost.shards);
-  useScreenBackground('outpost');
+  useScreenAtmosphere('outpost');
 
   return (
     <div className="screen outpost">
@@ -324,15 +326,43 @@ interface ArchiveProps {
   onRestored: () => void;
 }
 
-function ArchiveTab({ save, onSettings, backup, onRestored }: ArchiveProps) {
-  const { loops, victories, deaths } = save.meta;
-  const s = save.settings;
+type ArchiveView = 'history' | 'cards' | 'fragments' | 'settings';
+const ARCHIVE_VIEWS: [ArchiveView, string][] = [
+  ['history', 'History'],
+  ['cards', 'Cards'],
+  ['fragments', 'Fragments'],
+  ['settings', 'Settings'],
+];
+
+function ArchiveTab(props: ArchiveProps) {
+  const [view, setView] = useState<ArchiveView>('history');
   return (
     <div className="panel">
+      <div className="segmented" role="tablist" aria-label="Archive">
+        {ARCHIVE_VIEWS.map(([id, label]) => (
+          <button key={id} role="tab" aria-selected={view === id} className={view === id ? 'active' : ''} onClick={() => setView(id)}>
+            {label}
+          </button>
+        ))}
+      </div>
+      {view === 'history' && <LoopHistory save={props.save} />}
+      {view === 'cards' && <CardLibrary save={props.save} />}
+      {view === 'fragments' && <Fragments save={props.save} />}
+      {view === 'settings' && <ArchiveSettings {...props} />}
+    </div>
+  );
+}
+
+function ArchiveSettings({ save, onSettings, backup, onRestored }: ArchiveProps) {
+  const s = save.settings;
+  return (
+    <>
       <h2 className="panel-title">Backup</h2>
       <BackupPanel {...backup} onRestored={onRestored} />
 
       <h2 className="panel-title">Settings</h2>
+      <VolumeSetting label="Sound" value={s.sound ?? 0.65} onChange={(sound) => onSettings({ sound })} />
+      <VolumeSetting label="Music" value={s.music ?? 0.35} onChange={(music) => onSettings({ music })} />
       <button className="ghost-btn wide setting" onClick={() => onSettings({ haptics: !s.haptics })}>
         <span>Haptics</span>
         <span>{hapticsSupported() ? (s.haptics ? 'On' : 'Off') : 'Not supported on this device'}</span>
@@ -347,17 +377,13 @@ function ArchiveTab({ save, onSettings, backup, onRestored }: ArchiveProps) {
           <span>{s.hintsSeen.length} seen</span>
         </button>
       )}
-      <h2 className="panel-title">Records</h2>
-      <p className="record">
-        Loops {loops} · Escaped {victories} · Fallen {deaths}
-      </p>
+    </>
+  );
+}
 
-      <h2 className="panel-title">Recovered cards</h2>
-      <p className="record">
-        {save.outpost.cards.length ? save.outpost.cards.map((id) => CONTENT.cards[id].name).join(' · ') : 'None yet. Set an Echo to Research.'}
-      </p>
-
-      <h2 className="panel-title">Fragments</h2>
+function Fragments({ save }: { save: SaveData }) {
+  return (
+    <>
       {save.outpost.lore.length === 0 && <p className="record">The vault has told you nothing. Yet.</p>}
       {save.outpost.lore.map((id) => {
         const l = CONTENT.idle.lore[id];
@@ -368,6 +394,31 @@ function ArchiveTab({ save, onSettings, backup, onRestored }: ArchiveProps) {
           </blockquote>
         );
       })}
+    </>
+  );
+}
+
+/** Four big steps instead of a slider: easier to hit with a thumb. */
+const VOLUME_STEPS: [number, string][] = [
+  [0, 'Off'],
+  [0.35, 'Low'],
+  [0.65, 'Mid'],
+  [1, 'High'],
+];
+
+function VolumeSetting({ label, value, onChange }: { label: string; value: number; onChange: (v: number) => void }) {
+  // The nearest step is the active one (saves may hold any value).
+  const active = VOLUME_STEPS.reduce((a, b) => (Math.abs(b[0] - value) < Math.abs(a[0] - value) ? b : a))[0];
+  return (
+    <div className="volume-setting">
+      <span>{label}</span>
+      <div className="segmented small" role="radiogroup" aria-label={label}>
+        {VOLUME_STEPS.map(([v, name]) => (
+          <button key={name} role="radio" aria-checked={active === v} className={active === v ? 'active' : ''} onClick={() => onChange(v)}>
+            {name}
+          </button>
+        ))}
+      </div>
     </div>
   );
 }

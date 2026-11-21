@@ -77,15 +77,22 @@ describe('Vault Shifts', () => {
     }
   });
 
-  it('The Drowned Halls: Bleed never fades, Shrines heal half', () => {
+  it('The Drowned Halls: Bleed never fades (Shrines heal normally since 0.11)', () => {
     const r = runWith('drowned-halls');
     expect(combatModifiersFor(r, CONTENT).bleedDecay).toBe(0);
-    expect(shrineHeal(r, CONTENT)).toBe(Math.round(shrineHeal(runWith('still-vault'), CONTENT) / 2));
+    expect(shrineHeal(r, CONTENT)).toBe(shrineHeal(runWith('still-vault'), CONTENT));
+  });
+
+  it('a Shift can scale Shrine healing', () => {
+    const content = structuredClone(CONTENT);
+    content.vaultShifts['drowned-halls'].mods.shrineHealMult = 0.5;
+    const r = runWith('drowned-halls');
+    expect(shrineHeal(r, content)).toBe(Math.round(shrineHeal(runWith('still-vault'), content) / 2));
   });
 
   it('The Choir Awake: tougher enemies, four reward cards', () => {
     const r = runWith('choir-awake');
-    expect(combatModifiersFor(r, CONTENT).enemyHpMult).toBeCloseTo(1.15);
+    expect(combatModifiersFor(r, CONTENT).enemyHpMult).toBeCloseTo(1.1);
     expect(rollCardReward(r, CONTENT, 'normal').cards).toHaveLength(BALANCE.rewards.choices + 1);
   });
 

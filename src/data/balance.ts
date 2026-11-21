@@ -11,7 +11,7 @@ export const BALANCE = {
     drawPerTurn: 5,
     maxHandSize: 10,
     relicBreakerMaxHp: 70,
-    hourThiefMaxHp: 64,
+    hourThiefMaxHp: 68,
   },
 
   status: {
@@ -93,6 +93,9 @@ export const BALANCE = {
     /** Relics offered by a Relic Cache (take one). */
     cacheRelicChoices: 2,
   },
+
+  /** Archive → History keeps this many of the most recent loops. */
+  history: { limit: 20 },
 
   echoes: {
     slots: 3,

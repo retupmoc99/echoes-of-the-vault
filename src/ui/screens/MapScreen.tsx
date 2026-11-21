@@ -7,7 +7,7 @@ import { useLayoutEffect, useRef, useState } from 'react';
 import { CONTENT } from '../../data';
 import { NODE_INFO } from '../../data/nodeTypes';
 import { reachableNodes, type MapNode, type RunAction, type RunState } from '../../engine';
-import { useScreenBackground } from '../art';
+import { useScreenAtmosphere } from '../art';
 import { HintSlot } from '../hints';
 import { NodeIcon } from '../components/NodeIcon';
 import { RunHeader } from '../components/RunHeader';
@@ -74,7 +74,7 @@ export function MapScreen({ run, error, dispatch, onMenu }: Props) {
     return from.row < currentRow ? 'edge past' : 'edge';
   };
 
-  useScreenBackground(`shift-${run.vaultShiftId}`, 'vault');
+  useScreenAtmosphere(`shift-${run.vaultShiftId}`, 'vault');
 
   return (
     <div className="screen map-screen">

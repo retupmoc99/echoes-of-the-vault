@@ -98,7 +98,7 @@ Living document: the current design and balance decisions. Numbers marked *(bala
 Relic-Breaker content: 30 cards (4 starter, 23 reward pool, 3 curses) and 11 relics.
 
 ## Hour-Thief (class 2)
-64 HP: fragile, because its power arrives late.
+68 HP *(balance; was 64 before 0.11)*: fragile, because its power arrives late.
 - **Starter deck:** 4× Second Hand, 4× Stilled Moment, Slow Fuse (in 2 turns: deal 16), Stolen Second (Rewind 1, gain 1 Paradox).
 - **Starter relic:** Cracked Hourglass (when a delayed effect lands: gain 3 Ward).
 - **Unlock:** the Outpost Work *The Stolen Hour* (120 Shards). Choose the class on the Descend tab; switching Warden never changes the scouted map.
@@ -188,8 +188,8 @@ Rules:
 ## Vault Shifts (one per loop)
 | Shift | Effect |
 |---|---|
-| The Drowned Halls | Bleed never fades. Shrine rest heals half. |
-| The Choir Awake | Enemies +15% HP. Rewards offer 4 cards. |
+| The Drowned Halls | Bleed never fades, on anyone. *(0.11: the "Shrines heal half" rule was dropped; it made this the hardest Shift for both classes.)* |
+| The Choir Awake | Enemies +10% HP *(was +15%)*. Rewards offer 4 cards. |
 | The Fractured Sky | Fracture gives +2 damage per stack but costs HP equal to *all* stacks each turn. |
 | The Restless Engines | Relics take +1 Strain before cracking. Elites ×2.2 as common. |
 | The Hollow Bargain | Start at 2 Corruption. Events and Caches ×1.6 as common. |
@@ -215,7 +215,7 @@ How Shifts work:
 | Sentinel + Choir Shard | late | | Mixed pair |
 | **Warden Unmade** | elite | 74–80 | Cycle: Mark (2 Exposed + 1 Weakened) → Execute 16 → Riposte (10 Ward + 6) |
 | **Lens Tyrant** | elite | 70–76 | Cycle: Focus (+3 Fracture) → Beam 6×2 → Refract (12 Ward + 2 Bleed). Grows stronger *and* bleeds itself: a race. |
-| **The Grieving Lock** | boss | 140–150 | Opens with Toll, then Shatter 12 (+1 Fracture) → Litany 4×3 → Bind (3 Bleed + 2 Exposed) → Toll (15 Ward + 1 Weakened) |
+| **The Grieving Lock** | boss | 140–148 | Opens with Toll, then Shatter 12 (+1 Fracture) → Litany 4×3 → Bind (3 Bleed + 2 Exposed) → Toll (15 Ward + 1 Weakened) |
 
 Enemies use Fracture too: it makes them hit harder and hurts them every turn.
 
@@ -328,18 +328,42 @@ Total 460 Shards: roughly 8 to 10 Echo lifetimes of digging.
   - Dismissed ids are kept in `settings.hintsSeen`.
   - In fights, hints sit above the player panel, so the intent and the cards stay visible.
 
+## Balance testing
+`npm run sim` plays many loops with a bot (`src/sim/bot.ts`) and prints a report: win rate per class, how often the boss is reached and beaten, deaths by node type and row, win rate per Vault Shift, and the cards most and least linked to winning. `SIM_RUNS=1500 npm run sim` for steadier numbers (about 10 seconds).
+- The bot plays like a careful new player: it blocks when enemies will out-hit its Ward, otherwise plays its most expensive card; takes Shrines when hurt and Elites only when healthy; takes the rarest reward, never the tainted one. Loops use the full card pool (all research done).
+- It plays any affordable card, so cards that need setup (Release the Fault, Rampart Breaker) score badly in the card list through no fault of their own.
+- **0.11 pass** (1,500 loops per class), before → after:
+  - Relic-Breaker 32% → 35%; Hour-Thief 26% → 33%.
+  - Boss beaten when reached: 39% / 37% → 43% / 43%.
+  - Worst Shift: Drowned Halls 16% / 16% → 25% / 26%. Spread across Shifts: 16–41% → 25–43%.
+  - Changes: Drowned Halls lost its Shrine penalty; Choir Awake +15% → +10% enemy HP; the Lock 140–150 → 140–148 HP; Hour-Thief 64 → 68 HP; Age the Flesh's delayed Bleed 4 → 3.
+  - The older "Bot check" numbers in this document came from a weaker bot (first path, first card) and aren't comparable.
+
+## Sound
+All sound is generated in code with Web Audio (`src/ui/audio/`): no audio files, nothing extra to download or cache.
+- **Effects** come from the same engine events as particles and haptics: card plays (a voice per card type), hits on you and on enemies, glancing blows on Ward, Ward gained, kills, Overload and cracking, Delay landing (a jade bell), Echo returns, Rewind, Paradox snapping, victory and defeat.
+- **Music** is an ambient drone with sparse bell notes, never a melody. Each screen and Vault Shift has its own root note and brightness; changing screens crossfades. Fights add a slow low pulse.
+- **Settings:** Sound and Music, each Off / Low / Mid / High (defaults Mid and Low). Off stops the music entirely rather than muting it.
+- Audio starts on the first tap (browsers require it) and pauses while the app is hidden. On iOS the audio session is "ambient": the silent switch silences the game, and it mixes with other audio.
+
+## Archive
+- **History:** the last 20 loops *(balance)*, newest first. Each shows Warden, Vault Shift, result and depth; tap for stats, relics, final deck and the Echo it left.
+- **Cards:** every card by Warden (plus Curses), filterable by type, with art. Research-locked and Warden-locked cards are shown greyed out with a tag. Tap a card for the full text and how often it was in your recent final decks.
+- **Fragments** (lore) and **Settings** (backup, sound, music, haptics, hints).
+
 ## Save system
 - `localStorage` key `eotv.save`, JSON, synchronous write after every action.
 - `SaveData.version` + `MIGRATIONS[n]` (n → n+1). The old raw save is copied to `eotv.save.backup.vN` before migrating, and the migrated save is written straight away.
 - Corrupt saves are copied to `eotv.save.corrupt.<time>`, never deleted. Saves from a newer version are never overwritten.
-- **v6** (current) contains:
+- **v7** (current) contains:
   - `run`: the whole loop, including any live fight
-  - `meta`: loops, victories, deaths
+  - `meta`: loops, victories, deaths, and `history` (the last 20 loops)
   - `nextLoop`, `echoes`, `pendingEcho`, `outpost` (shards, unlocks, research, cards, lore, scouting, kit)
   - `idle.lastTickAt`
   - `world`: factions and awakening, reserved and empty
   - `settings`
 - Migration history:
+  - v6 → v7: adds `meta.history` (empty: past loops weren't recorded) and the `sound` / `music` settings.
   - v1 → v2: the sandbox save becomes an empty v2; sandbox fights weren't loops.
   - v2 → v3: a loop in progress is *kept*. It gains Corruption 0, the Still Vault Shift, and full combat modifiers. A cache's single relic becomes a one-item list. A pending placeholder event is skipped.
   - v5 → v6: second Warden. Adds `outpost.classId` and `Echo.origin.classId` (existing data becomes the Relic-Breaker's); live fights gain an empty `timeline` and `echoQueue`.
@@ -347,19 +371,20 @@ Total 460 Shards: roughly 8 to 10 Echo lifetimes of digging.
   - v3 → v4: a loop in progress keeps the full 23-card pool it had. The pool is hard-coded in the migration, because migrations describe history. Idle time starts counting from the last save.
 
 ## Future hooks (not built)
-- **Classes:** `WardenClassDef` holds the deck, pools, kits, HP and an optional unlock. The Hour-Thief proved the pattern: a new class is mostly data, plus new `Effect` kinds for genuinely new mechanics. Next candidate: the Echo-Caller, who summons Echoes as allies (needs player-side ally combatants).
-- **Factions / awakening:** `SaveData.world` exists (empty). The idle tick is where real-days progress for the awakening threat would go.
+- **Classes:** `WardenClassDef` holds the deck, pools, kits, HP and an optional unlock. The Hour-Thief proved the pattern: a new class is mostly data, plus new `Effect` kinds for genuinely new mechanics. Next: the Echo-Caller. **Decided (2026-11-21):** it summons your *real* Outpost Echoes as allies, each fighting from its own deck snapshot, with its trait shaping how it fights. Needs player-side ally combatants. Full design to be agreed before building.
+- **Factions / awakening:** `SaveData.world` exists (empty). **Decided (2026-11-21):** the Awakening rises with *activity only* (loops played, Echo work done), never with real time away, so breaks are never punished. As it rises, loops get new dangers and new rewards, and the Outpost can push it back. Full design to be agreed before building.
 - **Echo allies:** each Echo stores its loop's deck snapshot and origin.
 - **Multi-floor runs:** `RunState.floor` exists (always 1). The map generator takes a config, so deeper floors can use their own config.
 - **Multiplayer:** not planned. To revisit in a later milestone.
-- **Sound:** the FX event bus is where audio will hook in.
 
 ## Open questions / flagged
 - **Hand overflow.** Past 5 cards, the hand scrolls sideways instead of overlapping, so every card stays a full-size tap target. Revisit if scrolling feels clumsy.
 - **Targeting reach.** Enemies sit at the top of the screen, which is a stretch for one thumb. They're only tapped to switch targets in multi-enemy fights, and the default target is the first living enemy.
 - **iOS haptics.** Safari doesn't support vibration, so iPhones get visual feedback only.
-- **The boss is still the wall.** About half of the bot's loops die at the Lock, even with rewards. A human should do much better, but if the Lock feels unfair, cutting it to ~125 HP is the first lever.
-- **The Choir Awake is the hardest Shift** (11% for the bot). The fourth reward card may not make up for +15% enemy HP. If it feels punishing, drop the HP bonus to +10%.
+- **The boss is still the hardest fight.** After the 0.11 pass, about 40% of the bot's loops still end at the Lock, and it beats the Lock 43% of the time when it gets there. 134–142 HP gives the bot 38% / 37% overall if it should feel easier.
+- **Vault Shifts favour classes.** Drowned Halls (permanent Bleed) helps the Relic-Breaker's Bleed cards and only hurts the Hour-Thief; Fractured Sky helps Fracture builds. That asymmetry is flavour, but worth watching. Drowned Halls lost its Shrine penalty in 0.11, so it's now a one-rule Shift.
+- **Age the Flesh** is still the card most linked to Hour-Thief wins (56%) after its 0.11 trim. Bleed may simply be strong for that class.
+- **Locked Wardens' cards are visible in the library** (greyed out). That previews what's coming; hide them if you'd rather keep it a surprise.
 - **The tainted offer appears after every fight.** Alternative if it feels like too much: show it only on elite rewards, or on 50% of rewards.
 - **Unraveling is a countdown, not a dice roll.** The brief said tasks "risk" Unraveling. I made the risk deterministic and visible (hours of work left), because losing an Echo to a hidden roll while the app is closed feels unfair. If you want real tension, an alternative: once stability falls below 25%, each hour carries a chance to Unravel early.
 - **Echoes never heal.** With only 3 slots and a fresh Echo every loop, supply is steady. If Echoes feel too disposable, a slow "Rest" recovery (e.g. +2 stability per hour, up to 50%) would make them precious.

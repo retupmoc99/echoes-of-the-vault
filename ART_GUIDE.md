@@ -104,13 +104,13 @@ Write each as: *shared style prompt* + the line below. Hue hints are optional.
 | ward-sigil | a hovering circle of cold cyan glyphs and concentric rune bands, a shield of light in empty darkness |
 | shatter-lens | a cracked crystal lens exploding outward, white-hot light screaming from the fractures, ember shards |
 | overcharge | an ancient relic core overloading, violent violet lightning bolts arcing out of its cracked metal housing, sparks |
-| twin-shards | two mirrored crystal blades crossing, one drawing blood-red light from the wielder, ember glow |
+| twin-shards | two jagged crystal blades crossed in an X in the dark, one dripping blood-red light, ember glow, black void behind |
 | hollow-vow | a hand pressed to a glowing altar seal, thin blood lines feeding violet runes |
 | fault-line | a long glowing crack splitting a stone floor and a figure's silhouette, orange light below |
 | blood-price | a cracked obsidian blade lit from inside by red-orange veins, droplets suspended in air |
 | release-the-fault | a figure splitting open with blinding light pouring from fractures, shockwave, ember and white |
 | glyph-wall | stacked layers of cyan glyph-shields forming a wall of light, ancient script |
-| mirror-sigil | a dark mirror-glyph reflecting a cowering monster, cyan rim light |
+| mirror-sigil | a dark obsidian mirror-glyph floating in a black void, reflecting a cowering monster, cyan rim light, deep darkness all around |
 | bulwark-slam | a slab of rune-carved stone shield crashing forward, cyan impact light, debris |
 | bastion-rite | a lone armoured warden standing inside a column of cyan wards, unmoving, solemn |
 | arc-conduit | a crystal conduit channelling violet electricity into a strike, branching arcs |
@@ -170,7 +170,7 @@ Shared accent: **pale jade and silver** (Temporal cards), with ember for strikes
 
 | ID | Prompt |
 |---|---|
-| second-hand | a thin silver clock hand used as a blade, slicing through still air, jade motion trail |
+| second-hand | a long thin silver blade shaped like the second hand of a clock, slicing diagonally through the dark, jade motion trail, needle-sharp point, no clock face |
 | stilled-moment | a figure inside a sphere of frozen falling sand, cyan stillness, suspended droplets |
 | slow-fuse | a burning fuse of jade light coiling around an hourglass, sparks frozen mid-air |
 | stolen-second | a gloved hand pulling a glowing second out of a clock face, jade light |
@@ -187,13 +187,13 @@ Shared accent: **pale jade and silver** (Temporal cards), with ember for strikes
 | refrain | sheets of glowing script repeating in a spiral, a choir of faint echoes |
 | chorus-of-moments | dozens of translucent copies of one figure singing, jade halos, overwhelming |
 | undo | shattered glass flying backwards into a whole pane, reversed time, jade |
-| loop-the-moment | a ring of light where one step repeats endlessly, an ouroboros of jade |
+| loop-the-moment | a glowing ring of jade light hanging in a black void, a single step of light repeating around it endlessly like an ouroboros, deep darkness all around |
 | fray-the-thread | a glowing thread of time unravelling into sparks, ember and jade |
 | borrowed-time | a coin made of hourglass sand pressed into a palm, jade glow, dread |
 | paradox-lance | a spear of impossible geometry, folding into itself, jade and white |
 | stitch-the-wound | glowing jade stitches sewing a torn moment shut, silver needle |
 | temporal-shear | a vast blade cutting reality into two offset halves, jade seam of light |
-| unmake-the-hour | an hourglass folding inward and vanishing, light collapsing to a point |
+| unmake-the-hour | an hourglass folding inward and collapsing into a single point of jade light, glass shards spiralling inward, black void all around |
 | age-the-flesh | a hand withering to bone where jade time-light touches it, red mist |
 
 #### Hour-Thief relics (`art-raw/relics/<id>.png`, 1:1, transparent)

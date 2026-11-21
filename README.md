@@ -8,10 +8,11 @@ npm install         # once
 npm run dev         # play on this PC at http://localhost:5173
 npm run dev:phone   # also serve it to your phone over Wi-Fi
 npm test            # engine tests
+npm run sim         # balance report: a bot plays 300 loops per class (SIM_RUNS=1500 for more)
 npm run build       # production build into dist/
 npm run preview     # serve the production build (installable, offline-capable)
 npm run art         # convert images in art-raw/ (see ART_GUIDE.md)
-npm run art:gen     # make card art candidates with a local ComfyUI server (see ART_GUIDE.md)
+npm run art:gen     # make art candidates with a local ComfyUI server (see ART_GUIDE.md)
 npm run icons       # re-render the app icons from public/icons/icon.svg
 ```
 

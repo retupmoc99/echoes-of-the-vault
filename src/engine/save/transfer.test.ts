@@ -10,7 +10,7 @@ function richSave(): SaveData {
   s.run = stepRun(run, { type: 'chooseNode', nodeId: run.map.startIds[0] }, CONTENT).run; // mid-fight
   s.outpost.shards = 77.25;
   s.outpost.lore = ['lore-first-door'];
-  s.meta = { loops: 9, victories: 2, deaths: 7 };
+  s.meta = { loops: 9, victories: 2, deaths: 7, history: [] };
   return s;
 }
 
@@ -89,5 +89,15 @@ describe('v5 → v6 (second Warden)', () => {
     expect(loaded.save.echoes[0].origin.classId).toBe('relic-breaker');
     expect(loaded.save.run!.combat).toMatchObject({ timeline: [], echoQueue: [] });
     expect(stepRun(loaded.save.run!, { type: 'combat', action: { type: 'endTurn' } }, CONTENT).error).toBeUndefined();
+  });
+});
+
+describe('v6 → v7 (loop history)', () => {
+  it('starts an empty history, keeps the totals, and adds sound settings', () => {
+    const base = newSave(0);
+    const v6 = { ...base, version: 6, meta: { loops: 7, victories: 2, deaths: 5 } };
+    const m: Record<string, string> = { [SAVE_KEY]: JSON.stringify(v6) };
+    const loaded = loadSave({ getItem: (k) => m[k] ?? null, setItem: (k, v) => void (m[k] = v) });
+    expect(loaded).toMatchObject({ status: 'ok', migratedFrom: 6, save: { version: SAVE_VERSION, meta: { loops: 7, victories: 2, deaths: 5, history: [] }, settings: { sound: 0.65, music: 0.35 } } });
   });
 });

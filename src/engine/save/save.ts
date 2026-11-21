@@ -14,16 +14,36 @@
  * right after an action cannot lose it.
  */
 import { defaultCombatModifiers } from '../combat/combat';
-import type { Echo, NextLoop, OutpostState, RunState, WorldState } from '../types';
+import type { Echo, NextLoop, OutpostState, RunState, RunStats, WorldState } from '../types';
 
 export const SAVE_KEY = 'eotv.save';
-export const SAVE_VERSION = 6;
+export const SAVE_VERSION = 7;
 
 export interface MetaProgress {
   /** Loops completed, by any means. */
   loops: number;
   victories: number;
   deaths: number;
+  /** The most recent loops, newest first (capped; see BALANCE.history). */
+  history: LoopRecord[];
+}
+
+/** One closed loop, as shown in Archive → History. */
+export interface LoopRecord {
+  /** Loop number (1 = the first loop ever closed). */
+  loop: number;
+  endedAt: number;
+  classId: string;
+  vaultShiftId: string;
+  result: 'victory' | 'death';
+  /** Map row reached (the boss row counts as the last row + 1). */
+  depth: number;
+  stats: RunStats;
+  deck: string[];
+  relics: string[];
+  /** The Echo this loop left behind. */
+  echoName: string;
+  echoTraitId: string;
 }
 
 export interface SaveData {
@@ -51,6 +71,9 @@ export interface Settings {
   hints: boolean;
   /** Hint ids already dismissed. */
   hintsSeen: string[];
+  /** Effects and music volume, 0 to 1. */
+  sound: number;
+  music: number;
 }
 
 export interface SaveStorage {
@@ -143,6 +166,15 @@ export const MIGRATIONS: Record<number, Migration> = {
       pendingEcho: tagEcho(v5.pendingEcho),
     };
   },
+
+  // v6 → v7: loop history (Archive → History) and sound. Past loops weren't
+  // recorded, so history starts empty; the totals carry over unchanged.
+  6: (v6: Loose) => ({
+    ...v6,
+    version: 7,
+    meta: { ...v6.meta, history: [] },
+    settings: { ...v6.settings, sound: 0.65, music: 0.35 },
+  }),
 };
 
 /** The idle-layer defaults as they were introduced in v4 (history: do not change). */
@@ -158,7 +190,7 @@ function idleDefaults(now: number) {
     outpost: { shards: 0, unlocks: [], research: { completed: 0, progress: 0 }, cards: [], lore: [], scouting: 0, classId: 'relic-breaker', kitId: 'standard' },
     idle: { lastTickAt: now },
     world: { factions: {}, awakening: { stage: 0, progress: 0 } },
-    settings: { haptics: true, hints: true, hintsSeen: [] as string[] },
+    settings: { haptics: true, hints: true, hintsSeen: [] as string[], sound: 0.65, music: 0.35 },
   };
 }
 
@@ -168,7 +200,7 @@ export function newSave(now: number): SaveData {
     createdAt: now,
     updatedAt: now,
     run: null,
-    meta: { loops: 0, victories: 0, deaths: 0 },
+    meta: { loops: 0, victories: 0, deaths: 0, history: [] },
     ...idleDefaults(now),
   };
 }

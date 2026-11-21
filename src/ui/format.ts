@@ -13,3 +13,14 @@ export function formatHours(hours: number): string {
   if (hours < 1) return `~${Math.max(1, Math.round(hours * 60))}m`;
   return `~${hours < 10 ? hours.toFixed(1) : Math.round(hours)}h`;
 }
+
+/** "just now", "12m ago", "5h ago", "3 days ago". */
+export function formatAgo(ms: number): string {
+  const min = Math.floor(ms / 60_000);
+  if (min < 1) return 'just now';
+  if (min < 60) return `${min}m ago`;
+  const h = Math.floor(min / 60);
+  if (h < 24) return `${h}h ago`;
+  const d = Math.floor(h / 24);
+  return d === 1 ? 'yesterday' : `${d} days ago`;
+}

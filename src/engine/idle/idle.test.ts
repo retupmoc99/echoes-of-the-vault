@@ -163,9 +163,32 @@ describe('closing loops and Echo slots', () => {
   it('records the loop, leaves an Echo, and rolls the next loop', () => {
     const closed = closeWith(newSave(T0), 'a');
     expect(closed.run).toBeNull();
-    expect(closed.meta).toEqual({ loops: 1, victories: 0, deaths: 1 });
+    expect(closed.meta).toMatchObject({ loops: 1, victories: 0, deaths: 1 });
     expect(closed.echoes).toHaveLength(1);
     expect(closed.nextLoop?.seed).toContain('loop2');
+  });
+
+  it('adds the loop to history, newest first, with its Echo and final deck', () => {
+    const closed = closeWith(newSave(T0), 'a');
+    const [rec] = closed.meta.history;
+    expect(rec).toMatchObject({
+      loop: 1,
+      endedAt: T0,
+      result: 'death',
+      classId: 'relic-breaker',
+      echoName: closed.echoes[0].name,
+      echoTraitId: closed.echoes[0].traitId,
+      deck: closed.echoes[0].deckSnapshot,
+    });
+    expect(closeWith(closed, 'b').meta.history.map((r) => r.loop)).toEqual([2, 1]);
+  });
+
+  it(`keeps only the last ${BALANCE.history.limit} loops in history`, () => {
+    let s = newSave(T0);
+    for (let i = 0; i < BALANCE.history.limit + 3; i++) s = closeWith(s, `h${i}`);
+    expect(s.meta.history).toHaveLength(BALANCE.history.limit);
+    expect(s.meta.history[0].loop).toBe(BALANCE.history.limit + 3);
+    expect(s.meta.loops).toBe(BALANCE.history.limit + 3);
   });
 
   it('with full slots, the new Echo waits; keeping it replaces a chosen Echo', () => {

@@ -8,18 +8,18 @@ export const VAULT_SHIFTS: VaultShiftDef[] = [
   {
     id: 'drowned-halls',
     name: 'The Drowned Halls',
-    text: 'Bleed never fades. Shrines are flooded: resting heals half as much.',
+    text: 'Bleed never fades, on anyone.',
     flavor: 'The lower halls have filled with something that is not water.',
     weight: 1,
-    mods: { combat: { bleedDecay: 0 }, shrineHealMult: 0.5 },
+    mods: { combat: { bleedDecay: 0 } },
   },
   {
     id: 'choir-awake',
     name: 'The Choir Awake',
-    text: 'Enemies have 15% more HP. Rewards offer 4 cards.',
+    text: 'Enemies have 10% more HP. Rewards offer 4 cards.',
     flavor: 'The vault sings tonight. Everything in it is listening.',
     weight: 1,
-    mods: { combat: { enemyHpMult: 1.15 }, rewardChoicesBonus: 1 },
+    mods: { combat: { enemyHpMult: 1.1 }, rewardChoicesBonus: 1 },
   },
   {
     id: 'fractured-sky',

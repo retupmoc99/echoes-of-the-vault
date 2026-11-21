@@ -311,7 +311,7 @@ export const HOUR_THIEF_CARDS: CardDef[] = [
     archetype: 'delay',
     effects: [
       { kind: 'applyStatus', status: 'bleed', amount: 3, target: 'target' },
-      { kind: 'delay', turns: 2, effects: [{ kind: 'applyStatus', status: 'bleed', amount: 4, target: 'target' }] },
+      { kind: 'delay', turns: 2, effects: [{ kind: 'applyStatus', status: 'bleed', amount: 3, target: 'target' }] },
     ],
     flavor: 'A century passes in the wound. Only in the wound.',
   },

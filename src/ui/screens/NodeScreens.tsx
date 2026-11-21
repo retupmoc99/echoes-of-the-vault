@@ -17,7 +17,7 @@ import {
   type RunAction,
   type RunState,
 } from '../../engine';
-import { ArtImg, artUrl, useScreenBackground } from '../art';
+import { ArtImg, artUrl, useScreenAtmosphere } from '../art';
 import { HintSlot, type HintCandidate } from '../hints';
 import { CardView } from '../components/CardView';
 import { DeckSheet } from '../components/DeckSheet';
@@ -46,7 +46,7 @@ interface ChamberProps {
 
 function Chamber({ run, type, title, onMenu, error, children, actions, compact, hints = [] }: ChamberProps) {
   const [info, setInfo] = useState<string>();
-  useScreenBackground(`shift-${run.vaultShiftId}`, 'vault');
+  useScreenAtmosphere(`shift-${run.vaultShiftId}`, 'vault');
   return (
     <div className="screen">
       <RunHeader run={run} onMenu={onMenu} onInspect={setInfo} />

@@ -1,5 +1,29 @@
 # Changelog
 
+## 0.11.0 — Sound, Archive, balance (2026-11-21)
+
+### Added
+- **Sound and music,** all generated in code (no audio files):
+  - Effects for card plays, hits, Ward, kills, Overload, cracking, time effects, Paradox, victory and defeat.
+  - An ambient drone with sparse bells that changes with each screen and Vault Shift, and adds a slow pulse in fights.
+  - Sound and Music volume settings (Off / Low / Mid / High). On iOS the game follows the silent switch.
+- **Archive → History:** your last 20 loops, with stats, relics, final deck and the Echo each left.
+- **Archive → Cards:** a library of every card by Warden, with art, type filters, and lock state (Research or Warden). Tap one to read it in full.
+- Archive is split into History, Cards, Fragments and Settings.
+- **`npm run sim`:** a balance report from a bot playing many loops. It gives win rates per class and Vault Shift, where loops die, and which cards go with winning.
+- Save v7: loop history and sound settings. Past loops weren't recorded, so history starts empty.
+- 4 new tests (159 total): history order and cap, the v6→v7 migration, Shrine-heal scaling.
+
+### Changed
+- **Balance** (bot win rate, 1,500 loops per class: Relic-Breaker 32% → 35%, Hour-Thief 26% → 33%):
+  - The Drowned Halls: Bleed still never fades, but Shrines now heal normally. It was the hardest Shift for both classes.
+  - The Choir Awake: enemies +10% HP, down from +15%.
+  - The Grieving Lock: 140–148 HP, down from 140–150.
+  - The Hour-Thief starts with 68 HP, up from 64.
+  - Age the Flesh: delayed Bleed 4 → 3.
+- Rerolled art for 5 weaker cards: Second Hand is now a blade, Loop the Moment, Unmake the Hour and Mirror Sigil sit on dark backgrounds, and Twin Shards was redrawn.
+- The deploy workflow uses current GitHub Actions versions, which removes the Node 20 deprecation warning.
+
 ## 0.10.0 — Enemies, relics and map icons (2026-11-21)
 
 ### Added
