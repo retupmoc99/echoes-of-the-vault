@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.8.0 — Card art (2026-11-21)
+
+### Added
+- **Painted art for all 55 cards** (30 Relic-Breaker, 25 Hour-Thief), generated with ComfyUI: SDXL base plus the LaxpeintXL LoRA at 0.45. The set is 1.21 MB of WebP, loaded on demand, so the offline install doesn't grow.
+- **`npm run art:gen`:** queues card prompts from `ART_GUIDE.md` on a local ComfyUI server and saves 2 candidates per card to `art-raw/_candidates/`.
+
+### Changed
+- `ART_GUIDE.md` now has a "Tested setup", based on what worked:
+  - The subject goes before the style prompt.
+  - Each card gets its own seed rather than one seed per folder.
+  - The negative prompt bans pale and desert backgrounds.
+  - The Hour-Thief style cue is now "pale jade and silver glow". The old "clockwork, hourglass sand" made every card an hourglass.
+- Reworded prompts for 5 cards whose first results missed the subject.
+
 ## 0.7.0 — The Hour-Thief (2026-11-20)
 
 ### Added

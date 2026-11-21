@@ -11,6 +11,7 @@ npm test            # engine tests
 npm run build       # production build into dist/
 npm run preview     # serve the production build (installable, offline-capable)
 npm run art         # convert images in art-raw/ (see ART_GUIDE.md)
+npm run art:gen     # make card art candidates with a local ComfyUI server (see ART_GUIDE.md)
 npm run icons       # re-render the app icons from public/icons/icon.svg
 ```
 

@@ -12,6 +12,17 @@ The game never waits on art. Every card, enemy, relic, node type and background 
 3. Restart `npm run dev`. The image now replaces the drawn version. Delete the `.webp` (and run `npm run art` again) to go back.
 
 `art-raw/` is git-ignored. Keep your masters there (or anywhere) at full size.
+
+### Generating card art automatically
+With ComfyUI running locally (SDXL base and the LaxpeintXL LoRA installed), run:
+```bash
+COMFY_URL=http://127.0.0.1:8188 npm run art:gen -- [card ids...] [--seeds 101,303] [--force]
+```
+The script reads each card's prompt from the tables below, plus the style and negative prompts. It writes one image per seed to `art-raw/_candidates/cards/<id>_<seed>.png`. With no IDs, it does every card and skips images that already exist. Copy the keeper to `art-raw/cards/<id>.png` and run `npm run art`. `art-raw/_candidates/SEEDS.txt` records which seed won for each card.
+
+Comfy Desktop users: the desktop app may not expose a local API. You can run the install's server directly, from its `ComfyUI` folder: `.venv/Scripts/python.exe main.py --port 8190 --extra-model-paths-config <yaml pointing at your models folder>`.
+
+**Current set (0.8.0):** all 55 cards, picked from ~180 generated images on an RTX 5080 (~6 s each). Weakest, worth a reroll: *Second Hand* (a clock, not a blade), *Loop the Moment* and *Unmake the Hour* (pale backgrounds), *Twin Shards* (pillars, not crossed blades). Enemies, relics and node icons still need a background-removal model before they can be generated.
 You can also point a content entry at a specific file with its `image` field (path relative to `public/assets/`), e.g. `image: 'cards/shatter-lens-alt.webp'`.
 
 ## Specs
@@ -41,14 +52,22 @@ Near-black space. Ancient, impossibly advanced technology that behaves like magi
 - Enemies follow their sigil's hue (listed below).
 
 ## ComfyUI
-### Shared style prompt (prepend to every prompt)
+### Shared style prompt (append after every item prompt)
 ```
-dark science-fantasy relic art, ancient alien technology that looks like sorcery, near-black background, single subject lit only by its own glowing runes and sigils, bioluminescent cracks, volumetric haze, sacred geometry, weathered obsidian and tarnished metal, minimal composition, high contrast, rim light, cinematic, grim and solemn, painterly digital art, sharp focus
+dark science-fantasy relic art, ancient alien technology that looks like sorcery, near-black void background, lit only by its own glowing runes and cracks, volumetric haze, weathered obsidian and tarnished metal, high contrast, rim light, grim and solemn, cinematic, painterly digital art, visible brushwork
 ```
+**Put the subject first.** With the style in front, SDXL ignores the subject and draws a glowing round seal every time. Words like "sacred geometry" and "sigils" make it worse, so they're gone.
+
+### Tested setup (2026-11-21, SDXL base 1.0, RTX 5080, ~6 s per card)
+- Prompt: *item prompt*, then the shared style prompt above.
+- LoRA `LaxpeintXL-2.0` at **0.45** (model and clip). That's enough for painterly texture. At 0.7 it adds arches and light shafts that fight the near-black look. Without it, results look like stock product renders.
+- 30 steps, DPM++ 2M Karras, CFG 6.
+- Make 2 seeds per item and keep the better one. 101 and 303 gave the best first batch.
+- Be literal about shape. "Ring" became a bangle held in hands; "a hovering circle of glyphs" worked.
 
 ### Shared negative prompt
 ```
-text, letters, watermark, signature, logo, frame, border, ui, cartoon, anime, chibi, cute, bright background, daylight, sky, colorful, rainbow, pastel, lens flare overload, busy background, multiple subjects, cropped subject, blurry, lowres, jpeg artifacts, deformed, extra limbs, photo, modern objects, guns, sci-fi spaceship
+text, letters, watermark, signature, logo, frame, border, ui, white background, grey background, pale background, desert, sand dunes, cartoon, anime, chibi, cute, bright background, daylight, sky, colorful, rainbow, pastel, lens flare overload, busy background, multiple subjects, cropped subject, blurry, lowres, jpeg artifacts, deformed, extra limbs, photo, modern objects, guns, sci-fi spaceship
 ```
 
 ### Workflow settings
@@ -60,7 +79,7 @@ text, letters, watermark, signature, logo, frame, border, ui, cartoon, anime, ch
   - node icons 1024×1024
 - **Sampler:** DPM++ 2M Karras, 28–34 steps, CFG 5–6.5. Low CFG keeps the glow soft.
 - **Seed strategy:**
-  - Pick one "house seed" per folder (e.g. cards 4141, enemies 6600) and change only the per-item prompt. Similar noise means similar lighting and composition across a set.
+  - **Don't** use one seed for a whole folder. In testing, it gave every card the same centred composition. Consistency comes from the shared style prompt and LoRA; vary the seed per item.
   - When an image is close but not right, keep its seed and vary the prompt, or use img2img at denoise 0.35–0.5.
   - Record the seed of every keeper in a text file next to your masters, so you can regenerate at higher resolution later.
 - **Consistency boosters:**
@@ -78,10 +97,10 @@ Write each as: *shared style prompt* + the line below. Hue hints are optional.
 #### Cards (`art-raw/cards/<id>.png`, 4:3)
 | ID | Prompt |
 |---|---|
-| shard-strike | a jagged crystal shard flung through darkness, trailing ember-orange light, motion streak |
-| ward-sigil | a floating circular ward glyph of cold cyan light, concentric runes, protective barrier |
+| shard-strike | a single jagged crystal shard hurled through the dark like a spear, trailing a long streak of ember-orange light, dynamic diagonal motion |
+| ward-sigil | a hovering circle of cold cyan glyphs and concentric rune bands, a shield of light in empty darkness |
 | shatter-lens | a cracked crystal lens exploding outward, white-hot light screaming from the fractures, ember shards |
-| overcharge | an ancient relic core overloading, violet lightning arcing from cracked metal housing |
+| overcharge | an ancient relic core overloading, violent violet lightning bolts arcing out of its cracked metal housing, sparks |
 | twin-shards | two mirrored crystal blades crossing, one drawing blood-red light from the wielder, ember glow |
 | hollow-vow | a hand pressed to a glowing altar seal, thin blood lines feeding violet runes |
 | fault-line | a long glowing crack splitting a stone floor and a figure's silhouette, orange light below |
@@ -94,10 +113,10 @@ Write each as: *shared style prompt* + the line below. Hue hints are optional.
 | arc-conduit | a crystal conduit channelling violet electricity into a strike, branching arcs |
 | coolant-litany | frost-blue mist pouring over a glowing violet relic, steam, hushed |
 | cascade | a row of ancient relics igniting one after another in violet fire, chain reaction |
-| serrate | a serrated glass edge with orange light along its teeth, thin red mist |
+| serrate | a close-up of a long serrated glass blade, its saw teeth glowing ember-orange, thin red mist drifting off the edge, no creature |
 | hemorrhage-glyph | a crimson rune hovering over a wound, light dripping like blood, gold accents |
 | scar-tissue | cracked skin and stone fused together, cyan light sealing the fractures |
-| crack-the-seal | a great circular seal splitting down the middle, gold and violet light bursting through |
+| crack-the-seal | a massive round stone seal door splitting down the middle, blinding gold and violet light bursting out of the crack, debris |
 | sigil-lattice | a lattice of thin cyan light lines strung between floating runestones |
 | rampart-breaker | a collapsing wall of light hurled forward as a weapon, cyan shards, rubble |
 | spark-tithe | a relic drinking a thin stream of blood and sparking violet, small and greedy |
@@ -140,7 +159,7 @@ Write each as: *shared style prompt* + the line below. Hue hints are optional.
 | grave-lantern | a lantern of black iron burning a pale green flame |
 
 #### Hour-Thief cards (`art-raw/cards/<id>.png`, 4:3)
-Shared accent: **pale jade and silver** (Temporal cards), with ember for strikes and cyan for wards. Add to the style prompt: `clockwork, hourglass sand, frozen motion, afterimages`.
+Shared accent: **pale jade and silver** (Temporal cards), with ember for strikes and cyan for wards. Add to the style prompt: `pale jade and silver glow`. (An earlier "clockwork, hourglass sand, frozen motion" turned every card into an hourglass in a desert.)
 
 | ID | Prompt |
 |---|---|
