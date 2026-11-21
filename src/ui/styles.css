@@ -2048,3 +2048,92 @@ body.has-screen-art::before {
   color: var(--text);
   font-size: 14px;
 }
+
+/* ─────────────── The Awakening ─────────────── */
+.awakening {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid hsl(300 30% 30% / 0.6);
+  background: hsl(300 25% 6% / 0.85);
+  font-size: 14px;
+  line-height: 1.4;
+}
+.awakening.stage-1 { border-color: hsl(300 40% 38% / 0.7); }
+.awakening.stage-2 { border-color: hsl(320 55% 45% / 0.75); }
+.awakening.stage-3 {
+  border-color: hsl(340 70% 52% / 0.8);
+  box-shadow: 0 0 14px hsl(340 80% 50% / 0.25);
+}
+.awakening-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+}
+.awakening-head strong {
+  color: hsl(310 60% 80%);
+  font-size: 15px;
+}
+.awakening-head span {
+  color: var(--muted);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+.awakening-bar {
+  position: relative;
+  height: 8px;
+  border-radius: 4px;
+  background: #1a1220;
+}
+.awakening-bar span {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: 4px;
+  background: linear-gradient(90deg, hsl(290 50% 30%), hsl(330 85% 60%));
+  box-shadow: 0 0 10px hsl(330 90% 55% / 0.5);
+  transition: width 600ms ease-out;
+}
+.awakening-bar i {
+  position: absolute;
+  top: -3px;
+  bottom: -3px;
+  width: 2px;
+  background: hsl(310 40% 70% / 0.7);
+}
+.awakening-bar i.unbuilt {
+  background: hsl(310 10% 40% / 0.4);
+}
+.awakening-effects {
+  margin: 0;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.awakening .danger { color: hsl(345 70% 72%); }
+.awakening .reward { color: hsl(160 55% 68%); }
+.awakening-next {
+  margin: 0;
+  color: var(--text);
+}
+.awakening-chip {
+  flex: none;
+  min-height: 44px;
+  padding: 0 10px;
+  border-radius: 16px;
+  border: 1px solid hsl(330 60% 50% / 0.6);
+  background: hsl(330 30% 10% / 0.8);
+  color: hsl(330 70% 80%);
+  font-size: 12px;
+}
+.relic-row {
+  align-items: center;
+  gap: 8px;
+}
+.relic-row > :first-child {
+  flex: 1;
+  min-width: 0;
+}

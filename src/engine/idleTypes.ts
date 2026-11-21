@@ -108,7 +108,19 @@ export interface OutpostState {
 /** Hooks for the world changing over real days. Not used yet. */
 export interface WorldState {
   factions: Record<string, number>;
-  awakening: { stage: number; progress: number };
+  awakening: AwakeningState;
+}
+
+/** The Sleeper beneath the vault (see docs/design/awakening.md). */
+export interface AwakeningState {
+  /** Stage reached: 0 (Dormant) to 5 (Awake). Derived from progress. */
+  stage: number;
+  /** Fractional points; Echo work adds small amounts. */
+  progress: number;
+  /** Starts at 1; beating the Sleeper starts the next cycle. */
+  cycle: number;
+  /** Lulls used at the current stage (each costs more). */
+  lullsThisStage: number;
 }
 
 /** What happened while the player was away (or since the last tick). */

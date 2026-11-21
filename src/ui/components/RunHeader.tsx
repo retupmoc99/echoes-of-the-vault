@@ -12,6 +12,20 @@ interface Props {
   onInspect: (text: string) => void;
 }
 
+/** The Awakening stage this loop runs at; tap to read what it changes. */
+function AwakeningChip({ stage, onInspect }: { stage: number; onInspect: (text: string) => void }) {
+  const stages = CONTENT.awakening.stages;
+  const changes = stages
+    .slice(1, stage + 1)
+    .map((s) => s.danger)
+    .join(' ');
+  return (
+    <button className="awakening-chip" onClick={() => onInspect(`The Sleeper: ${stages[stage].name}. ${changes}`)}>
+      ☾ {stages[stage].name}
+    </button>
+  );
+}
+
 /** HP, deck, Corruption, Vault Shift and relics, on every out-of-combat run screen. */
 export function RunHeader({ run, onMenu, onInspect }: Props) {
   const [deckOpen, setDeckOpen] = useState(false);
@@ -37,7 +51,10 @@ export function RunHeader({ run, onMenu, onInspect }: Props) {
           ◈ {shift.name}
         </button>
       </div>
-      <RelicBar relics={relics} onInspect={onInspect} />
+      <div className="run-header-row relic-row">
+        <RelicBar relics={relics} onInspect={onInspect} />
+        {run.awakeningStage > 0 && <AwakeningChip stage={run.awakeningStage} onInspect={onInspect} />}
+      </div>
       {deckOpen && <DeckSheet deck={run.deck} title="Your deck" onClose={() => setDeckOpen(false)} />}
     </header>
   );

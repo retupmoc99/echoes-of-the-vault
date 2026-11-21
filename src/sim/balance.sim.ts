@@ -3,6 +3,7 @@
  *
  *   npm run sim                 (300 loops per class)
  *   SIM_RUNS=1000 npm run sim
+ *   SIM_STAGE=3 npm run sim     (play at an Awakening stage)
  *
  * Runs under Vitest (it already compiles TypeScript), but it is not a test:
  * it never fails, and `npm test` skips it (only *.test.ts files run there).
@@ -16,6 +17,8 @@ import { nextBotAction } from './bot';
 // (The app's tsconfig has no Node types, so reach process through globalThis.)
 const env = (globalThis as { process?: { env: Record<string, string | undefined> } }).process?.env ?? {};
 const RUNS = Number(env.SIM_RUNS ?? 300);
+/** Awakening stage to play at (SIM_STAGE=3 npm run sim). */
+const STAGE = Number(env.SIM_STAGE ?? 0);
 
 interface Outcome {
   won: boolean;
@@ -31,7 +34,7 @@ interface Outcome {
 
 function playLoop(classId: string, seed: string): Outcome {
   const cls = CONTENT.classes[classId];
-  let r: RunState = createRun({ seed, classId, unlockedCards: cls.lockedCards }, CONTENT);
+  let r: RunState = createRun({ seed, classId, unlockedCards: cls.lockedCards, awakeningStage: STAGE }, CONTENT);
   for (let i = 0; i < 20000 && r.phase !== 'ended'; i++) {
     const res = stepRun(r, nextBotAction(r, CONTENT), CONTENT);
     if (res.error) throw new Error(`${seed}: bot made an illegal move: ${res.error}`);
@@ -59,7 +62,7 @@ function report(classId: string, outcomes: Outcome[]): string {
   const wins = outcomes.filter((o) => o.won).length;
   const reachedBoss = outcomes.filter((o) => o.won || o.diedAt === 'boss').length;
   const lines = [
-    `\n=== ${CONTENT.classes[classId].name}: ${n} loops ===`,
+    `\n=== ${CONTENT.classes[classId].name}: ${n} loops, Awakening stage ${STAGE} ===`,
     `Won ${pct(wins, n)} | reached the boss ${pct(reachedBoss, n)} | beat it when reached ${pct(wins, reachedBoss)}`,
     `Turns per fight ${(outcomes.reduce((s, o) => s + o.turns, 0) / Math.max(1, outcomes.reduce((s, o) => s + o.fights, 0))).toFixed(1)} | avg peak Corruption ${(outcomes.reduce((s, o) => s + o.corruption, 0) / n).toFixed(1)}`,
   ];

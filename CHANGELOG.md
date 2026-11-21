@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.12.0 — The Awakening, part 1 (2026-11-21)
+
+### Added
+- **The Awakening:** something sleeps beneath the vault, and every loop wakes it a little.
+  - **The meter rises with activity only:** each closed loop, more for escaping, and Echo work. Time away never raises it.
+  - **Stages 1–3**, each with a danger and a reward:
+    - Murmur: 3 grim new events; Dig +15%.
+    - Stirring: Waking versions of the 4 early enemies, with more HP and a new move; Research +25%.
+    - Restless: elites carry an affix (Hardened, Frenzied or Warded); rarer rewards; elites drop 25 Shards.
+  - Each stage reveals a lore fragment the first time it's reached.
+  - **Push it back** by spending Shards to Lull it (on the meter), or by giving it an Echo (on the Echo card, two taps). Stages go down as well as up.
+  - **Where it shows:** the meter on the Descend tab, a stage chip during loops, affix names on elites, the stage on each History entry, and notices when the stage changes.
+- `SIM_STAGE=3 npm run sim` plays the balance report at an Awakening stage.
+- Save v8: the Awakening state. Loops in progress continue at stage 0.
+- 16 new tests (175 total): stages and the progress cap, loop and Echo-work progress, lore granted once, the Dig boost, Lull pricing and refusals, giving an Echo, events, Waking enemies and elite affixes by stage, Shards banked from elites, stage 0 unchanged, the v7→v8 migration.
+
+### Notes
+- Stages 4–5 (a new Shift, the Lock's second phase, and the Sleeper as the final boss) come in part 2. Until then, progress stops just short of stage 4.
+
 ## 0.11.0 — Sound, Archive, balance (2026-11-21)
 
 ### Added

@@ -76,6 +76,10 @@ export const HINTS = {
     title: 'A second Warden',
     text: 'The Hour-Thief is yours. Choose your Warden above before you descend: each plays very differently.',
   },
+  awakening: {
+    title: 'The Sleeper stirs',
+    text: 'Every loop you close, and every hour your Echoes work, wakes it a little. Each stage makes loops harder and richer. Lull it with Shards, or give it an Echo, if you want it quiet.',
+  },
   backup: {
     title: 'Keep a backup',
     text: 'Your progress lives in this browser only. Copy a save code now and then from Archive → Backup.',

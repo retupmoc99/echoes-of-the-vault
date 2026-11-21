@@ -328,6 +328,23 @@ Total 460 Shards: roughly 8 to 10 Echo lifetimes of digging.
   - Dismissed ids are kept in `settings.hintsSeen`.
   - In fights, hints sit above the player panel, so the intent and the cards stay visible.
 
+## The Awakening
+Full design: [docs/design/awakening.md](docs/design/awakening.md). Stages 1–3 are built (0.12.0); stages 4–5, the Sleeper and cycles come next.
+- **Rises with activity only:** +3 per closed loop, +2 more for escaping, +1 per 4 Echo-hours of work *(balance)*. Time away alone never raises it; resting Echoes add nothing.
+- **Stages** at 10 / 25 / 45 / 70 / 100 progress. Each brings a danger and a reward, and they build up:
+
+| Stage | Danger | Reward |
+|---|---|---|
+| 1 Murmur | 3 Awakening events join the pool | Dig +15% |
+| 2 Stirring | The 4 early enemies become Waking versions (+15% HP, one new move each) | Research +25% |
+| 3 Restless | Elites get an affix: Hardened (+20% HP), Frenzied (+3 damage) or Warded (10 Ward) | +5 rare weight; elites drop 25 Shards |
+
+- **Each stage reveals a lore fragment** the first time it's reached.
+- **The stage is fixed when a loop starts.** Changing it mid-loop does nothing until the next loop.
+- **Pushing it back:** *Lull* (on the meter) costs 40 Shards, +20 per Lull at the same stage, for −5 progress. *Give* (on an Echo card, two taps) releases an Echo for −(stability ÷ 5). Stages go down as well as up.
+- **Progress stops at 69** until stages 4–5 exist.
+- Stage changes are announced as a notice; loops show a stage chip; History records each loop's stage.
+
 ## Balance testing
 `npm run sim` plays many loops with a bot (`src/sim/bot.ts`) and prints a report: win rate per class, how often the boss is reached and beaten, deaths by node type and row, win rate per Vault Shift, and the cards most and least linked to winning. `SIM_RUNS=1500 npm run sim` for steadier numbers (about 10 seconds).
 - The bot plays like a careful new player: it blocks when enemies will out-hit its Ward, otherwise plays its most expensive card; takes Shrines when hurt and Elites only when healthy; takes the rarest reward, never the tainted one. Loops use the full card pool (all research done).
@@ -355,14 +372,15 @@ All sound is generated in code with Web Audio (`src/ui/audio/`): no audio files,
 - `localStorage` key `eotv.save`, JSON, synchronous write after every action.
 - `SaveData.version` + `MIGRATIONS[n]` (n → n+1). The old raw save is copied to `eotv.save.backup.vN` before migrating, and the migrated save is written straight away.
 - Corrupt saves are copied to `eotv.save.corrupt.<time>`, never deleted. Saves from a newer version are never overwritten.
-- **v7** (current) contains:
+- **v8** (current) contains:
   - `run`: the whole loop, including any live fight
   - `meta`: loops, victories, deaths, and `history` (the last 20 loops)
   - `nextLoop`, `echoes`, `pendingEcho`, `outpost` (shards, unlocks, research, cards, lore, scouting, kit)
   - `idle.lastTickAt`
-  - `world`: factions and awakening, reserved and empty
+  - `world`: `awakening` (stage, progress, cycle, Lulls this stage); `factions` still reserved and empty
   - `settings`
 - Migration history:
+  - v7 → v8: completes `world.awakening` (adds `cycle` and `lullsThisStage`); a loop in progress runs at stage 0 with no Shards found; history rows gain `awakeningStage: 0`.
   - v6 → v7: adds `meta.history` (empty: past loops weren't recorded) and the `sound` / `music` settings.
   - v1 → v2: the sandbox save becomes an empty v2; sandbox fights weren't loops.
   - v2 → v3: a loop in progress is *kept*. It gains Corruption 0, the Still Vault Shift, and full combat modifiers. A cache's single relic becomes a one-item list. A pending placeholder event is skipped.
@@ -372,7 +390,7 @@ All sound is generated in code with Web Audio (`src/ui/audio/`): no audio files,
 
 ## Future hooks (not built)
 - **Classes:** `WardenClassDef` holds the deck, pools, kits, HP and an optional unlock. The Hour-Thief proved the pattern: a new class is mostly data, plus new `Effect` kinds for genuinely new mechanics. Next: the Echo-Caller. **Decided (2026-11-21):** it summons your *real* Outpost Echoes as allies, each fighting from its own deck snapshot, with its trait shaping how it fights. Needs player-side ally combatants. Full design to be agreed before building.
-- **Factions / awakening:** `SaveData.world` exists (empty). **Decided (2026-11-21):** the Awakening rises with *activity only* (loops played, Echo work done), never with real time away, so breaks are never punished. As it rises, loops get new dangers and new rewards, and the Outpost can push it back. Full design to be agreed before building.
+- **Factions / awakening:** `SaveData.world` exists (empty). **Decided (2026-11-21):** the Awakening rises with *activity only* (loops played, Echo work done), never with real time away, so breaks are never punished. As it rises, loops get new dangers and new rewards, and the Outpost can push it back. Stages 1–3 built in 0.12.0; see "The Awakening" above.
 - **Echo allies:** each Echo stores its loop's deck snapshot and origin.
 - **Multi-floor runs:** `RunState.floor` exists (always 1). The map generator takes a config, so deeper floors can use their own config.
 - **Multiplayer:** not planned. To revisit in a later milestone.

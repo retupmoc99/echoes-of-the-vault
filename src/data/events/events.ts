@@ -186,3 +186,84 @@ export const EVENTS: EventDef[] = [
     ],
   },
 ];
+
+/** Join the event pool once the Awakening reaches stage 1 ("Murmur"). */
+export const AWAKENING_EVENTS: EventDef[] = [
+  {
+    id: 'sleepers-pulse',
+    title: "The Sleeper's Pulse",
+    text: 'A seam in the floor throbs, warm and slow. Something enormous is dreaming beneath your feet.',
+    minAwakening: 1,
+    options: [
+      {
+        label: 'Press your ear to it',
+        hint: 'Lose 8 HP. Gain a rare card.',
+        outcomes: [{ text: 'It dreams in shapes you can almost hold. One comes away in your hands. So does blood, from your ear.', effects: [{ kind: 'loseHp', amount: 8 }, { kind: 'addRandomCard', rarity: 'rare' }] }],
+      },
+      {
+        label: 'Drive a shard into it',
+        hint: 'Gain a relic. Gain 2 Corruption.',
+        outcomes: [{ text: 'The seam bleeds light and spits something out. Far below, the pulse quickens.', effects: [{ kind: 'gainRelic' }, { kind: 'corruption', amount: 2 }] }],
+      },
+      {
+        label: 'Step softly away',
+        hint: 'Lose 3 HP.',
+        outcomes: [{ text: 'Not softly enough. The floor bucks once, hard, and you fall.', effects: [{ kind: 'loseHp', amount: 3 }] }],
+      },
+    ],
+  },
+  {
+    id: 'dreamed-warden',
+    title: 'A Dreamed Warden',
+    text: 'A Warden flickers in the hall. It is you, as the Sleeper imagines you: taller, crueler, wrong.',
+    minAwakening: 1,
+    options: [
+      {
+        label: 'Let it teach you',
+        hint: 'Gain 2 uncommon cards. Gain a curse.',
+        outcomes: [
+          {
+            text: 'It shows you how it would fight. You learn. You also learn how it would live, and that stays.',
+            effects: [{ kind: 'addRandomCard', rarity: 'uncommon' }, { kind: 'addRandomCard', rarity: 'uncommon' }, { kind: 'addCurse' }],
+          },
+        ],
+      },
+      {
+        label: 'Trade places for a moment',
+        hint: 'Lose a random relic. Heal 15 HP. Gain 6 max HP.',
+        outcomes: [{ text: 'For one breath you are the dream. You come back larger, and missing something.', effects: [{ kind: 'loseRandomRelic' }, { kind: 'heal', amount: 15 }, { kind: 'maxHp', amount: 6 }] }],
+      },
+      {
+        label: 'Look away',
+        hint: 'Gain 1 Corruption.',
+        outcomes: [{ text: 'It is still there when you look back. It is always there now.', effects: [{ kind: 'corruption', amount: 1 }] }],
+      },
+    ],
+  },
+  {
+    id: 'breathing-door',
+    title: 'The Door That Breathes',
+    text: 'A door in the wall exhales as you near it. Behind it: warm dark, and the sound of slow lungs.',
+    minAwakening: 1,
+    options: [
+      {
+        label: 'Step through',
+        hint: 'A gamble: a rare card and healing, or wounds and a curse.',
+        outcomes: [
+          { weight: 1, text: 'The dark is kind, this once. It gives you something and lets you go.', effects: [{ kind: 'addRandomCard', rarity: 'rare' }, { kind: 'heal', amount: 10 }] },
+          { weight: 1, text: 'The lungs draw in, and you with them. You claw your way back out, changed.', effects: [{ kind: 'loseHp', amount: 12 }, { kind: 'addCurse' }] },
+        ],
+      },
+      {
+        label: 'Wedge it shut',
+        hint: 'Lose 5 HP. Remove a random card.',
+        outcomes: [{ text: 'You jam something of yours into the gap. It holds. You do not get it back.', effects: [{ kind: 'loseHp', amount: 5 }, { kind: 'removeRandomCard', count: 1 }] }],
+      },
+      {
+        label: 'Leave it breathing',
+        hint: 'Nothing changes.',
+        outcomes: [{ text: 'It breathes slower as you walk away. As if it has time.', effects: [] }],
+      },
+    ],
+  },
+];

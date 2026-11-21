@@ -48,10 +48,16 @@ export function createCombat(setup: CombatSetup, content: Content): StepResult {
   const encounter = content.encounters[setup.encounterId];
   if (!encounter) throw new Error(`Unknown encounter: ${setup.encounterId}`);
 
+  const affix = setup.affix;
   const enemies: EnemyState[] = encounter.enemies.map((defId, i) => {
     const def = content.enemies[defId];
-    const hp = Math.round(rngInt(rng, def.hp[0], def.hp[1]) * modifiers.enemyHpMult);
-    return { id: `e${i}`, defId, hp, maxHp: hp, ward: 0, statuses: {}, intent: chooseIntent(rng, def, []), history: [] };
+    const hp = Math.round(rngInt(rng, def.hp[0], def.hp[1]) * modifiers.enemyHpMult * (affix?.hpMult ?? 1));
+    const enemy: EnemyState = { id: `e${i}`, defId, hp, maxHp: hp, ward: affix?.ward ?? 0, statuses: {}, intent: chooseIntent(rng, def, []), history: [] };
+    if (affix) {
+      enemy.affix = affix.id;
+      if (affix.damageBonus) enemy.damageBonus = affix.damageBonus;
+    }
+    return enemy;
   });
 
   const s: CombatState = {

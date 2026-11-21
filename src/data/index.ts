@@ -3,12 +3,13 @@
  * below (or a new file whose list is spread in here). No engine changes needed.
  */
 import type { Content } from '../engine/types';
+import { AWAKENING_CONTENT, AWAKENING_LORE } from './awakening';
 import { RELIC_BREAKER_CARDS } from './cards/relicBreaker';
 import { HOUR_THIEF_CARDS } from './cards/hourThief';
 import { HOUR_THIEF } from './classes/hourThief';
 import { RELIC_BREAKER } from './classes/relicBreaker';
-import { ENCOUNTERS, ENEMIES } from './enemies/enemies';
-import { EVENTS } from './events/events';
+import { ENCOUNTERS, ENEMIES, WAKING_ENCOUNTERS, WAKING_ENEMIES } from './enemies/enemies';
+import { AWAKENING_EVENTS, EVENTS } from './events/events';
 import { IDLE_CONTENT } from './idle';
 import { RELICS } from './relics/relics';
 import { VAULT_SHIFTS } from './vaultShifts';
@@ -26,9 +27,11 @@ export const CONTENT: Content = {
   classes: byId([RELIC_BREAKER, HOUR_THIEF]),
   cards: byId([...RELIC_BREAKER_CARDS, ...HOUR_THIEF_CARDS]),
   relics: byId(RELICS),
-  enemies: byId(ENEMIES),
-  encounters: byId(ENCOUNTERS),
-  events: byId(EVENTS),
+  enemies: byId([...ENEMIES, ...WAKING_ENEMIES]),
+  encounters: byId([...ENCOUNTERS, ...WAKING_ENCOUNTERS]),
+  events: byId([...EVENTS, ...AWAKENING_EVENTS]),
   vaultShifts: byId(VAULT_SHIFTS),
-  idle: IDLE_CONTENT,
+  // Awakening lore shows in Fragments like Research lore, so it joins the same table.
+  idle: { ...IDLE_CONTENT, lore: { ...IDLE_CONTENT.lore, ...byId(AWAKENING_LORE) } },
+  awakening: AWAKENING_CONTENT,
 };

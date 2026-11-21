@@ -59,6 +59,8 @@ export function createRun(setup: RunSetup, content: Content): RunState {
     seenEvents: [],
     corruption: 0,
     vaultShiftId: shift.id,
+    awakeningStage: setup.awakeningStage ?? 0,
+    shardsFound: 0,
     cardPool: cls.cardPool.filter((id) => !cls.lockedCards.includes(id) || unlocked.includes(id)),
     options: {
       shrinePurge: false,
@@ -197,8 +199,11 @@ function chooseNode(r: RunState, nodeId: string, content: Content, events: Comba
   }
 }
 
-function encounterPool(node: MapNode, content: Content): EncounterDef[] {
-  const all = Object.values(content.encounters);
+function encounterPool(node: MapNode, awakeningStage: number, content: Content): EncounterDef[] {
+  // Awakening-gated encounters join at their stage and push out the ones they replace.
+  const usable = Object.values(content.encounters).filter((e) => (e.minAwakening ?? 0) <= awakeningStage);
+  const replaced = new Set(usable.map((e) => e.replaces).filter(Boolean));
+  const all = usable.filter((e) => !replaced.has(e.id));
   const tier = ({ fight: 'normal', elite: 'elite', boss: 'boss' } as Partial<Record<NodeType, string>>)[node.type];
   if (tier !== 'normal') return all.filter((e) => e.tier === tier);
   const stage = node.row >= BALANCE.map.lateStageFromRow ? 'late' : 'early';
@@ -206,11 +211,17 @@ function encounterPool(node: MapNode, content: Content): EncounterDef[] {
 }
 
 function startFight(r: RunState, node: MapNode, content: Content, events: CombatEvent[]): void {
-  const pool = encounterPool(node, content);
+  const pool = encounterPool(node, r.awakeningStage, content);
   // Prefer encounters not yet seen this loop, so fights don't repeat.
   const fresh = pool.filter((e) => !r.seenEncounters.includes(e.id));
   const encounter = rngPick(r.rng, fresh.length ? fresh : pool);
   r.seenEncounters.push(encounter.id);
+
+  // Awakening stage 3+: elites carry a random affix. (Rolled only then, so
+  // loops at lower stages keep exactly the same random sequence.)
+  const affixes = Object.values(content.awakening.affixes);
+  const affix =
+    node.type === 'elite' && r.awakeningStage >= 3 && affixes.length ? rngPick(r.rng, affixes) : undefined;
 
   const created = createCombat(
     {
@@ -221,6 +232,7 @@ function startFight(r: RunState, node: MapNode, content: Content, events: Combat
       relics: r.relics,
       encounterId: encounter.id,
       modifiers: combatModifiersFor(r, content),
+      affix,
     },
     content,
   );
@@ -290,7 +302,10 @@ function leave(r: RunState, content: Content): string | undefined {
 
     const type = r.map.nodes[node.nodeId].type;
     r.stats.fightsWon++;
-    if (type === 'elite') r.stats.elitesWon++;
+    if (type === 'elite') {
+      r.stats.elitesWon++;
+      if (r.awakeningStage >= 3) r.shardsFound += BALANCE.awakening.eliteShards;
+    }
     if (type === 'boss') {
       r.stats.bossWon = true;
       return void endRun(r, 'victory');

@@ -159,6 +159,10 @@ export interface EncounterDef {
   /** Normal fights only: early rows draw from 'early', deeper rows from 'late'. */
   stage?: 'early' | 'late';
   enemies: string[];
+  /** Only used once the Awakening has reached this stage. */
+  minAwakening?: number;
+  /** When usable, this encounter replaces that one (Waking variants). */
+  replaces?: string;
 }
 
 /**
@@ -229,6 +233,8 @@ export interface EventDef {
   options: EventOption[];
   /** Earliest map row this event may appear on. */
   minRow?: number;
+  /** Only appears once the Awakening has reached this stage. */
+  minAwakening?: number;
   image?: string;
 }
 
@@ -268,6 +274,24 @@ export interface Content {
   events: Record<string, EventDef>;
   vaultShifts: Record<string, VaultShiftDef>;
   idle: IdleContent;
+  awakening: AwakeningContent;
+}
+
+/** Text and affixes for the Awakening. Numbers live in BALANCE.awakening. */
+export interface AwakeningContent {
+  /** Index = stage (0 = Dormant). */
+  stages: AwakeningStageDef[];
+  affixes: Record<string, EliteAffixDef>;
+}
+
+export interface AwakeningStageDef {
+  name: string;
+  /** What gets harder at this stage (empty for Dormant). */
+  danger: string;
+  /** What gets better at this stage. */
+  reward: string;
+  /** Lore fragment granted the first time this stage is reached. */
+  loreId?: string;
 }
 
 // ───────────────────────────── Combat state ─────────────────────────────
@@ -290,6 +314,10 @@ export interface PlayerState extends Combatant {
 
 export interface EnemyState extends Combatant {
   defId: string;
+  /** Elite affix from the Awakening (stage 3+), if any. */
+  affix?: string;
+  /** Extra damage on every attack (the Frenzied affix). */
+  damageBonus?: number;
   /** Move id the enemy will use on its next turn (shown as its intent). */
   intent: string;
   history: string[];
@@ -365,6 +393,18 @@ export interface CombatSetup {
   relics: string[];
   encounterId: string;
   modifiers?: Partial<CombatModifiers>;
+  /** Elite affix to apply to every enemy in the fight (Awakening stage 3+). */
+  affix?: EliteAffixDef;
+}
+
+/** An Awakening elite affix: pure numbers, applied when the fight starts. */
+export interface EliteAffixDef {
+  id: string;
+  name: string;
+  description: string;
+  hpMult?: number;
+  damageBonus?: number;
+  ward?: number;
 }
 
 // ───────────────────────────── Actions & events ─────────────────────────────
@@ -483,6 +523,10 @@ export interface RunState {
   /** Run-wide meter. Thresholds strengthen enemies, add curses and improve loot. */
   corruption: number;
   vaultShiftId: string;
+  /** Awakening stage this loop runs at (fixed for the whole loop). */
+  awakeningStage: number;
+  /** Shards found this loop (elites at Awakening stage 3+), banked when it closes. */
+  shardsFound: number;
   /** Cards that can appear as rewards this loop (class pool minus unresearched cards). */
   cardPool: string[];
   /** Options granted by Outpost unlocks, fixed for the whole loop. */
@@ -503,6 +547,8 @@ export interface RunOptions {
 export interface RunSetup {
   seed: string;
   classId: string;
+  /** Awakening stage this loop runs at (0 = Dormant). */
+  awakeningStage?: number;
   /** Forced Shift (Scout reveals it in advance). Rolled from the seed otherwise. */
   vaultShiftId?: string;
   /** Starter kit; defaults to the class's first kit. */

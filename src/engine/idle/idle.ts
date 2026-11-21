@@ -12,6 +12,7 @@
 import { BALANCE } from '../../data/balance';
 import type { Content, Echo, IdleReport } from '../types';
 import type { SaveData } from '../save/save';
+import { addAwakening } from './awakening';
 import { drainPerHour, traitOf } from './echoes';
 
 const I = BALANCE.idle;
@@ -45,6 +46,11 @@ export function advanceIdle(save: SaveData, now: number, content: Content): { sa
   const shardsBefore = Math.floor(s.outpost.shards);
   const scoutingBefore = s.outpost.scouting;
   const survivors: Echo[] = [];
+  // Awakening rewards: stage 1 boosts Dig, stage 2 boosts Research.
+  const stage = s.world.awakening.stage;
+  const digBoost = stage >= 1 ? 1 + BALANCE.awakening.digBonus : 1;
+  const researchBoost = stage >= 2 ? 1 + BALANCE.awakening.researchBonus : 1;
+  let echoHoursWorked = 0;
 
   for (const echo of s.echoes) {
     if (!echo.task) {
@@ -63,8 +69,9 @@ export function advanceIdle(save: SaveData, now: number, content: Content): { sa
     echo.stability = Math.max(0, echo.stability - drain * worked);
     const mods = traitOf(echo, content).mods;
 
-    if (kind === 'dig') s.outpost.shards += worked * I.shardsPerHour * (mods.digMult ?? 1);
-    if (kind === 'research') addResearch(s, worked * I.researchPerHour * (mods.researchMult ?? 1), content, report);
+    echoHoursWorked += worked;
+    if (kind === 'dig') s.outpost.shards += worked * I.shardsPerHour * (mods.digMult ?? 1) * digBoost;
+    if (kind === 'research') addResearch(s, worked * I.researchPerHour * (mods.researchMult ?? 1) * researchBoost, content, report);
     if (kind === 'scout') s.outpost.scouting += worked * (mods.scoutMult ?? 1);
 
     // Tiny float leftovers count as gone.
@@ -76,7 +83,9 @@ export function advanceIdle(save: SaveData, now: number, content: Content): { sa
   report.shards = Math.floor(s.outpost.shards) - shardsBefore;
   if (scoutingBefore < I.scoutShiftHours && s.outpost.scouting >= I.scoutShiftHours) report.scoutRevealed.push('shift');
   if (scoutingBefore < I.scoutMapHours && s.outpost.scouting >= I.scoutMapHours) report.scoutRevealed.push('map');
-  return { save: s, report };
+  // Echo work stirs the Sleeper a little. Resting Echoes add nothing.
+  const stirred = echoHoursWorked > 0 ? addAwakening(s, echoHoursWorked / BALANCE.awakening.echoHoursPerPoint, content) : s;
+  return { save: stirred, report };
 }
 
 function addResearch(s: SaveData, points: number, content: Content, report: IdleReport): void {

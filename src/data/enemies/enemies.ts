@@ -1,4 +1,5 @@
 import type { EncounterDef, EnemyDef } from '../../engine/types';
+import { BALANCE } from '../balance';
 
 export const ENEMIES: EnemyDef[] = [
   {
@@ -253,3 +254,61 @@ export const ENCOUNTERS: EncounterDef[] = [
   { id: 'lens-tyrant', tier: 'elite', enemies: ['lens-tyrant'] },
   { id: 'grieving-lock', tier: 'boss', enemies: ['grieving-lock'] },
 ];
+
+// ───────────────────────────── Awakening: Waking variants ─────────────────────────────
+// From Awakening stage 2 ("Stirring"), the four early enemies wake: more HP
+// and one new move each. They're built from the originals, so tuning a base
+// enemy tunes its Waking self too, and they reuse its art.
+
+/** A Waking copy of `baseId`: +HP, one extra move added to its pattern. */
+function waking(baseId: string, moveId: string, move: EnemyDef['moves'][string], weight = 1): EnemyDef {
+  const base = ENEMIES.find((e) => e.id === baseId)!;
+  const mult = BALANCE.awakening.wakingHpMult;
+  const pattern: EnemyDef['pattern'] =
+    base.pattern.kind === 'cycle'
+      ? { ...base.pattern, order: [...base.pattern.order, moveId] }
+      : { ...base.pattern, weights: { ...base.pattern.weights, [moveId]: weight } };
+  return {
+    ...base,
+    id: `waking-${baseId}`,
+    name: `Waking ${base.name}`,
+    hp: [Math.round(base.hp[0] * mult), Math.round(base.hp[1] * mult)],
+    moves: { ...base.moves, [moveId]: move },
+    pattern,
+    image: base.image ?? `enemies/${baseId}.webp`,
+  };
+}
+
+export const WAKING_ENEMIES: EnemyDef[] = [
+  waking('hollow-sentinel', 'reach', {
+    name: 'Dreaming Reach',
+    effects: [
+      { kind: 'damage', amount: 6 },
+      { kind: 'applyStatus', status: 'weakened', amount: 1, target: 'target' },
+    ],
+  }),
+  waking('bleeding-lattice', 'bloom', {
+    name: 'Red Bloom',
+    effects: [
+      { kind: 'applyStatus', status: 'bleed', amount: 3, target: 'target' },
+      { kind: 'ward', amount: 4 },
+    ],
+  }),
+  waking('mirror-wraith', 'mimic', { name: 'Borrowed Face', effects: [{ kind: 'damage', amount: 5, hits: 2 }] }),
+  waking('choir-shard', 'hymn', {
+    name: 'Rising Hymn',
+    effects: [
+      { kind: 'applyStatus', status: 'fracture', amount: 1, target: 'self' },
+      { kind: 'damage', amount: 3 },
+    ],
+  }),
+];
+
+/** Waking encounters replace their originals once the Awakening reaches stage 2. */
+export const WAKING_ENCOUNTERS: EncounterDef[] = ENCOUNTERS.filter((e) => e.tier === 'normal' && e.stage === 'early').map((e) => ({
+  ...e,
+  id: `waking-${e.id}`,
+  enemies: e.enemies.map((id) => `waking-${id}`),
+  minAwakening: 2,
+  replaces: e.id,
+}));

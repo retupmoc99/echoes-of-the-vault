@@ -40,7 +40,8 @@ function HistoryRow({ rec, open, onToggle }: { rec: LoopRecord; open: boolean; o
           Loop {rec.loop} · {won ? 'Escaped' : s.abandoned ? 'Abandoned' : `Fell at depth ${rec.depth}`}
         </span>
         <span className="history-sub">
-          {warden} · {shift} · {formatAgo(Date.now() - rec.endedAt)}
+          {warden} · {shift}
+          {rec.awakeningStage > 0 ? ` · ☾ ${CONTENT.awakening.stages[rec.awakeningStage]?.name}` : ''} · {formatAgo(Date.now() - rec.endedAt)}
         </span>
       </button>
       {open && (

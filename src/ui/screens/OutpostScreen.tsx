@@ -10,6 +10,7 @@ import { CONTENT } from '../../data';
 import { BALANCE } from '../../data/balance';
 import { NODE_INFO } from '../../data/nodeTypes';
 import { researchComplete, researchCost, scoutInfo, traitOf, type OutpostAction, type SaveData } from '../../engine';
+import { AwakeningPanel } from '../components/AwakeningPanel';
 import { BackupPanel } from '../components/BackupPanel';
 import { CardLibrary } from '../components/CardLibrary';
 import { LoopHistory } from '../components/LoopHistory';
@@ -54,6 +55,7 @@ export function OutpostScreen({ save, error, notice, outpost, onSettings, onEnte
             ['outpost-welcome', tab === 'descend' && save.meta.loops === 0 && !save.run],
             ['echoes', tab === 'echoes' && save.echoes.length > 0],
             ['works', tab === 'works'],
+            ['awakening', tab === 'descend' && !save.run && save.world.awakening.stage >= 1],
             ['new-warden', tab === 'descend' && !save.run && save.outpost.unlocks.includes('stolen-hour') && save.outpost.classId === 'relic-breaker'],
             ['backup', tab === 'descend' && save.meta.loops >= 3],
           ]}
@@ -183,6 +185,13 @@ function DescendTab({ save, outpost, onEnterRun, onAbandon }: Omit<Props, 'error
         </button>
       )}
 
+      {(save.meta.loops > 0 || save.world.awakening.progress > 0) && (
+        <>
+          <h2 className="panel-title">The Awakening</h2>
+          <AwakeningPanel save={save} onLull={() => outpost({ type: 'lull' })} />
+        </>
+      )}
+
       <h2 className="panel-title">Warden</h2>
       <div className="kit-picker">
         {Object.values(CONTENT.classes).map((c) => {
@@ -262,6 +271,7 @@ function EchoesTab({ save, outpost, onInspect }: { save: SaveData; outpost: Prop
           researchDone={researchDone}
           onAssign={(task) => outpost({ type: 'assign', echoId: echo.id, task })}
           onRelease={() => outpost({ type: 'releaseEcho', echoId: echo.id })}
+          onGive={save.world.awakening.progress > 0 ? () => outpost({ type: 'giveEcho', echoId: echo.id }) : undefined}
           onReplace={pending && full ? () => outpost({ type: 'keepPending', replaceId: echo.id }) : undefined}
           onInspect={onInspect}
         />

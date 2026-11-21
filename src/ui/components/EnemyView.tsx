@@ -40,6 +40,7 @@ export function EnemyView({ state, enemy, targeted, size, onSelect, onInspect }:
   const { floaters, flashing } = useHitFx(enemy.id);
   const acting = useActing(enemy.id);
   const dead = enemy.hp <= 0;
+  const affix = enemy.affix ? CONTENT.awakening.affixes[enemy.affix] : undefined;
 
   return (
     <div
@@ -48,7 +49,7 @@ export function EnemyView({ state, enemy, targeted, size, onSelect, onInspect }:
       onClick={() => {
         if (dead) return;
         onSelect();
-        onInspect(`${def.name}. ${def.flavor}`);
+        onInspect(affix ? `${affix.name} ${def.name}. ${affix.description} ${def.flavor}` : `${def.name}. ${def.flavor}`);
       }}
     >
       <div className="enemy-intent">{!dead && <IntentBadge intent={previewIntent(state, enemy, CONTENT)} onInspect={onInspect} />}</div>
@@ -56,7 +57,7 @@ export function EnemyView({ state, enemy, targeted, size, onSelect, onInspect }:
         <ArtImg src={artUrl('enemies', def.id, def.image)} className="enemy-art" size={size} fallback={<Sigil spec={def.sigil} size={size} />} />
         <Floaters items={floaters} />
       </div>
-      <div className="enemy-name">{def.name}</div>
+      <div className="enemy-name">{affix ? `${affix.name} ${def.name}` : def.name}</div>
       <HpBar hp={enemy.hp} maxHp={enemy.maxHp} ward={enemy.ward} />
       <StatusChips statuses={enemy.statuses} onInspect={onInspect} />
     </div>

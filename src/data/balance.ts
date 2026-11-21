@@ -94,6 +94,32 @@ export const BALANCE = {
     cacheRelicChoices: 2,
   },
 
+  /** The Sleeper beneath the vault (docs/design/awakening.md). */
+  awakening: {
+    /** Progress needed for stages 1–5. */
+    thresholds: [10, 25, 45, 70, 100],
+    /**
+     * Highest stage that exists yet. Milestone 1 builds stages 1–3, so progress
+     * stops just short of stage 4 until stages 4–5 are added.
+     */
+    maxStage: 3,
+    perLoop: 3,
+    perEscape: 2,
+    /** Echo-hours of Dig, Research or Scout per point of progress. */
+    echoHoursPerPoint: 4,
+    lull: { amount: 5, baseCost: 40, costStep: 20 },
+    /** Giving an Echo lowers progress by its stability ÷ this. */
+    giveDivisor: 5,
+    /** Stage 1: Dig yields more. */
+    digBonus: 0.15,
+    /** Stage 2: Research runs faster; Waking enemies have more HP. */
+    researchBonus: 0.25,
+    wakingHpMult: 1.15,
+    /** Stage 3: rarer rewards, and elites carry an affix and drop Shards. */
+    rareWeightBonus: 5,
+    eliteShards: 25,
+  },
+
   /** Archive → History keeps this many of the most recent loops. */
   history: { limit: 20 },
 

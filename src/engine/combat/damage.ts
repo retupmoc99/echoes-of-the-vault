@@ -4,7 +4,7 @@
  * applies it.
  */
 import { BALANCE } from '../../data/balance';
-import type { CombatState, Combatant, HpLossCause } from '../types';
+import type { CombatState, Combatant, EnemyState, HpLossCause } from '../types';
 import { PLAYER_ID, type Ctx } from './context';
 
 /**
@@ -14,7 +14,7 @@ import { PLAYER_ID, type Ctx } from './context';
 export function attackDamage(s: CombatState, attacker: Combatant, defender: Combatant, base: number): number {
   const st = BALANCE.status;
   let dmg = base + (attacker.statuses.fracture ?? 0) * s.modifiers.fractureDamagePerStack;
-  if (attacker.id !== PLAYER_ID) dmg += s.modifiers.enemyDamageBonus;
+  if (attacker.id !== PLAYER_ID) dmg += s.modifiers.enemyDamageBonus + ((attacker as EnemyState).damageBonus ?? 0);
   if ((attacker.statuses.weakened ?? 0) > 0) dmg *= 1 - st.weakened.damageReduction;
   if ((defender.statuses.exposed ?? 0) > 0) dmg *= 1 + st.exposed.damageIncrease;
   return Math.max(0, Math.floor(dmg));

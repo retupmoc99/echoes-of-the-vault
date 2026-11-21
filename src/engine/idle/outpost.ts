@@ -7,6 +7,7 @@
 import { BALANCE } from '../../data/balance';
 import type { Content, EchoTaskKind, IdleReport, MapNode } from '../types';
 import type { SaveData } from '../save/save';
+import { addAwakening, giveValue, lullCost } from './awakening';
 import { advanceIdle, researchComplete } from './idle';
 import { closeLoop, nextRunPreview, prepareNextLoop, ringShiftBell, startLoop } from './loop';
 
@@ -20,7 +21,11 @@ export type OutpostAction =
   | { type: 'selectKit'; kitId: string }
   | { type: 'ringBell' }
   | { type: 'startLoop' }
-  | { type: 'closeLoop' };
+  | { type: 'closeLoop' }
+  /** Spend Shards to quiet the Sleeper (Awakening progress down). */
+  | { type: 'lull' }
+  /** Release an Echo into the Sleeper's dream (progress down by its stability). */
+  | { type: 'giveEcho'; echoId: string };
 
 export interface OutpostResult {
   save: SaveData;
@@ -61,6 +66,22 @@ function apply(s: SaveData, action: OutpostAction, now: number, content: Content
     }
     case 'releasePending':
       return s.pendingEcho ? { ...s, pendingEcho: null } : 'No Echo is waiting.';
+    case 'lull': {
+      const a = s.world.awakening;
+      if (a.progress <= 0) return 'The Sleeper is already still.';
+      const cost = lullCost(a);
+      if (Math.floor(s.outpost.shards) < cost) return 'Not enough Shards.';
+      const lulled = addAwakening({ ...s, outpost: { ...s.outpost, shards: s.outpost.shards - cost } }, -BALANCE.awakening.lull.amount, content);
+      // Each Lull at the same stage costs more; a new stage resets the price.
+      const w = lulled.world.awakening;
+      return w.stage === a.stage ? { ...lulled, world: { ...lulled.world, awakening: { ...w, lullsThisStage: a.lullsThisStage + 1 } } } : lulled;
+    }
+    case 'giveEcho': {
+      const echo = s.echoes.find((e) => e.id === action.echoId);
+      if (!echo) return 'That Echo is gone.';
+      if (s.world.awakening.progress <= 0) return 'The Sleeper is already still.';
+      return addAwakening({ ...s, echoes: s.echoes.filter((e) => e.id !== echo.id) }, -giveValue(echo), content);
+    }
     case 'releaseEcho':
       if (!s.echoes.some((e) => e.id === action.echoId)) return 'That Echo is gone.';
       return { ...s, echoes: s.echoes.filter((e) => e.id !== action.echoId) };

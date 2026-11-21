@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { CONTENT } from '../../data';
-import { hoursLeft, traitOf, type Echo, type EchoTaskKind } from '../../engine';
+import { giveValue, hoursLeft, traitOf, type Echo, type EchoTaskKind } from '../../engine';
 import { formatHours } from '../format';
 
 const TASKS: { kind: EchoTaskKind | null; label: string }[] = [
@@ -18,10 +18,13 @@ interface Props {
   onInspect: (text: string) => void;
   /** Shown when a pending Echo could take this slot. */
   onReplace?: () => void;
+  /** Give this Echo to the Sleeper (shown while the Awakening has progress). */
+  onGive?: () => void;
 }
 
-export function EchoCard({ echo, researchDone, onAssign, onRelease, onInspect, onReplace }: Props) {
+export function EchoCard({ echo, researchDone, onAssign, onRelease, onInspect, onReplace, onGive }: Props) {
   const [confirmRelease, setConfirmRelease] = useState(false);
+  const [confirmGive, setConfirmGive] = useState(false);
   const trait = traitOf(echo, CONTENT);
   const shift = CONTENT.vaultShifts[echo.origin.vaultShiftId]?.name ?? 'an unknown vault';
   const pct = Math.max(0, (echo.stability / echo.maxStability) * 100);
@@ -68,7 +71,19 @@ export function EchoCard({ echo, researchDone, onAssign, onRelease, onInspect, o
       </div>
 
       <footer className="echo-foot">
-        {onReplace ? (
+        {onGive &&
+          !onReplace &&
+          !confirmRelease &&
+          (confirmGive ? (
+            <button className="ghost-btn danger" onClick={onGive}>
+              Tap again: give {echo.name.split(' ')[0]} to the Sleeper
+            </button>
+          ) : (
+            <button className="text-btn" onClick={() => setConfirmGive(true)}>
+              Give to the Sleeper (−{giveValue(echo)})
+            </button>
+          ))}
+        {confirmGive ? null : onReplace ? (
           <button className="ghost-btn danger" onClick={onReplace}>
             Release for the new Echo
           </button>

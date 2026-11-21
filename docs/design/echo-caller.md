@@ -1,6 +1,6 @@
 # Design proposal: the Echo-Caller (third Warden)
 
-*Status: draft for review. Nothing here is built.*
+*Status: design approved 2026-11-21, not yet built (comes after the Awakening).*
 *Decided: the Echo-Caller summons your **real** Outpost Echoes.*
 
 > The loop remembers every one of you. The Echo-Caller makes it answer.
@@ -122,7 +122,13 @@ An Outpost Work, **The Lantern of Names**, for 150 Shards. That's a little more 
 1. Engine, allies UI, save v8 and about 8 cards, playable end to end.
 2. The full card set, relics, art, sim tuning and docs.
 
-## Open questions for you
+## Decisions (2026-11-21)
+1. **A Call can Unravel an Echo**, behind a two-tap confirm (like abandoning a loop).
+2. **Costs start at 8 stability per Call and 12 per fall**, to be tuned with the sim and real play.
+3. **Two allies** on the field at once; the ally row must fit at 320px wide.
+4. **Allies only take hits through Guard and area attacks.** Enemy intents always mean you.
+
+## Original open questions
 1. **Can a Call Unravel an Echo?** That's the proposal: allowed, with a clear warning. It's dramatic, but you could lose an Echo you liked. The alternative: Call is disabled once an Echo is too weak.
 2. **Is a stability cost of 10 per Call and 15 per fall right?** An average Echo has about 80–120 stability, so a heavy-Calling loop could cost a quarter of an Echo's working life.
 3. **Two allies at once:** enough presence on a phone screen, or should it be one, kept simpler?

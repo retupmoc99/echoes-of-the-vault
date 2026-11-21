@@ -6,7 +6,7 @@ import { applyRunEffects } from './runEffects';
 
 /** A random event the player hasn't seen this loop (repeats only if all are used up). */
 export function pickEvent(r: RunState, row: number, content: Content): string {
-  const eligible = Object.values(content.events).filter((e) => (e.minRow ?? 0) <= row);
+  const eligible = Object.values(content.events).filter((e) => (e.minRow ?? 0) <= row && (e.minAwakening ?? 0) <= r.awakeningStage);
   const fresh = eligible.filter((e) => !r.seenEvents.includes(e.id));
   const pool = fresh.length ? fresh : eligible;
   return rngPick(r.rng, pool).id;

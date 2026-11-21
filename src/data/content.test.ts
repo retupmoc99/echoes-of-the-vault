@@ -5,6 +5,7 @@
 import { describe, expect, it } from 'vitest';
 import { createCombat, describeCard, describeRelic } from '../engine';
 import { CONTENT } from '.';
+import { BALANCE } from './balance';
 
 describe('content integrity', () => {
   const rb = CONTENT.classes['relic-breaker'];
@@ -55,16 +56,34 @@ describe('content integrity', () => {
     }
   });
 
-  it('has the slice: ~30 cards and ~10 relics per class, 8 events, 5 Shifts', () => {
+  it('has the slice: ~30 cards and ~10 relics per class, 8 events (+3 Awakening), 5 Shifts', () => {
     for (const cls of classes) {
       expect(cls.starterDeck.length + cls.cardPool.length, cls.id).toBeGreaterThanOrEqual(30);
       expect(cls.relicPool.length, cls.id).toBeGreaterThanOrEqual(9);
     }
-    expect(Object.keys(CONTENT.events)).toHaveLength(8);
+    const events = Object.values(CONTENT.events);
+    expect(events.filter((e) => !e.minAwakening)).toHaveLength(8);
+    expect(events.filter((e) => e.minAwakening)).toHaveLength(3);
     expect(Object.values(CONTENT.vaultShifts).filter((s) => s.weight > 0)).toHaveLength(5);
     const archetypes = (ids: string[]) => [...new Set(ids.map((id) => CONTENT.cards[id].archetype))].sort();
     expect(archetypes(rb.cardPool)).toEqual(['bleed', 'fracture', 'overload', 'ward']);
     expect(archetypes(ht.cardPool)).toEqual(['delay', 'echo', 'unwinding']);
+  });
+
+  it('Awakening content is consistent: stages, lore, Waking encounters, affixes', () => {
+    const { stages, affixes } = CONTENT.awakening;
+    expect(stages).toHaveLength(BALANCE.awakening.thresholds.length + 1);
+    for (const st of stages) if (st.loreId) expect(CONTENT.idle.lore[st.loreId], st.loreId).toBeDefined();
+    for (const e of Object.values(CONTENT.encounters)) {
+      if (e.replaces) expect(CONTENT.encounters[e.replaces], e.id).toBeDefined();
+      for (const id of e.enemies) expect(CONTENT.enemies[id], `${e.id}: ${id}`).toBeDefined();
+    }
+    // Every Waking enemy's pattern only names moves it has.
+    for (const en of Object.values(CONTENT.enemies)) {
+      const ids = en.pattern.kind === 'cycle' ? en.pattern.order : Object.keys(en.pattern.weights);
+      for (const m of ids) expect(en.moves[m], `${en.id}: ${m}`).toBeDefined();
+    }
+    expect(Object.keys(affixes).sort()).toEqual(['frenzied', 'hardened', 'warded']);
   });
 
   it('idle content is consistent: kits, locked cards, research, traits', () => {

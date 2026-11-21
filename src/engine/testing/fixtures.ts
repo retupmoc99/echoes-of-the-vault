@@ -102,6 +102,7 @@ export const TEST_CONTENT: Content = {
   events: {},
   vaultShifts: {},
   idle: { traits: [], unlocks: [], research: [], lore: {}, names: { given: [], epithets: [] } },
+  awakening: { stages: [{ name: 'Dormant', danger: '', reward: '' }], affixes: {} },
 };
 
 /** Start a test fight against simple test content. Use withHand() to fix the hand. */

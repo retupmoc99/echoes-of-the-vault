@@ -7,6 +7,7 @@ import { createRng, rngWeighted } from '../rng';
 import { createRun } from '../run/run';
 import type { Content, NextLoop, OutpostState, RunOptions, RunState } from '../types';
 import type { LoopRecord, SaveData } from '../save/save';
+import { addAwakening, loopAwakening } from './awakening';
 import { createEcho } from './echoes';
 
 function rollShift(seed: string, content: Content, exclude?: string): string {
@@ -43,6 +44,7 @@ export function nextRunPreview(save: SaveData, content: Content): RunState | nul
       kitId: save.outpost.kitId,
       unlockedCards: save.outpost.cards,
       options: runOptionsFor(save.outpost),
+      awakeningStage: save.world.awakening.stage,
     },
     content,
   );
@@ -89,6 +91,7 @@ export function closeLoop(save: SaveData, content: Content, now: number): SaveDa
     relics: run.relics,
     echoName: echo.name,
     echoTraitId: echo.traitId,
+    awakeningStage: run.awakeningStage,
   };
 
   const closed: SaveData = {
@@ -100,8 +103,10 @@ export function closeLoop(save: SaveData, content: Content, now: number): SaveDa
       deaths: save.meta.deaths + (result === 'death' ? 1 : 0),
       history: [record, ...save.meta.history].slice(0, BALANCE.history.limit),
     },
+    // Shards found in the loop (Awakening elites) are banked now.
+    outpost: run.shardsFound ? { ...save.outpost, shards: save.outpost.shards + run.shardsFound } : save.outpost,
     echoes: hasRoom ? [...save.echoes, echo] : save.echoes,
     pendingEcho: hasRoom ? save.pendingEcho : echo,
   };
-  return prepareNextLoop(closed, content);
+  return prepareNextLoop(addAwakening(closed, loopAwakening(result), content), content);
 }

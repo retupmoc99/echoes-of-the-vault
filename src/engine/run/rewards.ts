@@ -12,6 +12,7 @@ export function rollCardReward(r: RunState, content: Content, tier: 'normal' | '
 
   const weights = { ...BALANCE.rewards.rarityWeights[tier] } as Record<DropRarity, number>;
   weights.rare += corruptionTier(r.corruption) * BALANCE.corruption.rareWeightPerTier;
+  if (r.awakeningStage >= 3) weights.rare += BALANCE.awakening.rareWeightBonus;
 
   const count = BALANCE.rewards.choices + (content.vaultShifts[r.vaultShiftId]?.mods.rewardChoicesBonus ?? 0);
   const chosen: CardDef[] = [];

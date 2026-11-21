@@ -17,7 +17,7 @@ import { defaultCombatModifiers } from '../combat/combat';
 import type { Echo, NextLoop, OutpostState, RunState, RunStats, WorldState } from '../types';
 
 export const SAVE_KEY = 'eotv.save';
-export const SAVE_VERSION = 7;
+export const SAVE_VERSION = 8;
 
 export interface MetaProgress {
   /** Loops completed, by any means. */
@@ -44,6 +44,8 @@ export interface LoopRecord {
   /** The Echo this loop left behind. */
   echoName: string;
   echoTraitId: string;
+  /** Awakening stage the loop ran at. */
+  awakeningStage: number;
 }
 
 export interface SaveData {
@@ -175,6 +177,22 @@ export const MIGRATIONS: Record<number, Migration> = {
     meta: { ...v6.meta, history: [] },
     settings: { ...v6.settings, sound: 0.65, music: 0.35 },
   }),
+
+  // v7 → v8: the Awakening. The reserved world.awakening gains a cycle and a
+  // Lull counter; a loop in progress runs at stage 0; history rows gain a stage.
+  7: (v7: Loose) => {
+    if (v7.run) {
+      v7.run.awakeningStage = 0;
+      v7.run.shardsFound = 0;
+    }
+    const a = v7.world?.awakening ?? {};
+    return {
+      ...v7,
+      version: 8,
+      world: { factions: {}, ...v7.world, awakening: { stage: a.stage ?? 0, progress: a.progress ?? 0, cycle: 1, lullsThisStage: 0 } },
+      meta: { ...v7.meta, history: v7.meta.history.map((h: Loose) => ({ ...h, awakeningStage: 0 })) },
+    };
+  },
 };
 
 /** The idle-layer defaults as they were introduced in v4 (history: do not change). */
@@ -189,7 +207,7 @@ function idleDefaults(now: number) {
     pendingEcho: null,
     outpost: { shards: 0, unlocks: [], research: { completed: 0, progress: 0 }, cards: [], lore: [], scouting: 0, classId: 'relic-breaker', kitId: 'standard' },
     idle: { lastTickAt: now },
-    world: { factions: {}, awakening: { stage: 0, progress: 0 } },
+    world: { factions: {}, awakening: { stage: 0, progress: 0, cycle: 1, lullsThisStage: 0 } },
     settings: { haptics: true, hints: true, hintsSeen: [] as string[], sound: 0.65, music: 0.35 },
   };
 }
