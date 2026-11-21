@@ -19,6 +19,8 @@ export interface Echo {
   traitId: string;
   /** Deck at the end of the loop (hook for summoning Echoes as allies). */
   deckSnapshot: string[];
+  /** What the last Echo-Caller loop's Calls cost it, if it was Called. */
+  lastCall?: { calls: number; falls: number; cost: number };
   origin: {
     /** The Warden class that ran the loop. */
     classId: string;
@@ -54,6 +56,31 @@ export interface EchoTraitDef {
     researchMult?: number;
     scoutMult?: number;
   };
+  /** How an Echo with this trait fights as an ally (Echo-Caller). */
+  battle?: AllyTraitMods;
+  /** One line describing `battle`, for the ally's tooltip. */
+  battleText?: string;
+}
+
+/** Combat behaviour an Echo trait gives an ally. */
+export interface AllyTraitMods {
+  hpMult?: number;
+  /** Cards played per turn (default 1). */
+  acts?: number;
+  /** HP lost each time it acts. */
+  hpLossPerTurn?: number;
+  /** Curses in its deck hit an enemy for this much instead of hurting it. */
+  curseDamage?: number;
+  /** Acts at the start of your turn instead of after it. */
+  actsAtTurnStart?: boolean;
+  /** Ward gained each time it acts. */
+  wardPerTurn?: number;
+  /** Plays the most expensive of its top N cards. */
+  bestOfTop?: number;
+  /** Plays at full strength instead of half. */
+  fullStrength?: boolean;
+  /** Fades after this many turns. */
+  fadesAfter?: number;
 }
 
 export interface OutpostUnlockDef {

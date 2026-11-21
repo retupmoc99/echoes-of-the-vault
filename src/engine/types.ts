@@ -18,7 +18,7 @@ export type StatusId = 'fracture' | 'bleed' | 'weakened' | 'exposed' | 'paradox'
 export type CardType = 'strike' | 'ward' | 'overload' | 'rite' | 'temporal' | 'curse';
 
 /** Synergy family, used for reward weighting and the card library. */
-export type Archetype = 'fracture' | 'ward' | 'overload' | 'bleed' | 'delay' | 'echo' | 'unwinding';
+export type Archetype = 'fracture' | 'ward' | 'overload' | 'bleed' | 'delay' | 'echo' | 'unwinding' | 'chorus' | 'communion' | 'remembrance';
 
 export type Rarity = 'starter' | 'common' | 'uncommon' | 'rare' | 'curse';
 
@@ -31,7 +31,9 @@ export type Rarity = 'starter' | 'common' | 'uncommon' | 'rare' | 'curse';
 export type Amount =
   | number
   | { per: 'selfStatus' | 'targetStatus'; status: StatusId; times: number; plus?: number }
-  | { per: 'selfWard' | 'overloadsThisTurn' | 'timeline'; times: number; plus?: number };
+  | { per: 'selfWard' | 'overloadsThisTurn' | 'timeline'; times: number; plus?: number }
+  /** Allies on the field, allies fallen this fight, or the cost of each ally's next card (Echo-Caller). */
+  | { per: 'allies' | 'alliesFallen' | 'allyTopCost'; times: number; plus?: number };
 
 /**
  * Targets are relative to whoever is acting:
@@ -44,7 +46,8 @@ export type EffectTarget = 'self' | 'target' | 'allFoes';
 export type Condition =
   | { kind: 'overloadedThisTurn' }
   | { kind: 'selfStatusAtLeast'; status: StatusId; n: number }
-  | { kind: 'targetHasStatus'; status: StatusId };
+  | { kind: 'targetHasStatus'; status: StatusId }
+  | { kind: 'allyFellThisFight' };
 
 export type Effect =
   | { kind: 'damage'; amount: Amount; target?: 'target' | 'allFoes'; hits?: number }
@@ -65,11 +68,28 @@ export type Effect =
   | { kind: 'hasten'; turns: number }
   /** Return the most recent `count` cards from the discard pile to your hand. */
   | { kind: 'rewind'; count: number }
+  // Echo-Caller: allies. "Newest" is the most recently Called living ally.
+  /** Bring Echoes from your Chorus into the fight as allies (a Nameless one if none are left). */
+  | { kind: 'call'; count: number }
+  /** Allies play their next card now (at their usual strength). */
+  | { kind: 'allyAct'; who: 'newest' | 'all' }
+  /** Each living ally resolves these effects itself (e.g. gains Ward). */
+  | { kind: 'allies'; effects: Effect[] }
+  /** The newest ally resolves these effects itself. */
+  | { kind: 'newestAlly'; effects: Effect[] }
+  /** The newest ally Guards: enemy attacks aimed at you hit it instead, until your next turn. */
+  | { kind: 'guard' }
+  /** Allies fade; each deals its remaining HP (or a fixed amount) to all foes. */
+  | { kind: 'releaseAlly'; who: 'newest' | 'all'; damage: 'hp' | number }
+  /** Play the top card(s) of the newest ally's deck yourself, at full strength. */
+  | { kind: 'playAllyTop'; count: number }
+  /** For the rest of the fight: allies act more often, and/or lose HP each time they act. */
+  | { kind: 'empowerAllies'; acts?: number; hpLoss?: number }
   | { kind: 'if'; cond: Condition; then: Effect[]; else?: Effect[] };
 
 /** Something that reacts to combat events (used by relics; card "powers" later). */
 export interface Trigger {
-  on: 'combatStart' | 'turnStart' | 'turnEnd' | 'cardPlayed' | 'gainedStatus' | 'delayFired';
+  on: 'combatStart' | 'turnStart' | 'turnEnd' | 'cardPlayed' | 'gainedStatus' | 'delayFired' | 'allyCalled' | 'allyFell';
   /** For cardPlayed: only react to this card type. */
   cardType?: CardType;
   /** For gainedStatus: only react to this status. */
@@ -113,6 +133,8 @@ export interface RelicDef {
   maxStrain?: number;
   /** Tainted relics add this much Corruption when taken. */
   corruption?: number;
+  /** Hand-written rules text for effects outside combat (shown before any passive text). */
+  text?: string;
   flavor: string;
   image?: string;
 }
@@ -336,6 +358,35 @@ export interface PlayerState extends Combatant {
   retainWard: boolean;
 }
 
+/** An Echo fighting beside you (Echo-Caller). It plays its own deck. */
+export interface AllyState extends Combatant {
+  /** The Outpost Echo it came from; null for a Nameless Echo. */
+  echoId: string | null;
+  name: string;
+  traitId: string;
+  draw: string[];
+  discard: string[];
+  /** Taking enemy attacks aimed at you, until your next turn. */
+  guard: boolean;
+  /** Fleeting: turns left before it fades. */
+  turnsLeft?: number;
+}
+
+/** One of your Outpost Echoes, as the loop knows it (Echo-Caller's Chorus). */
+export interface ChorusMember {
+  echoId: string;
+  name: string;
+  traitId: string;
+  deck: string[];
+  /** HP as an ally (from its depth and trait). */
+  maxHp: number;
+  /** Its stability when the loop began (to warn before a Call drains it). */
+  stability: number;
+  /** Times Called and times fallen so far this loop; they cost stability when the loop closes. */
+  calls: number;
+  falls: number;
+}
+
 export interface EnemyState extends Combatant {
   defId: string;
   /** Elite affix from the Awakening (stage 3+), if any. */
@@ -414,6 +465,19 @@ export interface CombatState {
   timeline: TimelineEntry[];
   /** Echo copies that return to hand at the start of your next turn. */
   echoQueue: CardInstance[];
+  /** Echo-Caller: allies on the field (fallen ones stay with 0 HP). */
+  allies: AllyState[];
+  /** The loop's Chorus, as it stood when the fight began. */
+  chorus: ChorusMember[];
+  /** Echo ids Called this fight ('nameless' for Nameless Echoes). */
+  called: string[];
+  /** Echo ids of allies that fell this fight. */
+  fallen: string[];
+  /** Times each ally acts per turn, and HP it loses each time (empowerAllies). */
+  allyActs: number;
+  allyHpLoss: number;
+  /** The enemy you last aimed at: allies aim there too. */
+  focusId?: string;
   rng: RngState;
   nextUid: number;
   modifiers: CombatModifiers;
@@ -431,6 +495,8 @@ export interface CombatSetup {
   affix?: EliteAffixDef;
   /** Enemy ids fought earlier this loop (for enemies with `memories`). */
   memories?: string[];
+  /** The loop's Chorus (Echo-Caller). */
+  chorus?: ChorusMember[];
 }
 
 /** An Awakening elite affix: pure numbers, applied when the fight starts. */
@@ -472,6 +538,9 @@ export type CombatEvent =
   | { type: 'rewound'; count: number }
   | { type: 'paradoxSnap'; damage: number }
   | { type: 'phaseChange'; enemyId: string; name: string }
+  | { type: 'allyCalled'; allyId: string; name: string }
+  | { type: 'allyActed'; allyId: string; cardId: string }
+  | { type: 'allyFell'; allyId: string }
   | { type: 'death'; targetId: string }
   | { type: 'victory' }
   | { type: 'defeat' };
@@ -564,6 +633,8 @@ export interface RunState {
   awakeningStage: number;
   /** Awakening cycle (1 until the Sleeper is first unmade). Raises enemy HP. */
   awakeningCycle: number;
+  /** Your Outpost Echoes, as allies to Call (Echo-Caller). */
+  chorus: ChorusMember[];
   /** Shards found this loop (elites at Awakening stage 3+), banked when it closes. */
   shardsFound: number;
   /** Cards that can appear as rewards this loop (class pool minus unresearched cards). */
@@ -591,6 +662,8 @@ export interface RunSetup {
   awakeningCycle?: number;
   /** Relics added to the starting relics (the Sleeper's Eye, after a cycle). */
   extraRelics?: string[];
+  /** Outpost Echoes the loop can Call (Echo-Caller). */
+  chorus?: ChorusMember[];
   /** Forced Shift (Scout reveals it in advance). Rolled from the seed otherwise. */
   vaultShiftId?: string;
   /** Starter kit; defaults to the class's first kit. */

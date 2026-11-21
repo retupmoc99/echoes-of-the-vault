@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.14.0 — The Echo-Caller (2026-11-21)
+
+### Added
+- **Third Warden: the Echo-Caller** (66 HP). Unlocked with the Outpost Work *The Lantern of Names* (150 Shards).
+  - **Call** brings your own Outpost Echoes into the fight as allies, up to two at once. Each plays the deck its loop ended with, at three-quarters strength, after your turn. Once your Chorus is spent, a Nameless Echo answers.
+  - **Echo traits fight differently:** Unbroken, Ravenous, Haunted, Pathfinder, Scarred, Hoarder and Fleeting each change how an ally plays.
+  - **Enemies still attack you**, unless an ally Guards. Enemy area attacks reach allies.
+  - **Calling costs the Echo stability** (8 per Call, 12 per fall), settled when the loop ends. An Echo drained to nothing Unravels, and the Call card warns you first. The end-of-loop screen and each Echo card show what was spent.
+  - **24 cards** in three archetypes (the Chorus, Communion, Remembrance), 6 of them locked behind Research.
+  - **7 relics:** the starter Lantern of Names, 2 tainted relics, and 3 shared neutral ones in its pool.
+- **The ally row** in fights shows each ally's name, HP, Ward, Guard and next card; tap one to read it.
+- Sounds and particles for Calls, ally actions and falls. A first-time hint. 2 new lore fragments in Research.
+- Save v10. 20 new tests (208 total).
+
+### Fixed
+- The end-of-loop screen said "The Lock is broken." after unmaking the Sleeper.
+
 ## 0.13.0 — The Awakening, part 2: the Sleeper (2026-11-21)
 
 ### Added

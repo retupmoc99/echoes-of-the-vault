@@ -84,6 +84,10 @@ export const HINTS = {
     title: 'It is awake',
     text: "The Sleeper now waits at the bottom of every loop, in the Lock's place. It opens with what it remembers of your loop. Lull and Give no longer work: only unmaking it ends the cycle.",
   },
+  allies: {
+    title: 'Your Echoes fight beside you',
+    text: 'After you end your turn, each ally plays the next card from the deck it died with, at three-quarters strength, at your target. Enemies still attack you, unless an ally Guards. Every Call, and every fall, costs that Echo stability when the loop ends.',
+  },
   backup: {
     title: 'Keep a backup',
     text: 'Your progress lives in this browser only. Copy a save code now and then from Archive → Backup.',

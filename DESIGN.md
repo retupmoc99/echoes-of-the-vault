@@ -328,6 +328,17 @@ Total 460 Shards: roughly 8 to 10 Echo lifetimes of digging.
   - Dismissed ids are kept in `settings.hintsSeen`.
   - In fights, hints sit above the player panel, so the intent and the cards stay visible.
 
+## Echo-Caller (class 3)
+Full design: [docs/design/echo-caller.md](docs/design/echo-caller.md). 66 HP *(balance)*. Unlocked with the Work *The Lantern of Names* (150 Shards).
+- **The Chorus:** your Outpost Echoes (up to 3), copied into the loop when it starts.
+- **Call** brings the next unused Chorus member into the fight as an ally (a Nameless Echo once the Chorus is spent), up to 2 at once.
+- **Allies** have 6 + 2 per depth HP (max 24, scaled by trait). After you end your turn, each plays the top card of the deck its loop ended with, at **75% strength** (rounded up), at your target. Curses fizzle and cost the ally 2 HP.
+- **Enemies attack you**, not your allies, unless an ally **Guards**. Enemy area attacks reach allies.
+- **Traits fight:** Unbroken +50% HP; Ravenous 2 cards a turn, −2 HP each; Haunted curses hit the enemy for 4; Pathfinder acts at the start of your turn; Scarred +3 Ward a turn; Hoarder plays the costliest of its top 3; Fleeting full strength, fades after 2 turns.
+- **Stability:** each Call costs that Echo 8, and each fall (or Release) 12, settled when the loop closes. An Echo drained to 0 Unravels. The Call card warns first. *Severed Thread* makes Calls free.
+- **Cards** (24): The Chorus (Call, buff allies, make them act), Communion (spend allies: Release, Soul Lance, Mourning) and Remembrance (use their decks: Borrowed Hand, Memory of Victory). "An ally" always means your newest one.
+- **Bot check** (1,500 loops, three mid-depth Echoes): 33%, in line with the other Wardens.
+
 ## The Awakening
 Full design: [docs/design/awakening.md](docs/design/awakening.md). Stages 1–3 built in 0.12.0; stages 4–5, the Sleeper and cycles in 0.13.0.
 - **Rises with activity only:** +3 per closed loop, +2 more for escaping, +1 per 4 Echo-hours of work *(balance)*. Time away alone never raises it; resting Echoes add nothing.
@@ -376,7 +387,7 @@ All sound is generated in code with Web Audio (`src/ui/audio/`): no audio files,
 - `localStorage` key `eotv.save`, JSON, synchronous write after every action.
 - `SaveData.version` + `MIGRATIONS[n]` (n → n+1). The old raw save is copied to `eotv.save.backup.vN` before migrating, and the migrated save is written straight away.
 - Corrupt saves are copied to `eotv.save.corrupt.<time>`, never deleted. Saves from a newer version are never overwritten.
-- **v9** (current) contains:
+- **v10** (current) contains:
   - `run`: the whole loop, including any live fight
   - `meta`: loops, victories, deaths, and `history` (the last 20 loops)
   - `nextLoop`, `echoes`, `pendingEcho`, `outpost` (shards, unlocks, research, cards, lore, scouting, kit)
@@ -384,6 +395,7 @@ All sound is generated in code with Web Audio (`src/ui/audio/`): no audio files,
   - `world`: `awakening` (stage, progress, cycle, Lulls this stage); `factions` still reserved and empty
   - `settings`
 - Migration history:
+  - v9 → v10: a loop in progress gains an empty `chorus`; a live fight gains empty ally state.
   - v8 → v9: a loop in progress gains `awakeningCycle: 1`.
   - v7 → v8: completes `world.awakening` (adds `cycle` and `lullsThisStage`); a loop in progress runs at stage 0 with no Shards found; history rows gain `awakeningStage: 0`.
   - v6 → v7: adds `meta.history` (empty: past loops weren't recorded) and the `sound` / `music` settings.
@@ -394,7 +406,7 @@ All sound is generated in code with Web Audio (`src/ui/audio/`): no audio files,
   - v3 → v4: a loop in progress keeps the full 23-card pool it had. The pool is hard-coded in the migration, because migrations describe history. Idle time starts counting from the last save.
 
 ## Future hooks (not built)
-- **Classes:** `WardenClassDef` holds the deck, pools, kits, HP and an optional unlock. The Hour-Thief proved the pattern: a new class is mostly data, plus new `Effect` kinds for genuinely new mechanics. Next: the Echo-Caller. **Decided (2026-11-21):** it summons your *real* Outpost Echoes as allies, each fighting from its own deck snapshot, with its trait shaping how it fights. Needs player-side ally combatants. Full design to be agreed before building.
+- **Classes:** `WardenClassDef` holds the deck, pools, kits, HP and an optional unlock. The Hour-Thief proved the pattern: a new class is mostly data, plus new `Effect` kinds for genuinely new mechanics. Built in 0.14.0 (see "Echo-Caller (class 3)"). **Decided (2026-11-21):** it summons your *real* Outpost Echoes as allies, each fighting from its own deck snapshot, with its trait shaping how it fights. Needs player-side ally combatants. Full design to be agreed before building.
 - **Factions / awakening:** `SaveData.world` exists (empty). **Decided (2026-11-21):** the Awakening rises with *activity only* (loops played, Echo work done), never with real time away, so breaks are never punished. As it rises, loops get new dangers and new rewards, and the Outpost can push it back. Stages 1–3 built in 0.12.0; see "The Awakening" above.
 - **Echo allies:** each Echo stores its loop's deck snapshot and origin.
 - **Multi-floor runs:** `RunState.floor` exists (always 1). The map generator takes a config, so deeper floors can use their own config.

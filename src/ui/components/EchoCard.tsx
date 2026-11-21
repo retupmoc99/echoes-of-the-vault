@@ -44,6 +44,11 @@ export function EchoCard({ echo, researchDone, onAssign, onRelease, onInspect, o
         </button>
       </header>
 
+      {echo.lastCall && (
+        <p className="echo-called">
+          Last loop: called {echo.lastCall.calls}×{echo.lastCall.falls ? `, fell ${echo.lastCall.falls === 1 ? 'once' : `${echo.lastCall.falls}×`}` : ''} · −{echo.lastCall.cost} stability
+        </p>
+      )}
       <div className="stability">
         <div className="stability-bar">
           <span style={{ width: `${pct}%` }} />

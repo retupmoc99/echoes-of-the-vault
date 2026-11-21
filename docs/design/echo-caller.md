@@ -1,6 +1,6 @@
 # Design proposal: the Echo-Caller (third Warden)
 
-*Status: design approved 2026-11-21, not yet built (comes after the Awakening).*
+*Status: milestone 1 built in 0.14.0 (engine, class, all cards and relics, UI). Milestone 2 (card and relic art, deeper tuning) still to come.*
 *Decided: the Echo-Caller summons your **real** Outpost Echoes.*
 
 > The loop remembers every one of you. The Echo-Caller makes it answer.
@@ -121,6 +121,17 @@ An Outpost Work, **The Lantern of Names**, for 150 Shards. That's a little more 
 **Two milestones:**
 1. Engine, allies UI, save v8 and about 8 cards, playable end to end.
 2. The full card set, relics, art, sim tuning and docs.
+
+## Milestone 1 as built (0.14.0)
+- **Everything in the design is playable:** the Chorus, Call, ally turns, Guard, falls and Release, all 8 trait behaviours, stability costs at loop close (with Unravelling), the Nameless Echo, 24 cards (6 locked behind Research), 7 relics, and the unlock Work.
+- **Allies play at three-quarters strength, not half.** At half, the Echo-Caller won 14% of bot loops against about 34% for the others; allies weren't worth the cards spent on them. At 0.75 (and 66 HP instead of 62) it wins 33%.
+- **"An ally" means your newest ally** (the most recently Called), so cards never need you to pick an ally. Guard, Release, Grave Tithe and Borrowed Hand all use it.
+- **Release counts as a fall:** it costs the Echo fall stability, and it powers Soul Lance and Mourning.
+- **Two relics changed** to work without new engine rules: *Choir Stone* draws a card when you Call (the draft said allies get +4 max HP), and *Mourner's Veil* gives 1 Resonance whenever an ally falls (the draft said 2, the first time per fight).
+- **The Call warning** shows which Echo will answer, what the Call costs it, and warns in amber when it would drain it. Playing the card after reading it is the second tap.
+- **Allies aim where you last aimed.** A Pathfinder acts right after you draw.
+- **Enemy area attacks** now reach allies, and a Guarding ally also takes debuffs aimed at you.
+- **Still to come (milestone 2):** art for the 24 cards and 7 relics, and a tuning pass with real play. The bot misplays Release and Final Chorus (it spends allies at once).
 
 ## Decisions (2026-11-21)
 1. **A Call can Unravel an Echo**, behind a two-tap confirm (like abandoning a loop).

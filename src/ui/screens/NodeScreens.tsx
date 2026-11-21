@@ -7,6 +7,7 @@ import { CONTENT } from '../../data';
 import { BALANCE } from '../../data/balance';
 import { NODE_INFO } from '../../data/nodeTypes';
 import {
+  chorusCost,
   createEcho,
   describeCard,
   describeRelic,
@@ -293,8 +294,29 @@ function EchoPreview({ run }: { run: RunState }) {
   );
 }
 
+/** Echo-Caller: what each Called Echo will pay when the loop closes. */
+function ChorusCosts({ run }: { run: RunState }) {
+  const called = (run.chorus ?? []).filter((m) => m.calls || m.falls);
+  if (!called.length) return null;
+  return (
+    <ul className="chorus-costs" aria-label="What your Calls cost">
+      {called.map((m) => {
+        const cost = chorusCost(m, run);
+        const lost = m.stability - cost <= 0;
+        const fell = m.falls ? `, fell ${m.falls === 1 ? 'once' : `${m.falls}×`}` : '';
+        return (
+          <li key={m.echoId} className={lost ? 'lost' : ''}>
+            <strong>{m.name.split(' ')[0]}</strong>: called {m.calls}×{fell} · −{cost} stability{lost ? '. It Unravels.' : ''}
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
 export function RunEndScreen({ run, onDone }: { run: RunState; onDone: () => void }) {
   const won = run.result === 'victory';
+  const unmade = won && run.seenEncounters.includes('the-sleeper');
   const s = run.stats;
   const depth = run.position ? run.map.nodes[run.position].row + 1 : 0;
   const rows: [string, string | number][] = [
@@ -315,9 +337,13 @@ export function RunEndScreen({ run, onDone }: { run: RunState; onDone: () => voi
       <div className="title-rune" aria-hidden>
         {won ? 'ᛞ' : 'ᛉ'}
       </div>
-      <h1>{won ? 'The Lock is broken.' : s.abandoned ? 'You let go.' : 'The loop closes.'}</h1>
+      <h1>{unmade ? 'The Sleeper is unmade.' : won ? 'The Lock is broken.' : s.abandoned ? 'You let go.' : 'The loop closes.'}</h1>
       <p className="subtitle">
-        {won ? 'The way down lies open. The loop pulls you back regardless.' : 'You wake at the outpost, gasping. The vault remembers.'}
+        {unmade
+          ? 'It begins to dream again at once. A new cycle.'
+          : won
+            ? 'The way down lies open. The loop pulls you back regardless.'
+            : 'You wake at the outpost, gasping. The vault remembers.'}
       </p>
       <dl className="stats">
         {rows.map(([k, v]) => (
@@ -327,6 +353,7 @@ export function RunEndScreen({ run, onDone }: { run: RunState; onDone: () => voi
           </div>
         ))}
       </dl>
+      <ChorusCosts run={run} />
       <EchoPreview run={run} />
       <button className="primary-btn wide" onClick={onDone}>
         Return to the outpost

@@ -17,7 +17,7 @@ import { defaultCombatModifiers } from '../combat/combat';
 import type { Echo, NextLoop, OutpostState, RunState, RunStats, WorldState } from '../types';
 
 export const SAVE_KEY = 'eotv.save';
-export const SAVE_VERSION = 9;
+export const SAVE_VERSION = 10;
 
 export interface MetaProgress {
   /** Loops completed, by any means. */
@@ -200,6 +200,16 @@ export const MIGRATIONS: Record<number, Migration> = {
   8: (v8: Loose) => {
     if (v8.run) v8.run.awakeningCycle = 1;
     return { ...v8, version: 9 };
+  },
+
+  // v9 → v10: the Echo-Caller. A loop in progress has an empty Chorus (it
+  // started before Echoes could be Called); a live fight gains empty ally state.
+  9: (v9: Loose) => {
+    if (v9.run) {
+      v9.run.chorus = [];
+      if (v9.run.combat) Object.assign(v9.run.combat, { allies: [], chorus: [], called: [], fallen: [], allyActs: 1, allyHpLoss: 0 });
+    }
+    return { ...v9, version: 10 };
   },
 };
 

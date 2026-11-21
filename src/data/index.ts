@@ -6,6 +6,8 @@ import type { Content } from '../engine/types';
 import { AWAKENING_CONTENT, AWAKENING_LORE } from './awakening';
 import { RELIC_BREAKER_CARDS } from './cards/relicBreaker';
 import { HOUR_THIEF_CARDS } from './cards/hourThief';
+import { ECHO_CALLER_CARDS } from './cards/echoCaller';
+import { ECHO_CALLER } from './classes/echoCaller';
 import { HOUR_THIEF } from './classes/hourThief';
 import { RELIC_BREAKER } from './classes/relicBreaker';
 import { ENCOUNTERS, ENEMIES, WAKING_ENCOUNTERS, WAKING_ENEMIES } from './enemies/enemies';
@@ -24,8 +26,8 @@ function byId<T extends { id: string }>(items: T[]): Record<string, T> {
 }
 
 export const CONTENT: Content = {
-  classes: byId([RELIC_BREAKER, HOUR_THIEF]),
-  cards: byId([...RELIC_BREAKER_CARDS, ...HOUR_THIEF_CARDS]),
+  classes: byId([RELIC_BREAKER, HOUR_THIEF, ECHO_CALLER]),
+  cards: byId([...RELIC_BREAKER_CARDS, ...HOUR_THIEF_CARDS, ...ECHO_CALLER_CARDS]),
   relics: byId(RELICS),
   enemies: byId([...ENEMIES, ...WAKING_ENEMIES]),
   encounters: byId([...ENCOUNTERS, ...WAKING_ENCOUNTERS]),

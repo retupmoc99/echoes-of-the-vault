@@ -93,6 +93,21 @@ export function playSfx(e: CombatEvent): void {
       for (let i = 0; i < 4; i++) tone({ freq: 300 + ((i * 577) % 900), type: 'square', gain: 0.05, decay: 0.04, at: i * 0.045, lowpass: 3000 });
       noise({ filter: 'bandpass', freq: 1800, q: 3, gain: 0.25, decay: 0.2, at: 0.18 });
       break;
+    case 'allyCalled':
+      // A name answered: a rising, hollow chime.
+      tone({ freq: 330, to: 660, type: 'sine', gain: 0.08, attack: 0.05, decay: 0.6 });
+      tone({ freq: 495, to: 990, type: 'triangle', gain: 0.04, attack: 0.08, decay: 0.5, at: 0.06 });
+      break;
+    case 'allyActed': {
+      // The ally's card, in its type's voice, softer and lower than yours.
+      const v = CARD_VOICE[CONTENT.cards[e.cardId]?.type ?? 'strike'];
+      tone({ freq: v.freq * 0.75, to: v.to ? v.to * 0.75 : undefined, type: v.type, gain: 0.045, decay: 0.18, lowpass: 1600 });
+      break;
+    }
+    case 'allyFell':
+      tone({ freq: 440, to: 110, type: 'sine', gain: 0.07, attack: 0.02, decay: 0.7 });
+      noise({ filter: 'lowpass', freq: 900, to: 200, gain: 0.08, decay: 0.5 });
+      break;
     case 'phaseChange':
       // A boss changes: a deep swell under a cracking chime.
       tone({ freq: 55, to: 110, type: 'sawtooth', gain: 0.14, attack: 0.15, decay: 1.2, lowpass: 600 });

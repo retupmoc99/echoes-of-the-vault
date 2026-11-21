@@ -94,6 +94,58 @@ export const RELICS: RelicDef[] = [
 
   // ─── Hour-Thief relics ───
   {
+    // ───── Echo-Caller ─────
+    id: 'lantern-of-names',
+    name: 'Lantern of Names',
+    rarity: 'starter',
+    passive: [{ on: 'combatStart', effects: [{ kind: 'call', count: 1 }] }],
+    flavor: 'Every name it has ever burned for is still in the flame.',
+  },
+  {
+    id: 'bell-of-the-drowned',
+    name: 'Bell of the Drowned',
+    rarity: 'common',
+    passive: [{ on: 'allyCalled', effects: [{ kind: 'newestAlly', effects: [{ kind: 'ward', amount: 5 }] }] }],
+    flavor: 'It rings underwater. The dead come up dripping.',
+  },
+  {
+    id: 'ashen-locket',
+    name: 'Ashen Locket',
+    rarity: 'common',
+    passive: [{ on: 'allyFell', effects: [{ kind: 'draw', amount: 2 }] }],
+    flavor: 'Open it and a little ash falls out. Every time. It never empties.',
+  },
+  {
+    id: 'choir-stone',
+    name: 'Choir Stone',
+    rarity: 'uncommon',
+    passive: [{ on: 'allyCalled', effects: [{ kind: 'draw', amount: 1 }] }],
+    flavor: 'Hold it to your ear and you hear them all, waiting to be asked.',
+  },
+  {
+    id: 'mourners-veil',
+    name: "Mourner's Veil",
+    rarity: 'uncommon',
+    passive: [{ on: 'allyFell', effects: [{ kind: 'gainResonance', amount: 1 }] }],
+    flavor: 'Grief, worn properly, is a kind of armour.',
+  },
+  {
+    id: 'grave-ledger',
+    name: 'Grave Ledger',
+    rarity: 'rare',
+    corruption: 1,
+    passive: [{ on: 'combatStart', effects: [{ kind: 'empowerAllies', acts: 2, hpLoss: 3 }] }],
+    flavor: 'Every debt the dead owe, written down. It is collecting.',
+  },
+  {
+    id: 'severed-thread',
+    name: 'Severed Thread',
+    rarity: 'rare',
+    corruption: 2,
+    text: 'Calling an Echo costs it no stability.',
+    flavor: 'Cut the thread between you and them. It stops hurting them. It starts hurting something else.',
+  },
+  {
     // Never rolled: every loop starts with it once the Sleeper has been unmade.
     id: 'sleepers-eye',
     name: "Sleeper's Eye",

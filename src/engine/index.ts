@@ -19,3 +19,5 @@ export { closeLoop, prepareNextLoop, startLoop, nextRunPreview, runOptionsFor } 
 export { outpostStep, scoutInfo, type OutpostAction, type ScoutInfo } from './idle/outpost';
 export { AWAKE, addAwakening, awakeningCap, canPushBack, giveValue, lullCost, nextThreshold, stageFor } from './idle/awakening';
 export { enemyName, movesOf } from './combat/phases';
+export { NAMELESS, allyNextCard, livingAllies, traitBattle } from './combat/allies';
+export { allyHp, chorusCost, chorusFrom } from './idle/chorus';

@@ -61,6 +61,7 @@ export function createRun(setup: RunSetup, content: Content): RunState {
     vaultShiftId: shift.id,
     awakeningStage: setup.awakeningStage ?? 0,
     awakeningCycle: setup.awakeningCycle ?? 1,
+    chorus: (setup.chorus ?? []).map((m) => ({ ...m, calls: 0, falls: 0 })),
     shardsFound: 0,
     cardPool: cls.cardPool.filter((id) => !cls.lockedCards.includes(id) || unlocked.includes(id)),
     options: {
@@ -236,6 +237,7 @@ function startFight(r: RunState, node: MapNode, content: Content, events: Combat
       affix,
       // Enemies fought before this one, for an enemy that remembers (the Sleeper).
       memories: r.seenEncounters.slice(0, -1).flatMap((id) => content.encounters[id]?.enemies ?? []),
+      chorus: r.chorus,
     },
     content,
   );
@@ -301,6 +303,11 @@ function leave(r: RunState, content: Content): string | undefined {
     if (combat.phase !== 'won' && combat.phase !== 'lost') return 'The fight is not over.';
     r.stats.damageTaken += Math.max(0, node.hpBefore - r.hp);
     r.stats.turns += combat.turn;
+    // Echo-Caller: tally this fight's Calls and falls; they cost stability when the loop closes.
+    for (const m of r.chorus ?? []) {
+      m.calls += (combat.called ?? []).filter((id) => id === m.echoId).length;
+      m.falls += (combat.fallen ?? []).filter((id) => id === m.echoId).length;
+    }
     if (combat.phase === 'lost') return void endRun(r, 'death');
 
     const type = r.map.nodes[node.nodeId].type;

@@ -40,6 +40,16 @@ const LORE: LoreFragment[] = [
     text: 'One Warden refused the loop and cut a single hour out of it. The vault has been searching for that hour ever since.',
   },
   {
+    id: 'lore-chorus',
+    title: 'The Chorus',
+    text: 'Every Warden the loop has ever taken is still down there, singing. Most of them are you.',
+  },
+  {
+    id: 'lore-names',
+    title: 'Names',
+    text: 'Say a name in the vault and something answers. It does not always matter whose name it was.',
+  },
+  {
     id: 'lore-sand',
     title: 'Sand',
     text: 'The hourglasses here run on the dust of the ancients. Turn one over and you can hear them breathe.',
@@ -54,6 +64,8 @@ export const IDLE_CONTENT: IdleContent = {
       description: 'Escaped the loop. Holds together far longer.',
       when: [{ stat: 'victory', min: 1 }],
       mods: { stabilityMult: 1.3 },
+      battle: { hpMult: 1.5 },
+      battleText: 'Fights with 50% more HP.',
     },
     {
       id: 'ravenous',
@@ -61,6 +73,8 @@ export const IDLE_CONTENT: IdleContent = {
       description: 'Drank deep of Corruption. Digs hungrily, burns out fast.',
       when: [{ stat: 'peakCorruption', min: 6 }],
       mods: { digMult: 1.5, drainMult: 1.3 },
+      battle: { acts: 2, hpLossPerTurn: 2 },
+      battleText: 'Plays 2 cards a turn, but loses 2 HP each time.',
     },
     {
       id: 'haunted',
@@ -68,6 +82,8 @@ export const IDLE_CONTENT: IdleContent = {
       description: 'Carried curses. Hears what others cannot, but frays.',
       when: [{ stat: 'cursesGained', min: 2 }],
       mods: { researchMult: 1.5, stabilityMult: 0.85 },
+      battle: { curseDamage: 4 },
+      battleText: 'Its curses hit the enemy for 4 instead of hurting it.',
     },
     {
       id: 'pathfinder',
@@ -75,6 +91,8 @@ export const IDLE_CONTENT: IdleContent = {
       description: 'Hunted the strongest. Scouts swiftly.',
       when: [{ stat: 'elitesWon', min: 2 }],
       mods: { scoutMult: 1.6 },
+      battle: { actsAtTurnStart: true },
+      battleText: 'Acts at the start of your turn, before you plan.',
     },
     {
       id: 'scarred',
@@ -82,6 +100,8 @@ export const IDLE_CONTENT: IdleContent = {
       description: 'Bled a great deal and kept going. Wears down slowly.',
       when: [{ stat: 'damageTaken', min: 120 }],
       mods: { drainMult: 0.75 },
+      battle: { wardPerTurn: 3 },
+      battleText: 'Gains 3 Ward each turn.',
     },
     {
       id: 'hoarder',
@@ -89,6 +109,8 @@ export const IDLE_CONTENT: IdleContent = {
       description: 'Kept every card it found. Remembers much.',
       when: [{ stat: 'deckSize', min: 18 }],
       mods: { researchMult: 1.3 },
+      battle: { bestOfTop: 3 },
+      battleText: 'Plays the most expensive of its top 3 cards.',
     },
     {
       id: 'fleeting',
@@ -96,6 +118,8 @@ export const IDLE_CONTENT: IdleContent = {
       description: 'Died young. Burns bright: works harder, fades fast.',
       when: [{ stat: 'depth', max: 3 }],
       mods: { stabilityMult: 0.7, digMult: 1.25, researchMult: 1.25, scoutMult: 1.25 },
+      battle: { fullStrength: true, fadesAfter: 2 },
+      battleText: 'Plays at full strength, but fades after 2 turns.',
     },
     {
       id: 'faded',
@@ -103,6 +127,8 @@ export const IDLE_CONTENT: IdleContent = {
       description: 'An ordinary ghost. Nothing more, nothing less.',
       when: [],
       mods: {},
+      battle: {},
+      battleText: 'Fights as it is.',
     },
   ],
 
@@ -113,6 +139,13 @@ export const IDLE_CONTENT: IdleContent = {
       description: 'A second Warden: the Hour-Thief, who delays, echoes and rewinds time.',
       cost: 120,
       flavor: 'An hour that should not exist, kept in a jar at the edge of the outpost.',
+    },
+    {
+      id: 'lantern-of-names',
+      name: 'The Lantern of Names',
+      description: 'A third Warden: the Echo-Caller, who Calls your own Echoes into the fight.',
+      cost: 150,
+      flavor: 'It burns every name the loop ever took. Some of them are yours.',
     },
     {
       id: 'kit-fault-walker',
@@ -181,6 +214,15 @@ export const IDLE_CONTENT: IdleContent = {
     { kind: 'lore', loreId: 'lore-sand' },
     { kind: 'card', cardId: 'chorus-of-moments' },
     { kind: 'card', cardId: 'temporal-shear' },
+    // Echo-Caller discoveries (appended: research progress is index-based).
+    { kind: 'card', cardId: 'gathering-dark' },
+    { kind: 'card', cardId: 'last-rites' },
+    { kind: 'lore', loreId: 'lore-chorus' },
+    { kind: 'card', cardId: 'hollow-choir' },
+    { kind: 'card', cardId: 'choir-of-the-lost' },
+    { kind: 'lore', loreId: 'lore-names' },
+    { kind: 'card', cardId: 'final-chorus' },
+    { kind: 'card', cardId: 'memory-of-victory' },
   ],
 
   lore: Object.fromEntries(LORE.map((l) => [l.id, l])),

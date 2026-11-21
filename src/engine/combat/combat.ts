@@ -24,6 +24,7 @@ import { checkCombatEnd } from './damage';
 import { discardHand, drawCards } from './deck';
 import { needsTarget, resolveEffects } from './effects';
 import { chooseIntent } from './intents';
+import { allyPhase } from './allies';
 import { buildMemories, moveOf, patternOf } from './phases';
 import { fireTriggers } from './relics';
 import { tickEndOfTurn, tickStartOfTurn } from './statuses';
@@ -78,6 +79,12 @@ export function createCombat(setup: CombatSetup, content: Content): StepResult {
     overloadsThisTurn: 0,
     timeline: [],
     echoQueue: [],
+    allies: [],
+    chorus: setup.chorus ?? [],
+    called: [],
+    fallen: [],
+    allyActs: 1,
+    allyHpLoss: 0,
     rng,
     nextUid: deck.length,
     modifiers,
@@ -117,6 +124,7 @@ function playCard(ctx: Ctx, uid: string, targetId: string | undefined): string |
     const alive = livingEnemies(s);
     target = alive.find((e) => e.id === targetId)?.id ?? alive[0]?.id;
     if (!target) return 'No target.';
+    s.focusId = target; // your allies aim where you aim
   }
 
   s.resonance -= def.cost;
@@ -148,6 +156,10 @@ function endTurn(ctx: Ctx): string | undefined {
   if (isOver(s)) return undefined;
   discardHand(ctx);
   tickEndOfTurn(ctx, s.player);
+  if (isOver(s)) return undefined;
+
+  // Your allies act after you, before the enemies.
+  allyPhase(ctx, 'turnEnd');
   if (isOver(s)) return undefined;
 
   // Enemy turn.
@@ -190,6 +202,10 @@ function startPlayerTurn(ctx: Ctx): void {
   s.turn++;
   s.overloadsThisTurn = 0;
   if (!s.player.retainWard) s.player.ward = 0;
+  for (const ally of s.allies ?? []) {
+    ally.guard = false;
+    ally.ward = 0;
+  }
 
   tickStartOfTurn(ctx, s.player);
   if (isOver(s)) return;
@@ -202,4 +218,6 @@ function startPlayerTurn(ctx: Ctx): void {
   drawCards(ctx, BALANCE.player.drawPerTurn);
   returnEchoes(ctx);
   fireTriggers(ctx, 'turnStart');
+  // Pathfinder allies act at the start of your turn, so you see what they did before you plan.
+  if (s.allies?.length) allyPhase(ctx, 'turnStart');
 }

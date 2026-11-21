@@ -4,7 +4,8 @@
  * kind of effect.
  */
 import type { Amount, CombatState, Combatant, Condition, Effect } from '../types';
-import { PLAYER_ID, foesOf, getCombatant, isAlive, isOver, type Ctx } from './context';
+import { allyActs, callAllies, livingAllies, newestAlly, playAllyTop, releaseAllies } from './allies';
+import { PLAYER_ID, foesOf, getCombatant, isAlive, isEnemy, isOver, type Ctx } from './context';
 import { dealAttack, gainWard, loseHp } from './damage';
 import { drawCards } from './deck';
 import { overloadRelics } from './relics';
@@ -17,10 +18,26 @@ export interface AmountCounts {
   overloads: number;
   /** Delayed effects waiting on the timeline. */
   timeline: number;
+  /** Echo-Caller: living allies, allies fallen this fight, total cost of allies' next cards. */
+  allies?: number;
+  alliesFallen?: number;
+  allyTopCost?: number;
 }
 
-export function countsOf(s: CombatState): AmountCounts {
-  return { overloads: s.overloadsThisTurn, timeline: s.timeline.length };
+export function countsOf(s: CombatState, content?: Ctx['content']): AmountCounts {
+  const allies = (s.allies ?? []).filter((a) => a.hp > 0);
+  return {
+    overloads: s.overloadsThisTurn,
+    timeline: s.timeline.length,
+    allies: allies.length,
+    alliesFallen: s.fallen?.length ?? 0,
+    allyTopCost: content ? allies.reduce((sum, a) => sum + (a.draw[0] ? (content.cards[a.draw[0]]?.cost ?? 0) : 0), 0) : 0,
+  };
+}
+
+/** Allies resolve at reduced strength (rounded up); everyone else at full. */
+function scaled(ctx: Ctx, n: number): number {
+  return ctx.potency === undefined || ctx.potency === 1 ? n : Math.ceil(n * ctx.potency);
 }
 
 export function resolveAmount(
@@ -42,6 +59,12 @@ export function resolveAmount(
       return plus + (source.id === PLAYER_ID ? counts.overloads : 0) * amount.times;
     case 'timeline':
       return plus + (source.id === PLAYER_ID ? counts.timeline : 0) * amount.times;
+    case 'allies':
+      return plus + (counts.allies ?? 0) * amount.times;
+    case 'alliesFallen':
+      return plus + (counts.alliesFallen ?? 0) * amount.times;
+    case 'allyTopCost':
+      return plus + (counts.allyTopCost ?? 0) * amount.times;
   }
 }
 
@@ -58,8 +81,10 @@ export function resolveEffects(ctx: Ctx, effects: Effect[], sourceId: string, ta
 function targetsFor(ctx: Ctx, keyword: 'self' | 'target' | 'allFoes', source: Combatant, targetId: string | undefined): Combatant[] {
   if (keyword === 'self') return [source];
   if (keyword === 'allFoes') return foesOf(ctx.s, source.id);
-  // 'target': enemies always aim at the player; the player aims at the chosen enemy.
-  const id = source.id === PLAYER_ID ? targetId : PLAYER_ID;
+  // 'target': you and your allies aim at the chosen enemy. Enemies aim at you,
+  // unless an ally is Guarding you.
+  const guard = isEnemy(ctx.s, source.id) ? livingAllies(ctx.s).find((a) => a.guard) : undefined;
+  const id = isEnemy(ctx.s, source.id) ? (guard?.id ?? PLAYER_ID) : targetId;
   const t = id ? getCombatant(ctx.s, id) : undefined;
   return isAlive(t) ? [t] : [];
 }
@@ -72,17 +97,17 @@ function resolveEffect(ctx: Ctx, effect: Effect, source: Combatant, targetId: st
       const hits = effect.hits ?? 1;
       for (const target of targetsFor(ctx, effect.target ?? 'target', source, targetId)) {
         for (let i = 0; i < hits && target.hp > 0 && !isOver(ctx.s); i++) {
-          dealAttack(ctx, source, target, resolveAmount(effect.amount, source, target, countsOf(ctx.s)));
+          dealAttack(ctx, source, target, scaled(ctx, resolveAmount(effect.amount, source, target, countsOf(ctx.s, ctx.content))));
         }
       }
       return;
     }
     case 'ward':
-      gainWard(ctx, source, resolveAmount(effect.amount, source, undefined, countsOf(ctx.s)));
+      gainWard(ctx, source, scaled(ctx, resolveAmount(effect.amount, source, undefined, countsOf(ctx.s, ctx.content))));
       return;
     case 'applyStatus':
       for (const target of targetsFor(ctx, effect.target, source, targetId)) {
-        addStatus(ctx, target, effect.status, resolveAmount(effect.amount, source, target, countsOf(ctx.s)));
+        addStatus(ctx, target, effect.status, scaled(ctx, resolveAmount(effect.amount, source, target, countsOf(ctx.s, ctx.content))));
       }
       return;
     case 'removeStatus':
@@ -132,7 +157,44 @@ function resolveEffect(ctx: Ctx, effect: Effect, source: Combatant, targetId: st
     case 'rewind':
       rewind(ctx, effect.count);
       return;
+    case 'call':
+      callAllies(ctx, effect.count);
+      return;
+    case 'allyAct':
+      for (const ally of effect.who === 'all' ? livingAllies(ctx.s) : [newestAlly(ctx.s)]) if (ally) allyActs(ctx, ally);
+      return;
+    case 'allies':
+      for (const ally of livingAllies(ctx.s)) asAlly(ctx, ally, effect.effects, targetId);
+      return;
+    case 'newestAlly': {
+      const ally = newestAlly(ctx.s);
+      if (ally) asAlly(ctx, ally, effect.effects, targetId);
+      return;
+    }
+    case 'guard': {
+      const ally = newestAlly(ctx.s);
+      if (ally) ally.guard = true;
+      return;
+    }
+    case 'releaseAlly':
+      releaseAllies(ctx, effect.who, effect.damage);
+      return;
+    case 'playAllyTop':
+      playAllyTop(ctx, effect.count);
+      return;
+    case 'empowerAllies':
+      if (effect.acts) ctx.s.allyActs = Math.max(ctx.s.allyActs ?? 1, effect.acts);
+      if (effect.hpLoss) ctx.s.allyHpLoss = (ctx.s.allyHpLoss ?? 0) + effect.hpLoss;
+      return;
   }
+}
+
+/** An ally resolves effects as itself, at full strength (a card buffing it, not it playing a card). */
+function asAlly(ctx: Ctx, ally: { id: string }, effects: Effect[], targetId: string | undefined): void {
+  const previous = ctx.potency;
+  ctx.potency = undefined;
+  resolveEffects(ctx, effects, ally.id, targetId);
+  ctx.potency = previous;
 }
 
 function checkCondition(ctx: Ctx, cond: Condition, source: Combatant, targetId: string | undefined): boolean {
@@ -145,6 +207,8 @@ function checkCondition(ctx: Ctx, cond: Condition, source: Combatant, targetId: 
       const [target] = targetsFor(ctx, 'target', source, targetId);
       return (target?.statuses[cond.status] ?? 0) > 0;
     }
+    case 'allyFellThisFight':
+      return (ctx.s.fallen?.length ?? 0) > 0;
   }
 }
 

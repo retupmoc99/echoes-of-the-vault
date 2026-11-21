@@ -113,6 +113,12 @@ export function ParticleLayer() {
         case 'paradoxSnap':
           burst(centerOf('player'), 165, 40, 240);
           return;
+        case 'allyCalled':
+          burst(centerOf(e.allyId) ?? centerOf('player'), 200, 26, 160);
+          return;
+        case 'allyFell':
+          burst(centerOf(e.allyId) ?? centerOf('player'), 210, 30, 120);
+          return;
         case 'phaseChange':
           // A boss changes phase: a large magenta flare around it.
           burst(centerOf(e.enemyId), 320, 60, 260);

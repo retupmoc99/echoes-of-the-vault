@@ -4,8 +4,9 @@
  * applies it.
  */
 import { BALANCE } from '../../data/balance';
-import type { CombatState, Combatant, EnemyState, HpLossCause } from '../types';
-import { PLAYER_ID, type Ctx } from './context';
+import type { AllyState, CombatState, Combatant, EnemyState, HpLossCause } from '../types';
+import { onAllyFell } from './allies';
+import { PLAYER_ID, isAlly, isEnemy, type Ctx } from './context';
 import { checkPhase } from './phases';
 
 /**
@@ -15,7 +16,7 @@ import { checkPhase } from './phases';
 export function attackDamage(s: CombatState, attacker: Combatant, defender: Combatant, base: number): number {
   const st = BALANCE.status;
   let dmg = base + (attacker.statuses.fracture ?? 0) * s.modifiers.fractureDamagePerStack;
-  if (attacker.id !== PLAYER_ID) dmg += s.modifiers.enemyDamageBonus + ((attacker as EnemyState).damageBonus ?? 0);
+  if (isEnemy(s, attacker.id)) dmg += s.modifiers.enemyDamageBonus + ((attacker as EnemyState).damageBonus ?? 0);
   if ((attacker.statuses.weakened ?? 0) > 0) dmg *= 1 - st.weakened.damageReduction;
   if ((defender.statuses.exposed ?? 0) > 0) dmg *= 1 + st.exposed.damageIncrease;
   return Math.max(0, Math.floor(dmg));
@@ -47,6 +48,10 @@ export function gainWard(ctx: Ctx, target: Combatant, amount: number): void {
 function reduceHp(ctx: Ctx, target: Combatant, amount: number): void {
   if (amount <= 0) return;
   target.hp = Math.max(0, target.hp - amount);
+  if (isAlly(ctx.s, target.id)) {
+    if (target.hp === 0) onAllyFell(ctx, target as AllyState);
+    return; // allies falling never ends the fight
+  }
   if (target.hp === 0) {
     ctx.events.push({ type: 'death', targetId: target.id });
     checkCombatEnd(ctx);

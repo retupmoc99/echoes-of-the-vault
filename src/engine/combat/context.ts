@@ -16,13 +16,23 @@ export interface Ctx {
   sourceCardId?: string;
   /** The enemy move resolving (labels an enemy's delayed attacks). */
   moveName?: string;
+  /** Strength multiplier for amounts (allies play at half). Undefined = full. */
+  potency?: number;
 }
 
 export const PLAYER_ID = 'player';
 
 export function getCombatant(s: CombatState, id: string): Combatant | undefined {
   if (id === PLAYER_ID) return s.player;
-  return s.enemies.find((e) => e.id === id);
+  return s.enemies.find((e) => e.id === id) ?? s.allies?.find((a) => a.id === id);
+}
+
+export function isEnemy(s: CombatState, id: string): boolean {
+  return s.enemies.some((e) => e.id === id);
+}
+
+export function isAlly(s: CombatState, id: string): boolean {
+  return !!s.allies?.some((a) => a.id === id);
 }
 
 export function isAlive(c: Combatant | undefined): c is Combatant {
@@ -39,6 +49,8 @@ export function isOver(s: CombatState): boolean {
 
 /** Living opponents of whoever `sourceId` is. */
 export function foesOf(s: CombatState, sourceId: string): Combatant[] {
-  if (sourceId === PLAYER_ID) return livingEnemies(s);
-  return s.player.hp > 0 ? [s.player] : [];
+  // You and your allies share foes; an enemy's area attack reaches your allies too.
+  if (!isEnemy(s, sourceId)) return livingEnemies(s);
+  const allies = (s.allies ?? []).filter((a) => a.hp > 0);
+  return s.player.hp > 0 ? [s.player, ...allies] : allies;
 }

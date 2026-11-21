@@ -8,6 +8,7 @@ import { createRun } from '../run/run';
 import type { Content, NextLoop, OutpostState, RunOptions, RunState } from '../types';
 import type { LoopRecord, SaveData } from '../save/save';
 import { SLEEPERS_EYE, SLEEPER_ENCOUNTER, addAwakening, completeCycle, loopAwakening } from './awakening';
+import { chorusFrom, settleChorus } from './chorus';
 import { createEcho } from './echoes';
 
 /** Roll a Vault Shift; Shifts gated by the Awakening only appear once it's deep enough. */
@@ -50,6 +51,7 @@ export function nextRunPreview(save: SaveData, content: Content): RunState | nul
       awakeningStage: save.world.awakening.stage,
       awakeningCycle: save.world.awakening.cycle,
       extraRelics: save.outpost.unlocks.includes(SLEEPERS_EYE) ? [SLEEPERS_EYE] : [],
+      chorus: chorusFrom(save.echoes, content),
     },
     content,
   );
@@ -82,7 +84,9 @@ export function closeLoop(save: SaveData, content: Content, now: number): SaveDa
 
   const loops = save.meta.loops + 1;
   const echo = createEcho(run, loops, now, content);
-  const hasRoom = save.echoes.length < BALANCE.echoes.slots;
+  // Echo-Caller: Calls cost the Called Echoes stability; drained ones Unravel (freeing slots).
+  const settled = settleChorus(save.echoes, run);
+  const hasRoom = settled.echoes.length < BALANCE.echoes.slots;
   const result = run.result ?? 'death';
   const record: LoopRecord = {
     loop: loops,
@@ -111,7 +115,7 @@ export function closeLoop(save: SaveData, content: Content, now: number): SaveDa
     },
     // Shards found in the loop (Awakening elites) are banked now.
     outpost: run.shardsFound ? { ...save.outpost, shards: save.outpost.shards + run.shardsFound } : save.outpost,
-    echoes: hasRoom ? [...save.echoes, echo] : save.echoes,
+    echoes: hasRoom ? [...settled.echoes, echo] : settled.echoes,
     pendingEcho: hasRoom ? save.pendingEcho : echo,
   };
   // Unmaking the Sleeper ends the cycle; any other loop stirs it.

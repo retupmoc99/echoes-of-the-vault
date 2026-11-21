@@ -45,6 +45,12 @@ function amountPhrase(a: Amount, noun: string): string {
       return `${base}${times} ${unit}per Overload this turn`;
     case 'timeline':
       return `${base}${times} ${unit}per delayed effect waiting`;
+    case 'allies':
+      return `${base}${times} ${unit}per ally`;
+    case 'alliesFallen':
+      return `${base}${times} ${unit}per ally fallen this fight`;
+    case 'allyTopCost':
+      return `${base}${times} ${unit}per cost of each ally's next card`;
   }
 }
 
@@ -77,6 +83,8 @@ function conditionText(c: Condition): string {
       return `If you have ${c.n}+ ${statusName(c.status)}`;
     case 'targetHasStatus':
       return `If the target has ${statusName(c.status)}`;
+    case 'allyFellThisFight':
+      return 'If an ally fell this fight';
   }
 }
 
@@ -117,6 +125,28 @@ function effectText(e: Effect, preview?: Preview): string {
       return e.count === 1
         ? 'Return the last card in your discard pile to your hand.'
         : `Return the last ${e.count} cards in your discard pile to your hand.`;
+    case 'call':
+      return e.count === 1 ? 'Call an Echo.' : `Call ${e.count} Echoes.`;
+    case 'allyAct':
+      return e.who === 'all' ? 'Every ally acts now.' : 'Your newest ally acts now.';
+    case 'allies':
+      return `Allies: ${describeEffects(e.effects).replace(/^Gain/, 'gain')}`;
+    case 'newestAlly':
+      return `Your newest ally: ${describeEffects(e.effects).replace(/^Gain/, 'gain').replace(/^Lose/, 'lose')}`;
+    case 'guard':
+      return 'Your newest ally Guards you until your next turn.';
+    case 'releaseAlly': {
+      const who = e.who === 'all' ? 'Every ally fades' : 'Your newest ally fades';
+      return e.damage === 'hp' ? `${who}, dealing its HP to all foes.` : `${who}, each dealing ${e.damage} to all foes.`;
+    }
+    case 'playAllyTop':
+      return e.count === 1 ? "Play the top card of your newest ally's deck." : `Play the top ${e.count} cards of your newest ally's deck.`;
+    case 'empowerAllies': {
+      const parts: string[] = [];
+      if (e.acts) parts.push(`allies act ${e.acts === 2 ? 'twice' : `${e.acts} times`} a turn`);
+      if (e.hpLoss) parts.push(`they lose ${e.hpLoss} HP each time`);
+      return `This fight, ${parts.join(', but ')}.`;
+    }
     case 'if': {
       const then = describeEffects(e.then, preview);
       const otherwise = e.else?.length ? ` Otherwise: ${describeEffects(e.else, preview)}` : '';
@@ -153,11 +183,15 @@ function triggerPrefix(t: Trigger): string {
       return t.status ? `Whenever you gain ${statusName(t.status)}` : 'Whenever you gain a status';
     case 'delayFired':
       return 'Whenever a delayed effect lands';
+    case 'allyCalled':
+      return 'Whenever you Call an Echo';
+    case 'allyFell':
+      return 'Whenever an ally falls';
   }
 }
 
 export function describeRelic(def: RelicDef): { passive?: string; overload?: string } {
-  const passive = def.passive?.map((t) => `${triggerPrefix(t)}: ${describeEffects(t.effects)}`).join(' ');
+  const passive = [def.text, ...(def.passive ?? []).map((t) => `${triggerPrefix(t)}: ${describeEffects(t.effects)}`)].filter(Boolean).join(' ');
   const overload = def.overload ? describeEffects(def.overload) : undefined;
   return { passive: passive || undefined, overload };
 }

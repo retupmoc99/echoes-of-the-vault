@@ -8,10 +8,11 @@
 import { useEffect, useState } from 'react';
 import { CONTENT } from '../../data';
 import { BALANCE } from '../../data/balance';
-import { PLAYER_ID, livingEnemies, needsTarget, type CombatAction, type CombatState } from '../../engine';
+import { PLAYER_ID, livingEnemies, needsTarget, type CombatAction, type CombatState, type Effect } from '../../engine';
 import { useScreenAtmosphere } from '../art';
 import { HintSlot } from '../hints';
 import { TimelineStrip } from '../components/TimelineStrip';
+import { AllyRow } from '../components/AllyRow';
 import { onFx } from '../fx/fxBus';
 import { buzz, HAPTIC } from '../fx/haptics';
 import { useHitFx } from '../fx/useHitFx';
@@ -130,6 +131,7 @@ export function CombatScreen({ state, error, label, tier, dispatch, onMenu, onCo
           ['echo-copy', state.piles.hand.some((c) => c.ephemeral)],
           ['paradox', (state.player.statuses.paradox ?? 0) > 0],
           ['statuses', [state.player, ...state.enemies].some((c) => Object.keys(c.statuses).length > 0)],
+          ['allies', (state.allies ?? []).some((a) => a.hp > 0)],
         ]}
       />
 
@@ -150,6 +152,8 @@ export function CombatScreen({ state, error, label, tier, dispatch, onMenu, onCo
       <p className="info-line" aria-live="polite">
         {info}
       </p>
+
+      <AllyRow state={state} onInspect={setInfo} />
 
       <section data-fx-id="player" className={`player ${playerFx.flashing ? 'hit' : ''}`}>
         <Floaters items={playerFx.floaters} />
@@ -175,6 +179,7 @@ export function CombatScreen({ state, error, label, tier, dispatch, onMenu, onCo
         {selected && selectedDef && (
           <div className="detail">
             <CardView card={selected} variant="detail" affordable={canPlay} preview={{ state, targetId: aim }} />
+            <CallNote state={state} effects={selectedDef.effects} />
             <div className="detail-actions">
               <button className="ghost-btn" onClick={() => setSelectedUid(undefined)}>
                 Cancel
@@ -273,4 +278,29 @@ function useScreenShake(): boolean {
     [],
   );
   return shaking;
+}
+
+/**
+ * Before playing a Call: who will answer, and a warning if it would drain that
+ * Echo (it Unravels when the loop closes) or if two allies already stand.
+ */
+function CallNote({ state, effects }: { state: CombatState; effects: Effect[] }) {
+  const calls = effects.some((e) => e.kind === 'call');
+  if (!calls) return null;
+  const A = BALANCE.allies;
+  if ((state.allies ?? []).filter((a) => a.hp > 0).length >= A.maxOnField) {
+    return <p className="detail-note warn">Two allies already stand with you. Nothing more can answer.</p>;
+  }
+  const next = (state.chorus ?? []).find((m) => !(state.called ?? []).includes(m.echoId));
+  if (!next) return <p className="detail-note">Your Chorus is spent: a Nameless Echo will answer.</p>;
+  const callCost = state.relics.some((r) => r.relicId === 'severed-thread') ? 0 : A.callCost;
+  const left = next.stability - callCost * (next.calls + 1) - A.fallCost * next.falls;
+  return (
+    <p className={`detail-note ${left <= 0 ? 'warn' : ''}`}>
+      {next.name} answers ({next.maxHp} HP).{' '}
+      {left <= 0
+        ? `This Call drains it: ${next.name.split(' ')[0]} Unravels when the loop ends.`
+        : `Calling costs it ${callCost} stability (${Math.floor(left)} left).`}
+    </p>
+  );
 }

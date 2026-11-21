@@ -11,7 +11,8 @@
  */
 import { it } from 'vitest';
 import { CONTENT } from '../data';
-import { createRun, stepRun, type RunState } from '../engine';
+import { createRun, stepRun, type ChorusMember, type RunState } from '../engine';
+import { BALANCE } from '../data/balance';
 import { nextBotAction } from './bot';
 
 // (The app's tsconfig has no Node types, so reach process through globalThis.)
@@ -19,6 +20,17 @@ const env = (globalThis as { process?: { env: Record<string, string | undefined>
 const RUNS = Number(env.SIM_RUNS ?? 300);
 /** Awakening stage to play at (SIM_STAGE=3 npm run sim). */
 const STAGE = Number(env.SIM_STAGE ?? 0);
+
+const SIM_CHORUS: ChorusMember[] = Object.values(CONTENT.classes).map((c, i) => ({
+  echoId: `sim-echo-${i}`,
+  name: `Sim Echo ${i}`,
+  traitId: 'faded',
+  deck: c.starterDeck,
+  maxHp: Math.min(BALANCE.allies.maxHp, BALANCE.allies.baseHp + 4 * BALANCE.allies.hpPerDepth),
+  stability: 100,
+  calls: 0,
+  falls: 0,
+}));
 
 interface Outcome {
   won: boolean;
@@ -34,7 +46,9 @@ interface Outcome {
 
 function playLoop(classId: string, seed: string): Outcome {
   const cls = CONTENT.classes[classId];
-  let r: RunState = createRun({ seed, classId, unlockedCards: cls.lockedCards, awakeningStage: STAGE }, CONTENT);
+  // The Echo-Caller needs Echoes to Call: three mid-depth ones, carrying each Warden's starting deck.
+  const chorus = classId === 'echo-caller' ? SIM_CHORUS : undefined;
+  let r: RunState = createRun({ seed, classId, unlockedCards: cls.lockedCards, awakeningStage: STAGE, chorus }, CONTENT);
   for (let i = 0; i < 20000 && r.phase !== 'ended'; i++) {
     const res = stepRun(r, nextBotAction(r, CONTENT), CONTENT);
     if (res.error) throw new Error(`${seed}: bot made an illegal move: ${res.error}`);

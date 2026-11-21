@@ -12,6 +12,8 @@ export const BALANCE = {
     maxHandSize: 10,
     relicBreakerMaxHp: 70,
     hourThiefMaxHp: 68,
+    // Fragile: its allies stand in front of it.
+    echoCallerMaxHp: 66,
   },
 
   status: {
@@ -122,6 +124,24 @@ export const BALANCE = {
     /** Each cycle after the first: enemies gain this much HP, up to cycle `cycleCap`. */
     cycleHpBonus: 0.05,
     cycleCap: 5,
+  },
+
+  /** Echo-Caller allies (docs/design/echo-caller.md). */
+  allies: {
+    /** Ally HP: base + per depth its loop reached, capped. Traits can scale it. */
+    baseHp: 6,
+    hpPerDepth: 2,
+    maxHp: 24,
+    maxOnField: 2,
+    /** Allies play their cards at this strength (rounded up). The design said half; 0.75 balanced the class (sim, 0.14). */
+    potency: 0.75,
+    /** Stability an Echo loses per Call and per fall, when the loop closes. */
+    callCost: 8,
+    fallCost: 12,
+    /** A curse an ally draws costs it this much HP (unless its trait says otherwise). */
+    curseSelfDamage: 2,
+    /** When the Chorus is spent: a Nameless Echo. */
+    nameless: { hp: 8, deck: ['grave-strike', 'grave-strike', 'grave-strike', 'shroud', 'shroud', 'shroud'] },
   },
 
   /** Archive → History keeps this many of the most recent loops. */
