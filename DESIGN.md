@@ -329,7 +329,7 @@ Total 460 Shards: roughly 8 to 10 Echo lifetimes of digging.
   - In fights, hints sit above the player panel, so the intent and the cards stay visible.
 
 ## The Awakening
-Full design: [docs/design/awakening.md](docs/design/awakening.md). Stages 1–3 are built (0.12.0); stages 4–5, the Sleeper and cycles come next.
+Full design: [docs/design/awakening.md](docs/design/awakening.md). Stages 1–3 built in 0.12.0; stages 4–5, the Sleeper and cycles in 0.13.0.
 - **Rises with activity only:** +3 per closed loop, +2 more for escaping, +1 per 4 Echo-hours of work *(balance)*. Time away alone never raises it; resting Echoes add nothing.
 - **Stages** at 10 / 25 / 45 / 70 / 100 progress. Each brings a danger and a reward, and they build up:
 
@@ -338,11 +338,15 @@ Full design: [docs/design/awakening.md](docs/design/awakening.md). Stages 1–3 
 | 1 Murmur | 3 Awakening events join the pool | Dig +15% |
 | 2 Stirring | The 4 early enemies become Waking versions (+15% HP, one new move each) | Research +25% |
 | 3 Restless | Elites get an affix: Hardened (+20% HP), Frenzied (+3 damage) or Warded (10 Ward) | +5 rare weight; elites drop 25 Shards |
+| 4 Wakeful | New Shift *The Sleeper's Breath* (+10% enemy HP, more Elites and Caches, start with 1 Corruption); the Lock weeps open at half HP (a second phase) | Escaping banks 50 Shards |
+| 5 Awake | **The Sleeper** replaces the Lock; Lull and Give stop working; progress can't fall | Unmake it: 200 Shards, the Sleeper's Eye in every later loop, and a new cycle |
 
 - **Each stage reveals a lore fragment** the first time it's reached.
 - **The stage is fixed when a loop starts.** Changing it mid-loop does nothing until the next loop.
 - **Pushing it back:** *Lull* (on the meter) costs 40 Shards, +20 per Lull at the same stage, for −5 progress. *Give* (on an Echo card, two taps) releases an Echo for −(stability ÷ 5). Stages go down as well as up.
-- **Progress stops at 69** until stages 4–5 exist.
+- **Cycles:** unmaking the Sleeper resets the Awakening to Dormant and starts the next cycle. Each cycle after the first gives enemies +5% HP, up to Cycle 5 (+20%).
+- **The Sleeper** (150–160 HP, three phases): it opens by replaying the hardest move of each enemy you fought that loop; below two-thirds HP it Dreams (attacks that land on its turn two turns later, shown as red timeline chips, blockable with Ward); below one-third it Wakes and Fractures itself every turn.
+- **Boss phases and enemy delays** are general engine features (`src/engine/combat/phases.ts`, `time.ts`).
 - Stage changes are announced as a notice; loops show a stage chip; History records each loop's stage.
 
 ## Balance testing
@@ -372,7 +376,7 @@ All sound is generated in code with Web Audio (`src/ui/audio/`): no audio files,
 - `localStorage` key `eotv.save`, JSON, synchronous write after every action.
 - `SaveData.version` + `MIGRATIONS[n]` (n → n+1). The old raw save is copied to `eotv.save.backup.vN` before migrating, and the migrated save is written straight away.
 - Corrupt saves are copied to `eotv.save.corrupt.<time>`, never deleted. Saves from a newer version are never overwritten.
-- **v8** (current) contains:
+- **v9** (current) contains:
   - `run`: the whole loop, including any live fight
   - `meta`: loops, victories, deaths, and `history` (the last 20 loops)
   - `nextLoop`, `echoes`, `pendingEcho`, `outpost` (shards, unlocks, research, cards, lore, scouting, kit)
@@ -380,6 +384,7 @@ All sound is generated in code with Web Audio (`src/ui/audio/`): no audio files,
   - `world`: `awakening` (stage, progress, cycle, Lulls this stage); `factions` still reserved and empty
   - `settings`
 - Migration history:
+  - v8 → v9: a loop in progress gains `awakeningCycle: 1`.
   - v7 → v8: completes `world.awakening` (adds `cycle` and `lullsThisStage`); a loop in progress runs at stage 0 with no Shards found; history rows gain `awakeningStage: 0`.
   - v6 → v7: adds `meta.history` (empty: past loops weren't recorded) and the `sound` / `music` settings.
   - v1 → v2: the sandbox save becomes an empty v2; sandbox fights weren't loops.

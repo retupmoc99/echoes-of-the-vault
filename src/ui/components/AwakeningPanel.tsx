@@ -4,7 +4,7 @@
  */
 import { CONTENT } from '../../data';
 import { BALANCE } from '../../data/balance';
-import { lullCost, nextThreshold, type SaveData } from '../../engine';
+import { AWAKE, canPushBack, lullCost, nextThreshold, type SaveData } from '../../engine';
 
 interface Props {
   save: SaveData;
@@ -19,13 +19,16 @@ export function AwakeningPanel({ save, onLull }: Props) {
   const next = nextThreshold(a);
   const scale = A.thresholds[A.thresholds.length - 1];
   const cost = lullCost(a);
-  const canLull = a.progress > 0 && Math.floor(save.outpost.shards) >= cost;
+  const awake = a.stage >= AWAKE;
+  const canLull = canPushBack(a) && Math.floor(save.outpost.shards) >= cost;
+  const cycleBonus = Math.round((Math.min(a.cycle, A.cycleCap) - 1) * A.cycleHpBonus * 100);
 
   return (
     <section className={`awakening stage-${a.stage}`} aria-label="The Awakening">
       <header className="awakening-head">
         <strong>{a.stage === 0 ? 'The Sleeper is dormant' : `The Sleeper: ${current.name}`}</strong>
         <span>
+          {a.cycle > 1 && `Cycle ${a.cycle} · `}
           {Math.floor(a.progress)} / {scale}
         </span>
       </header>
@@ -46,18 +49,23 @@ export function AwakeningPanel({ save, onLull }: Props) {
         </ul>
       )}
 
-      {next !== null ? (
+      {awake ? (
         <p className="awakening-next">
-          At {next}, <strong>{stages[a.stage + 1].name}</strong>: <span className="danger">{stages[a.stage + 1].danger}</span>{' '}
-          <span className="reward">{stages[a.stage + 1].reward}</span>
+          It waits at the bottom of every loop now. <strong>Unmake it</strong> to end the cycle.
         </p>
       ) : (
-        <p className="awakening-next">It dreams no deeper than this, for now.</p>
+        next !== null && (
+          <p className="awakening-next">
+            At {next}, <strong>{stages[a.stage + 1].name}</strong>: <span className="danger">{stages[a.stage + 1].danger}</span>{' '}
+            <span className="reward">{stages[a.stage + 1].reward}</span>
+          </p>
+        )
       )}
+      {cycleBonus > 0 && <p className="record">Cycle {a.cycle}: enemies have {cycleBonus}% more HP.</p>}
       <p className="record">It stirs with every loop you close and every hour your Echoes work. Never while you are away.</p>
 
       <button className="ghost-btn wide" disabled={!canLull} onClick={onLull}>
-        {a.progress <= 0 ? 'The Sleeper is still' : `Lull it (−${A.lull.amount}) · ${cost} Shards`}
+        {awake ? 'It is awake. It will not be lulled.' : a.progress <= 0 ? 'The Sleeper is still' : `Lull it (−${A.lull.amount}) · ${cost} Shards`}
       </button>
     </section>
   );

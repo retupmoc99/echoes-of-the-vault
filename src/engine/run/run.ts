@@ -35,7 +35,7 @@ export function createRun(setup: RunSetup, content: Content): RunState {
   const rng = createRng(setup.seed);
 
   // Roll the Shift first: it can reshape the map.
-  const shift = setup.vaultShiftId ? content.vaultShifts[setup.vaultShiftId] : rollVaultShift(rng, content);
+  const shift = setup.vaultShiftId ? content.vaultShifts[setup.vaultShiftId] : rollVaultShift(rng, content, setup.awakeningStage ?? 0);
   if (!shift) throw new Error(`Unknown Vault Shift: ${setup.vaultShiftId}`);
   const kit = cls.kits.find((k) => k.id === setup.kitId) ?? cls.kits[0];
   const unlocked = setup.unlockedCards ?? [];
@@ -48,7 +48,7 @@ export function createRun(setup: RunSetup, content: Content): RunState {
     hp: cls.maxHp,
     maxHp: cls.maxHp,
     deck: [...kit.deck],
-    relics: [...cls.starterRelics],
+    relics: [...cls.starterRelics, ...(setup.extraRelics ?? [])],
     map: generateMap(rng, mapConfigFor(shift)),
     position: null,
     visited: [],
@@ -60,6 +60,7 @@ export function createRun(setup: RunSetup, content: Content): RunState {
     corruption: 0,
     vaultShiftId: shift.id,
     awakeningStage: setup.awakeningStage ?? 0,
+    awakeningCycle: setup.awakeningCycle ?? 1,
     shardsFound: 0,
     cardPool: cls.cardPool.filter((id) => !cls.lockedCards.includes(id) || unlocked.includes(id)),
     options: {
@@ -85,9 +86,9 @@ export function createRun(setup: RunSetup, content: Content): RunState {
   return run;
 }
 
-function rollVaultShift(rng: RunState['rng'], content: Content): VaultShiftDef {
+function rollVaultShift(rng: RunState['rng'], content: Content, awakeningStage: number): VaultShiftDef {
   const weights: Record<string, number> = {};
-  for (const s of Object.values(content.vaultShifts)) weights[s.id] = s.weight;
+  for (const s of Object.values(content.vaultShifts)) if ((s.minAwakening ?? 0) <= awakeningStage) weights[s.id] = s.weight;
   return content.vaultShifts[rngWeighted(rng, weights)];
 }
 
@@ -233,6 +234,8 @@ function startFight(r: RunState, node: MapNode, content: Content, events: Combat
       encounterId: encounter.id,
       modifiers: combatModifiersFor(r, content),
       affix,
+      // Enemies fought before this one, for an enemy that remembers (the Sleeper).
+      memories: r.seenEncounters.slice(0, -1).flatMap((id) => content.encounters[id]?.enemies ?? []),
     },
     content,
   );
@@ -308,6 +311,8 @@ function leave(r: RunState, content: Content): string | undefined {
     }
     if (type === 'boss') {
       r.stats.bossWon = true;
+      // Awakening stage 4+: escaping banks Shards (stage 5's Sleeper pays out at the Outpost).
+      if (r.awakeningStage >= 4 && node.encounterId !== 'the-sleeper') r.shardsFound += BALANCE.awakening.escapeShards;
       return void endRun(r, 'victory');
     }
     // Spoils: pick a card (elites also drop a relic).

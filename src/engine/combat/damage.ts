@@ -6,6 +6,7 @@
 import { BALANCE } from '../../data/balance';
 import type { CombatState, Combatant, EnemyState, HpLossCause } from '../types';
 import { PLAYER_ID, type Ctx } from './context';
+import { checkPhase } from './phases';
 
 /**
  * Damage of one attack hit before Ward.
@@ -49,6 +50,8 @@ function reduceHp(ctx: Ctx, target: Combatant, amount: number): void {
   if (target.hp === 0) {
     ctx.events.push({ type: 'death', targetId: target.id });
     checkCombatEnd(ctx);
+  } else if (target.id !== PLAYER_ID) {
+    checkPhase(ctx, target as EnemyState);
   }
 }
 

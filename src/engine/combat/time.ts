@@ -18,27 +18,43 @@ function nextUid(ctx: Ctx, prefix: string): string {
   return `${prefix}${ctx.s.nextUid++}`;
 }
 
-export function queueDelay(ctx: Ctx, effects: Effect[], turns: number, targetId: string | undefined): void {
+export function queueDelay(ctx: Ctx, effects: Effect[], turns: number, targetId: string | undefined, sourceId?: string, label?: string): void {
   const entry: TimelineEntry = {
     id: nextUid(ctx, 't'),
     turnsLeft: Math.max(1, turns),
     effects,
-    sourceCardId: ctx.sourceCardId ?? 'unknown',
+    sourceCardId: sourceId ? '' : (ctx.sourceCardId ?? 'unknown'),
     targetId,
   };
+  if (sourceId) {
+    entry.sourceId = sourceId;
+    if (label) entry.label = label;
+  }
   ctx.s.timeline.push(entry);
   ctx.events.push({ type: 'delayQueued', entryId: entry.id, turns: entry.turnsLeft });
 }
 
-/** Move the timeline forward by `turns` and resolve everything that is due, oldest first. */
-export function advanceTimeline(ctx: Ctx, turns: number): void {
+/**
+ * Move one owner's entries forward by `turns` and resolve those that are due,
+ * oldest first. The owner is the player (no sourceId: your Delays, Hasten) or
+ * one enemy (its own dreams, on its own turn).
+ */
+export function advanceTimeline(ctx: Ctx, turns: number, enemyId?: string): void {
   const s = ctx.s;
-  for (const entry of s.timeline) entry.turnsLeft -= turns;
-  const due = s.timeline.filter((e) => e.turnsLeft <= 0);
+  const mine = (e: TimelineEntry) => (enemyId ? e.sourceId === enemyId : !e.sourceId);
+  for (const entry of s.timeline) if (mine(entry)) entry.turnsLeft -= turns;
+  const due = s.timeline.filter((e) => mine(e) && e.turnsLeft <= 0);
   // Remove before resolving, so effects that touch the timeline see a consistent state.
-  s.timeline = s.timeline.filter((e) => e.turnsLeft > 0);
+  s.timeline = s.timeline.filter((e) => !due.includes(e));
   for (const entry of due) {
     if (isOver(s)) return;
+    if (entry.sourceId) {
+      const source = s.enemies.find((e) => e.id === entry.sourceId);
+      if (!source || source.hp <= 0) continue; // a dead dreamer's dream fades
+      ctx.events.push({ type: 'delayFired', entryId: entry.id, targetId: PLAYER_ID });
+      resolveEffects(ctx, entry.effects, source.id, PLAYER_ID);
+      continue;
+    }
     const alive = livingEnemies(s);
     const target = alive.find((e) => e.id === entry.targetId)?.id ?? alive[0]?.id;
     ctx.events.push({ type: 'delayFired', entryId: entry.id, targetId: target });

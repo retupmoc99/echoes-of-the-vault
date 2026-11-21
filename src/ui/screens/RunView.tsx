@@ -28,7 +28,8 @@ export function RunView({ run, error, dispatch, onMenu, onLoopDone }: Props) {
         <CombatScreen
           state={run.combat!}
           error={error}
-          label={`Depth ${mapNode.row + 1} · ${NODE_INFO[mapNode.type].name}`}
+          // At Awakening stage 5 the boss chamber holds the Sleeper, not the Lock.
+          label={`Depth ${mapNode.row + 1} · ${node.encounterId === 'the-sleeper' ? 'The Sleeper' : NODE_INFO[mapNode.type].name}`}
           tier={CONTENT.encounters[node.encounterId].tier}
           dispatch={(action) => dispatch({ type: 'combat', action })}
           onMenu={onMenu}

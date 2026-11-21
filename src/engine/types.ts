@@ -151,6 +151,28 @@ export interface EnemyDef {
   sigil: SigilSpec;
   flavor: string;
   image?: string;
+  /** Later phases, entered as HP falls (in order). */
+  phases?: EnemyPhase[];
+  /**
+   * Opens by replaying the strongest move of each enemy you've fought this
+   * loop (the Sleeper). Falls back to its own moves if there are none.
+   */
+  memories?: boolean;
+}
+
+/** A boss phase: new moves and pattern once HP falls far enough. */
+export interface EnemyPhase {
+  /** Entered when HP falls to or below this share of max HP. */
+  atHpRatio: number;
+  /** Shown instead of the enemy's name during this phase. */
+  name?: string;
+  /** Moves added in this phase (earlier moves stay available). */
+  moves?: Record<string, EnemyMove>;
+  pattern: IntentPattern;
+  /** Resolved once, by the enemy, on entering the phase. */
+  onEnter?: Effect[];
+  /** Only exists at this Awakening stage or higher. */
+  minAwakening?: number;
 }
 
 export interface EncounterDef {
@@ -253,6 +275,8 @@ export interface VaultShiftMods {
 }
 
 export interface VaultShiftDef {
+  /** Only rolled once the Awakening has reached this stage. */
+  minAwakening?: number;
   id: string;
   name: string;
   /** Rules summary shown to the player. */
@@ -316,6 +340,10 @@ export interface EnemyState extends Combatant {
   defId: string;
   /** Elite affix from the Awakening (stage 3+), if any. */
   affix?: string;
+  /** Index into its def's phases, once it has entered one. */
+  phase?: number;
+  /** Remembered moves (the Sleeper), keyed like moves. */
+  memoryMoves?: Record<string, EnemyMove>;
   /** Extra damage on every attack (the Frenzied affix). */
   damageBonus?: number;
   /** Move id the enemy will use on its next turn (shown as its intent). */
@@ -346,6 +374,10 @@ export interface TimelineEntry {
   sourceCardId: string;
   /** Who it was aimed at; falls back to the first living enemy. */
   targetId?: string;
+  /** Set when an enemy queued it: it ticks on that enemy's turns and fizzles if it dies. */
+  sourceId?: string;
+  /** Display name for enemy entries (the move's name). */
+  label?: string;
 }
 
 /**
@@ -353,6 +385,8 @@ export interface TimelineEntry {
  * loop's Vault Shift adjust them when the fight starts.
  */
 export interface CombatModifiers {
+  /** Awakening stage of the loop (gates boss phases). Missing in older saves: treat as 0. */
+  awakeningStage?: number;
   enemyHpMult: number;
   enemyDamageBonus: number;
   bleedDecay: number;
@@ -395,6 +429,8 @@ export interface CombatSetup {
   modifiers?: Partial<CombatModifiers>;
   /** Elite affix to apply to every enemy in the fight (Awakening stage 3+). */
   affix?: EliteAffixDef;
+  /** Enemy ids fought earlier this loop (for enemies with `memories`). */
+  memories?: string[];
 }
 
 /** An Awakening elite affix: pure numbers, applied when the fight starts. */
@@ -435,6 +471,7 @@ export type CombatEvent =
   | { type: 'echoReturned'; count: number }
   | { type: 'rewound'; count: number }
   | { type: 'paradoxSnap'; damage: number }
+  | { type: 'phaseChange'; enemyId: string; name: string }
   | { type: 'death'; targetId: string }
   | { type: 'victory' }
   | { type: 'defeat' };
@@ -525,6 +562,8 @@ export interface RunState {
   vaultShiftId: string;
   /** Awakening stage this loop runs at (fixed for the whole loop). */
   awakeningStage: number;
+  /** Awakening cycle (1 until the Sleeper is first unmade). Raises enemy HP. */
+  awakeningCycle: number;
   /** Shards found this loop (elites at Awakening stage 3+), banked when it closes. */
   shardsFound: number;
   /** Cards that can appear as rewards this loop (class pool minus unresearched cards). */
@@ -549,6 +588,9 @@ export interface RunSetup {
   classId: string;
   /** Awakening stage this loop runs at (0 = Dormant). */
   awakeningStage?: number;
+  awakeningCycle?: number;
+  /** Relics added to the starting relics (the Sleeper's Eye, after a cycle). */
+  extraRelics?: string[];
   /** Forced Shift (Scout reveals it in advance). Rolled from the seed otherwise. */
   vaultShiftId?: string;
   /** Starter kit; defaults to the class's first kit. */

@@ -54,7 +54,11 @@ export function MapScreen({ run, error, dispatch, onMenu }: Props) {
   };
 
   const tapNode = (node: MapNode) => {
-    const meta = NODE_INFO[node.type];
+    // At Awakening stage 5 the boss chamber holds the Sleeper instead of the Lock.
+    const meta =
+      node.type === 'boss' && run.awakeningStage >= 5
+        ? { name: 'The Sleeper', description: 'It waits at the bottom now. It remembers everything you fought on the way down.' }
+        : NODE_INFO[node.type];
     if (!reachable.has(node.id)) {
       setSelected(undefined);
       setInfo(`${meta.name}: ${meta.description}`);

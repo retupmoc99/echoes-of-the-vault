@@ -93,6 +93,12 @@ export function playSfx(e: CombatEvent): void {
       for (let i = 0; i < 4; i++) tone({ freq: 300 + ((i * 577) % 900), type: 'square', gain: 0.05, decay: 0.04, at: i * 0.045, lowpass: 3000 });
       noise({ filter: 'bandpass', freq: 1800, q: 3, gain: 0.25, decay: 0.2, at: 0.18 });
       break;
+    case 'phaseChange':
+      // A boss changes: a deep swell under a cracking chime.
+      tone({ freq: 55, to: 110, type: 'sawtooth', gain: 0.14, attack: 0.15, decay: 1.2, lowpass: 600 });
+      tone({ freq: 1400, to: 700, type: 'sine', gain: 0.05, attack: 0.02, decay: 0.8, at: 0.1 });
+      noise({ filter: 'bandpass', freq: 400, to: 2400, q: 1.5, gain: 0.2, decay: 0.9 });
+      break;
     case 'victory':
       [440, 523, 659, 880].forEach((f, i) => tone({ freq: f, type: 'triangle', gain: 0.08, attack: 0.01, decay: 0.9, at: i * 0.11 }));
       break;

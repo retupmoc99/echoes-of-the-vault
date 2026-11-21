@@ -70,10 +70,16 @@ function chooseNode(r: RunState): string {
 function combatAction(r: RunState, content: Content): CombatAction {
   const c = r.combat!;
   const enemies = livingEnemies(c);
-  const incoming = enemies.reduce((sum, e) => {
+  const intents = enemies.reduce((sum, e) => {
     const p = previewIntent(c, e, content);
     return sum + (p.damage ?? 0) * (p.hits ?? 1);
   }, 0);
+  // Enemy dreams due when they next act land this enemy turn too (raw damage, roughly).
+  const dreams = c.timeline
+    .filter((t) => t.sourceId && t.turnsLeft === 1)
+    .flatMap((t) => t.effects)
+    .reduce((sum, e) => sum + (e.kind === 'damage' && typeof e.amount === 'number' ? e.amount * (e.hits ?? 1) : 0), 0);
+  const incoming = intents + dreams;
   const playable = c.piles.hand
     .map((card) => ({ card, def: content.cards[card.cardId] as CardDef }))
     .filter(({ def }) => !def.unplayable && def.type !== 'curse' && def.cost <= c.resonance)

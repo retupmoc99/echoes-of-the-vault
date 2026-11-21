@@ -64,7 +64,9 @@ describe('content integrity', () => {
     const events = Object.values(CONTENT.events);
     expect(events.filter((e) => !e.minAwakening)).toHaveLength(8);
     expect(events.filter((e) => e.minAwakening)).toHaveLength(3);
-    expect(Object.values(CONTENT.vaultShifts).filter((s) => s.weight > 0)).toHaveLength(5);
+    const shifts = Object.values(CONTENT.vaultShifts).filter((s) => s.weight > 0);
+    expect(shifts.filter((s) => !s.minAwakening)).toHaveLength(5);
+    expect(shifts.filter((s) => s.minAwakening).map((s) => s.id)).toEqual(['sleepers-breath']);
     const archetypes = (ids: string[]) => [...new Set(ids.map((id) => CONTENT.cards[id].archetype))].sort();
     expect(archetypes(rb.cardPool)).toEqual(['bleed', 'fracture', 'overload', 'ward']);
     expect(archetypes(ht.cardPool)).toEqual(['delay', 'echo', 'unwinding']);

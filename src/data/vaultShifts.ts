@@ -46,6 +46,16 @@ export const VAULT_SHIFTS: VaultShiftDef[] = [
     mods: { startCorruption: 2, nodeWeights: { event: 1.6, cache: 1.6 } },
   },
   {
+    id: 'sleepers-breath',
+    name: "The Sleeper's Breath",
+    text: 'Enemies have 10% more HP. More Elites and Relic Caches. You start with 1 Corruption.',
+    flavor: 'The walls rise and fall. Slowly. Somewhere below, something is almost awake.',
+    weight: 1,
+    // Joins the rotation at Awakening stage 4 ("Wakeful").
+    minAwakening: 4,
+    mods: { combat: { enemyHpMult: 1.1 }, nodeWeights: { elite: 1.5, cache: 1.5 }, startCorruption: 1 },
+  },
+  {
     // Never rolled. Loops in progress when milestone 3 arrived were given this.
     id: 'still-vault',
     name: 'The Still Vault',

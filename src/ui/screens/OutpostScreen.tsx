@@ -9,7 +9,7 @@ import { useState } from 'react';
 import { CONTENT } from '../../data';
 import { BALANCE } from '../../data/balance';
 import { NODE_INFO } from '../../data/nodeTypes';
-import { researchComplete, researchCost, scoutInfo, traitOf, type OutpostAction, type SaveData } from '../../engine';
+import { canPushBack, researchComplete, researchCost, scoutInfo, traitOf, type OutpostAction, type SaveData } from '../../engine';
 import { AwakeningPanel } from '../components/AwakeningPanel';
 import { BackupPanel } from '../components/BackupPanel';
 import { CardLibrary } from '../components/CardLibrary';
@@ -56,6 +56,7 @@ export function OutpostScreen({ save, error, notice, outpost, onSettings, onEnte
             ['echoes', tab === 'echoes' && save.echoes.length > 0],
             ['works', tab === 'works'],
             ['awakening', tab === 'descend' && !save.run && save.world.awakening.stage >= 1],
+            ['sleeper-awake', tab === 'descend' && !save.run && save.world.awakening.stage >= 5],
             ['new-warden', tab === 'descend' && !save.run && save.outpost.unlocks.includes('stolen-hour') && save.outpost.classId === 'relic-breaker'],
             ['backup', tab === 'descend' && save.meta.loops >= 3],
           ]}
@@ -271,7 +272,7 @@ function EchoesTab({ save, outpost, onInspect }: { save: SaveData; outpost: Prop
           researchDone={researchDone}
           onAssign={(task) => outpost({ type: 'assign', echoId: echo.id, task })}
           onRelease={() => outpost({ type: 'releaseEcho', echoId: echo.id })}
-          onGive={save.world.awakening.progress > 0 ? () => outpost({ type: 'giveEcho', echoId: echo.id }) : undefined}
+          onGive={canPushBack(save.world.awakening) ? () => outpost({ type: 'giveEcho', echoId: echo.id }) : undefined}
           onReplace={pending && full ? () => outpost({ type: 'keepPending', replaceId: echo.id }) : undefined}
           onInspect={onInspect}
         />

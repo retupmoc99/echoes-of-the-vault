@@ -1,5 +1,25 @@
 # Changelog
 
+## 0.13.0 — The Awakening, part 2: the Sleeper (2026-11-21)
+
+### Added
+- **Stage 4, Wakeful:**
+  - A new Vault Shift, *The Sleeper's Breath*: enemies +10% HP, more Elites and Caches, and you start with 1 Corruption.
+  - The Grieving Lock weeps open at half HP, a second phase with new moves.
+  - Escaping banks 50 Shards.
+- **Stage 5, Awake: the Sleeper,** a new final boss with its own art, takes the Lock's place.
+  - It opens by replaying the hardest move of each enemy you fought that loop.
+  - At two-thirds HP it starts Dreaming: attacks that land two of its turns later. They show as red timeline chips, and Ward blocks them.
+  - At one-third it Wakes and Fractures itself every turn: a race.
+  - Lull and Give stop working while it's awake.
+- **Cycles:** unmaking the Sleeper pays 200 Shards, gives you the *Sleeper's Eye* (6 Ward and a draw at the start of every fight) for every later loop, reveals its lore, and starts the next cycle from Dormant. Each cycle after the first gives enemies +5% HP, up to +20%.
+- **Engine:**
+  - Boss phases: new moves, a new pattern and a new name at an HP threshold.
+  - Enemies can now delay attacks; these land on the enemy's own turn.
+  - 2 new lore fragments for the stages, 1 for the first unmaking, and 2 new hints.
+- Phase changes have their own sound and particle burst. The meter shows the cycle, History marks loops that unmade the Sleeper, and a notice announces each new cycle.
+- Save v9 (loops gain a cycle). 13 new tests (188 total).
+
 ## 0.12.0 — The Awakening, part 1 (2026-11-21)
 
 ### Added

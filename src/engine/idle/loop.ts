@@ -7,12 +7,15 @@ import { createRng, rngWeighted } from '../rng';
 import { createRun } from '../run/run';
 import type { Content, NextLoop, OutpostState, RunOptions, RunState } from '../types';
 import type { LoopRecord, SaveData } from '../save/save';
-import { addAwakening, loopAwakening } from './awakening';
+import { SLEEPERS_EYE, SLEEPER_ENCOUNTER, addAwakening, completeCycle, loopAwakening } from './awakening';
 import { createEcho } from './echoes';
 
-function rollShift(seed: string, content: Content, exclude?: string): string {
+/** Roll a Vault Shift; Shifts gated by the Awakening only appear once it's deep enough. */
+function rollShift(seed: string, content: Content, awakeningStage: number, exclude?: string): string {
   const weights: Record<string, number> = {};
-  for (const s of Object.values(content.vaultShifts)) if (s.id !== exclude) weights[s.id] = s.weight;
+  for (const s of Object.values(content.vaultShifts)) {
+    if (s.id !== exclude && (s.minAwakening ?? 0) <= awakeningStage) weights[s.id] = s.weight;
+  }
   return rngWeighted(createRng(seed), weights);
 }
 
@@ -20,7 +23,7 @@ function rollShift(seed: string, content: Content, exclude?: string): string {
 export function prepareNextLoop(save: SaveData, content: Content): SaveData {
   if (save.nextLoop) return save;
   const seed = `${save.createdAt.toString(36)}-loop${save.meta.loops + 1}`;
-  const nextLoop: NextLoop = { seed, vaultShiftId: rollShift(`${seed}:shift`, content), shiftRerolled: false };
+  const nextLoop: NextLoop = { seed, vaultShiftId: rollShift(`${seed}:shift`, content, save.world.awakening.stage), shiftRerolled: false };
   return { ...save, nextLoop };
 }
 
@@ -45,6 +48,8 @@ export function nextRunPreview(save: SaveData, content: Content): RunState | nul
       unlockedCards: save.outpost.cards,
       options: runOptionsFor(save.outpost),
       awakeningStage: save.world.awakening.stage,
+      awakeningCycle: save.world.awakening.cycle,
+      extraRelics: save.outpost.unlocks.includes(SLEEPERS_EYE) ? [SLEEPERS_EYE] : [],
     },
     content,
   );
@@ -63,7 +68,7 @@ export function ringShiftBell(save: SaveData, content: Content): SaveData | stri
   const next = save.nextLoop;
   if (!next) return 'There is no loop to shift.';
   if (next.shiftRerolled) return 'The bell has already rung for this loop.';
-  const vaultShiftId = rollShift(`${next.seed}:bell`, content, next.vaultShiftId);
+  const vaultShiftId = rollShift(`${next.seed}:bell`, content, save.world.awakening.stage, next.vaultShiftId);
   return { ...save, nextLoop: { ...next, vaultShiftId, shiftRerolled: true } };
 }
 
@@ -93,6 +98,7 @@ export function closeLoop(save: SaveData, content: Content, now: number): SaveDa
     echoTraitId: echo.traitId,
     awakeningStage: run.awakeningStage,
   };
+  if (result === 'victory' && run.seenEncounters.includes(SLEEPER_ENCOUNTER)) record.unmadeSleeper = true;
 
   const closed: SaveData = {
     ...save,
@@ -108,5 +114,8 @@ export function closeLoop(save: SaveData, content: Content, now: number): SaveDa
     echoes: hasRoom ? [...save.echoes, echo] : save.echoes,
     pendingEcho: hasRoom ? save.pendingEcho : echo,
   };
-  return prepareNextLoop(addAwakening(closed, loopAwakening(result), content), content);
+  // Unmaking the Sleeper ends the cycle; any other loop stirs it.
+  const unmade = result === 'victory' && run.seenEncounters.includes(SLEEPER_ENCOUNTER);
+  const after = unmade ? completeCycle(closed, content) : addAwakening(closed, loopAwakening(result), content);
+  return prepareNextLoop(after, content);
 }

@@ -98,11 +98,8 @@ export const BALANCE = {
   awakening: {
     /** Progress needed for stages 1–5. */
     thresholds: [10, 25, 45, 70, 100],
-    /**
-     * Highest stage that exists yet. Milestone 1 builds stages 1–3, so progress
-     * stops just short of stage 4 until stages 4–5 are added.
-     */
-    maxStage: 3,
+    /** Highest stage that exists (all five since 0.13). Progress never passes the last threshold. */
+    maxStage: 5,
     perLoop: 3,
     perEscape: 2,
     /** Echo-hours of Dig, Research or Scout per point of progress. */
@@ -118,6 +115,13 @@ export const BALANCE = {
     /** Stage 3: rarer rewards, and elites carry an affix and drop Shards. */
     rareWeightBonus: 5,
     eliteShards: 25,
+    /** Stage 4: escaping banks Shards. */
+    escapeShards: 50,
+    /** Unmaking the Sleeper (stage 5): Shards, then a new cycle. */
+    sleeperShards: 200,
+    /** Each cycle after the first: enemies gain this much HP, up to cycle `cycleCap`. */
+    cycleHpBonus: 0.05,
+    cycleCap: 5,
   },
 
   /** Archive → History keeps this many of the most recent loops. */

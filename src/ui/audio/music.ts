@@ -20,6 +20,7 @@ const MOODS: Record<string, Mood> = {
   'shift-fractured-sky': { root: 61.74, bright: 1400 },
   'shift-restless-engines': { root: 43.65, bright: 800 },
   'shift-hollow-bargain': { root: 51.91, bright: 450 },
+  'shift-sleepers-breath': { root: 38.89, bright: 420 }, // D#1: the lowest, slowest
 };
 /** Minor pentatonic, as ratios of the root, for the bell notes. */
 const SCALE = [1, 6 / 5, 4 / 3, 3 / 2, 9 / 5, 2];

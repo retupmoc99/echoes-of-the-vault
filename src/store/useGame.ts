@@ -114,19 +114,24 @@ export function useGame() {
 
   // Announce Awakening stage changes, whatever caused them (a closed loop,
   // Echo work, a Lull, a gift). Not on load: only changes seen while open.
-  const awakeningStage = save.world.awakening.stage;
-  const lastStage = useRef(awakeningStage);
+  const { stage: awakeningStage, cycle: awakeningCycle } = save.world.awakening;
+  const lastAwakening = useRef({ stage: awakeningStage, cycle: awakeningCycle });
   useEffect(() => {
-    const before = lastStage.current;
-    lastStage.current = awakeningStage;
-    if (awakeningStage === before) return;
+    const before = lastAwakening.current;
+    lastAwakening.current = { stage: awakeningStage, cycle: awakeningCycle };
+    if (awakeningCycle > before.cycle) {
+      // Unmaking the Sleeper resets the stage too; announce the cycle instead.
+      pushNotices([`☾ The Sleeper is unmade. +${BALANCE.awakening.sleeperShards} Shards, and its Eye is yours. Cycle ${awakeningCycle} begins.`]);
+      return;
+    }
+    if (awakeningStage === before.stage) return;
     const st = CONTENT.awakening.stages[awakeningStage];
     pushNotices([
-      awakeningStage > before
+      awakeningStage > before.stage
         ? `☾ The Sleeper stirs: ${st.name}. ${st.danger} ${st.reward}`
         : `☾ The Sleeper settles: ${awakeningStage === 0 ? 'dormant again' : st.name}.`,
     ]);
-  }, [awakeningStage, pushNotices]);
+  }, [awakeningStage, awakeningCycle, pushNotices]);
 
   // ── Idle ticking ──
   const tick = useCallback(() => {

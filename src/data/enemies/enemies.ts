@@ -232,8 +232,107 @@ export const ENEMIES: EnemyDef[] = [
       },
     },
     pattern: { kind: 'cycle', order: ['shatter', 'litany', 'bind', 'toll'], opening: 'toll' },
+    // Awakening stage 4+ ("Wakeful"): at half HP it weeps open.
+    phases: [
+      {
+        atHpRatio: 0.5,
+        minAwakening: 4,
+        name: 'The Lock, Weeping Open',
+        moves: {
+          flood: { name: 'Flood of Grief', effects: [{ kind: 'damage', amount: 6, hits: 2 }] },
+          drown: {
+            name: 'Drown',
+            effects: [
+              { kind: 'applyStatus', status: 'bleed', amount: 3, target: 'target' },
+              { kind: 'applyStatus', status: 'weakened', amount: 1, target: 'target' },
+            ],
+          },
+          burst: {
+            name: 'Burst Hinges',
+            effects: [
+              { kind: 'damage', amount: 13 },
+              { kind: 'applyStatus', status: 'fracture', amount: 1, target: 'self' },
+            ],
+          },
+        },
+        pattern: { kind: 'cycle', order: ['drown', 'burst', 'flood'], opening: 'flood' },
+      },
+    ],
     sigil: { sides: 8, innerSides: 4, rings: 4, hue: 280, spin: 50 },
     flavor: 'It guards the way down. It weeps for what waits there.',
+  },
+
+  // ─── The Sleeper (Awakening stage 5: replaces the Lock) ───
+  {
+    id: 'the-sleeper',
+    name: 'The Sleeper',
+    tier: 'boss',
+    hp: [150, 160],
+    // Opens by replaying the hardest move of each enemy you fought this loop.
+    memories: true,
+    moves: {
+      stir: { name: 'Stir', effects: [{ kind: 'damage', amount: 12 }] },
+      murmur: {
+        name: 'Murmur',
+        effects: [
+          { kind: 'ward', amount: 15 },
+          { kind: 'applyStatus', status: 'weakened', amount: 1, target: 'target' },
+        ],
+      },
+    },
+    pattern: { kind: 'cycle', order: ['stir', 'murmur'] },
+    phases: [
+      {
+        atHpRatio: 0.66,
+        name: 'The Sleeper, Dreaming',
+        onEnter: [{ kind: 'ward', amount: 10 }],
+        moves: {
+          // Lands on its turn two turns later: you see it coming on the timeline.
+          dream: { name: 'Dream of Ruin', effects: [{ kind: 'delay', turns: 2, effects: [{ kind: 'damage', amount: 16 }] }] },
+          grasp: { name: 'Grasping Hands', effects: [{ kind: 'damage', amount: 6, hits: 2 }] },
+          hush: {
+            name: 'Hush',
+            effects: [
+              { kind: 'ward', amount: 14 },
+              { kind: 'applyStatus', status: 'exposed', amount: 1, target: 'target' },
+            ],
+          },
+        },
+        pattern: { kind: 'cycle', order: ['grasp', 'hush', 'dream'], opening: 'dream' },
+      },
+      {
+        atHpRatio: 0.33,
+        name: 'The Sleeper, Waking',
+        // A race: it hits harder every turn, and Fracture eats at it.
+        onEnter: [{ kind: 'applyStatus', status: 'fracture', amount: 2, target: 'self' }],
+        moves: {
+          wake: {
+            name: 'Wake',
+            effects: [
+              { kind: 'damage', amount: 9 },
+              { kind: 'applyStatus', status: 'fracture', amount: 2, target: 'self' },
+            ],
+          },
+          howl: {
+            name: 'Howl',
+            effects: [
+              { kind: 'damage', amount: 4, hits: 3 },
+              { kind: 'applyStatus', status: 'fracture', amount: 1, target: 'self' },
+            ],
+          },
+          lastDream: {
+            name: 'Last Dream',
+            effects: [
+              { kind: 'delay', turns: 1, effects: [{ kind: 'damage', amount: 14 }] },
+              { kind: 'applyStatus', status: 'fracture', amount: 1, target: 'self' },
+            ],
+          },
+        },
+        pattern: { kind: 'cycle', order: ['wake', 'howl', 'lastDream'] },
+      },
+    ],
+    sigil: { sides: 0, innerSides: 8, rings: 5, hue: 320, spin: 8 },
+    flavor: 'It has slept beneath every loop you have ever run. It remembers all of them.',
   },
 ];
 
@@ -253,6 +352,8 @@ export const ENCOUNTERS: EncounterDef[] = [
   { id: 'warden-unmade', tier: 'elite', enemies: ['warden-unmade'] },
   { id: 'lens-tyrant', tier: 'elite', enemies: ['lens-tyrant'] },
   { id: 'grieving-lock', tier: 'boss', enemies: ['grieving-lock'] },
+  // Awakening stage 5 ("Awake"): the Sleeper takes the Lock's place.
+  { id: 'the-sleeper', tier: 'boss', enemies: ['the-sleeper'], minAwakening: 5, replaces: 'grieving-lock' },
 ];
 
 // ───────────────────────────── Awakening: Waking variants ─────────────────────────────

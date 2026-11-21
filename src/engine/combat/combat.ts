@@ -24,6 +24,7 @@ import { checkCombatEnd } from './damage';
 import { discardHand, drawCards } from './deck';
 import { needsTarget, resolveEffects } from './effects';
 import { chooseIntent } from './intents';
+import { buildMemories, moveOf, patternOf } from './phases';
 import { fireTriggers } from './relics';
 import { tickEndOfTurn, tickStartOfTurn } from './statuses';
 import { advanceTimeline, queueEcho, returnEchoes } from './time';
@@ -33,6 +34,7 @@ export function defaultCombatModifiers(): CombatModifiers {
   return {
     enemyHpMult: 1,
     enemyDamageBonus: 0,
+    awakeningStage: 0,
     bleedDecay: BALANCE.status.bleed.decayPerTurn,
     fractureDamagePerStack: BALANCE.status.fracture.damagePerStack,
     fractureSelfDamageRatio: BALANCE.status.fracture.selfDamageRatio,
@@ -52,7 +54,12 @@ export function createCombat(setup: CombatSetup, content: Content): StepResult {
   const enemies: EnemyState[] = encounter.enemies.map((defId, i) => {
     const def = content.enemies[defId];
     const hp = Math.round(rngInt(rng, def.hp[0], def.hp[1]) * modifiers.enemyHpMult * (affix?.hpMult ?? 1));
-    const enemy: EnemyState = { id: `e${i}`, defId, hp, maxHp: hp, ward: affix?.ward ?? 0, statuses: {}, intent: chooseIntent(rng, def, []), history: [] };
+    const enemy: EnemyState = { id: `e${i}`, defId, hp, maxHp: hp, ward: affix?.ward ?? 0, statuses: {}, intent: '', history: [] };
+    if (def.memories && setup.memories?.length) {
+      const remembered = buildMemories(setup.memories, content);
+      if (Object.keys(remembered).length) enemy.memoryMoves = remembered;
+    }
+    enemy.intent = chooseIntent(rng, patternOf(enemy, content), []);
     if (affix) {
       enemy.affix = affix.id;
       if (affix.damageBonus) enemy.damageBonus = affix.damageBonus;
@@ -152,10 +159,17 @@ function endTurn(ctx: Ctx): string | undefined {
     if (isOver(s)) return undefined; // check before `continue`: Bleed may have ended the fight
     if (enemy.hp <= 0) continue;
 
-    const move = ctx.content.enemies[enemy.defId].moves[enemy.intent];
+    // This enemy's delayed attacks (the Sleeper's dreams) tick and land on its own turn.
+    if (s.timeline.some((t) => t.sourceId === enemy.id)) advanceTimeline(ctx, 1, enemy.id);
+    if (isOver(s)) return undefined;
+    if (enemy.hp <= 0) continue;
+
+    const move = moveOf(enemy, ctx.content);
     ctx.events.push({ type: 'enemyMove', enemyId: enemy.id, moveId: enemy.intent, moveName: move.name });
     enemy.history.push(enemy.intent);
+    ctx.moveName = move.name;
     resolveEffects(ctx, move.effects, enemy.id, PLAYER_ID);
+    ctx.moveName = undefined;
     if (isOver(s)) return undefined;
 
     tickEndOfTurn(ctx, enemy);
@@ -164,7 +178,7 @@ function endTurn(ctx: Ctx): string | undefined {
 
   // Telegraph next moves, then hand control back.
   for (const enemy of livingEnemies(s)) {
-    enemy.intent = chooseIntent(s.rng, ctx.content.enemies[enemy.defId], enemy.history);
+    enemy.intent = chooseIntent(s.rng, patternOf(enemy, ctx.content), enemy.history);
   }
   s.phase = 'player';
   startPlayerTurn(ctx);
@@ -179,8 +193,8 @@ function startPlayerTurn(ctx: Ctx): void {
 
   tickStartOfTurn(ctx, s.player);
   if (isOver(s)) return;
-  // Delayed effects land before you draw.
-  if (s.timeline.length) advanceTimeline(ctx, 1);
+  // Your delayed effects land before you draw.
+  if (s.timeline.some((t) => !t.sourceId)) advanceTimeline(ctx, 1);
   if (isOver(s)) return;
 
   s.resonance = BALANCE.player.resonancePerTurn;

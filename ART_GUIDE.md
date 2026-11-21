@@ -22,7 +22,7 @@ The script reads each item's prompt from the tables below (cards by default), pl
 
 Comfy Desktop users: the desktop app may not expose a local API. You can run the install's server directly, from its `ComfyUI` folder: `.venv/Scripts/python.exe main.py --port 8190 --extra-model-paths-config <yaml pointing at your models folder>`.
 
-**Current set (0.10.0):** the full set, 98 images, 3.1 MB.
+**Current set (0.13.0):** the full set, 101 images, 3.3 MB (the Sleeper, its Eye and The Sleeper's Breath background added in 0.13).
 - All 55 cards, picked from ~180 generated images on an RTX 5080 (~6 s each). Weakest, worth a reroll: *Second Hand* (a clock, not a blade), *Loop the Moment*, *Unmake the Hour* and *Mirror Sigil* (pale backgrounds), *Twin Shards* (pillars, not crossed blades).
 - All 8 backgrounds: `npm run art:gen -- --folder backgrounds`. 768×1344 plus a built-in second pass (latent upscale ×1.5, denoise 0.45) to 1152×2016, ~16 s each.
 - All 11 enemies, 18 relics and 6 node icons: `--folder enemies|relics|ui`. Cut out with ComfyUI's built-in Remove Background node and BiRefNet (`birefnet.safetensors`, 424 MB, from huggingface.co/Comfy-Org/BiRefNet, in the `background_removal` models folder). Over budget but kept for detail: *Vein Crawler* (166 KB), *Bone Abacus* (34 KB), *Gilded Gear* (26 KB).
@@ -147,6 +147,7 @@ Add to the style prompt: `a single subject, the whole subject in frame, centred,
 | warden-unmade | 210 blue | a fallen warden in broken armour, face a void, blue-white sigil eyes, sword lowered |
 | lens-tyrant | 300 magenta | a colossal floating eye-lens cracked with magenta light, orbiting fragments |
 | grieving-lock | 280 violet | an immense round vault-door lock mechanism of four concentric metal rings, a sorrowful weeping face of violet light at its centre, heavy chains, no body |
+| the-sleeper | 320 magenta | a vast half-formed dreaming colossus curled in on itself, featureless face of smooth stone with many closed glowing eyes along its body, trailing threads of magenta light, no body detail below the waist, ancient and enormous |
 
 #### Relics (`art-raw/relics/<id>.png`, 1:1, transparent)
 Add to the negative prompt: `white background, grey background, studio backdrop, floor, table, shadow, pedestal, wall, paper, parchment`.
@@ -164,6 +165,7 @@ Add to the style prompt: `a single small object, centred, floating alone in tota
 | fault-engine | a small engine of cracked gears with orange light leaking from the fractures |
 | hungering-eye | a single glowing eye set in tarnished metal, hungry, magenta iris |
 | grave-lantern | a lantern of black iron burning a pale green flame |
+| sleepers-eye | a single closed stone eyelid set in a ring of dark iron, a thin line of magenta light leaking from beneath it |
 
 #### Hour-Thief cards (`art-raw/cards/<id>.png`, 4:3)
 Shared accent: **pale jade and silver** (Temporal cards), with ember for strikes and cyan for wards. Add to the style prompt: `pale jade and silver glow`. (An earlier "clockwork, hourglass sand, frozen motion" turned every card into an hourglass in a desert.)
@@ -236,6 +238,7 @@ Add to the style prompt: `vast empty environment, calm open space in the middle,
 | shift-fractured-sky | a vault ceiling cracked open, blinding white light lancing down through fractures |
 | shift-restless-engines | colossal dormant machines stirring in the dark, gold seams of light |
 | shift-hollow-bargain | a vast empty throne hall, a single offering table, violet candlelight |
+| shift-sleepers-breath | a vast dark vault whose stone walls swell and sag like slow breathing flesh, faint magenta glow pulsing deep in the cracks |
 
 ## Blender: where 3D beats 2D generation
 The game itself stays 2D. Blender is for making images.

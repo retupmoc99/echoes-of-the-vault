@@ -98,6 +98,11 @@ function resolveEffect(ctx: Ctx, effect: Effect, source: Combatant, targetId: st
       resolveEffects(ctx, branch, source.id, targetId);
       return;
     }
+    case 'delay':
+      // Enemies can delay too (the Sleeper's dreams): aimed at you, ticking on their turns.
+      if (isPlayer) queueDelay(ctx, effect.effects, effect.turns, targetId);
+      else queueDelay(ctx, effect.effects, effect.turns, PLAYER_ID, source.id, ctx.moveName);
+      return;
   }
 
   // Everything below only makes sense for the player.
@@ -120,9 +125,6 @@ function resolveEffect(ctx: Ctx, effect: Effect, source: Combatant, targetId: st
       return;
     case 'clearWard':
       ctx.s.player.ward = 0;
-      return;
-    case 'delay':
-      queueDelay(ctx, effect.effects, effect.turns, targetId);
       return;
     case 'hasten':
       advanceTimeline(ctx, effect.turns);

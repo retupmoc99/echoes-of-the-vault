@@ -16,6 +16,7 @@ export function LoopHistory({ save }: { save: SaveData }) {
     <div className="history">
       <p className="record">
         Loops {loops} · Escaped {victories} · Fallen {deaths}
+        {save.world.awakening.cycle > 1 && ` · Sleeper unmade ${save.world.awakening.cycle - 1}×`}
       </p>
       {history.length === 0 && <p className="record">No loops recorded yet. Every loop you close from now on is kept here.</p>}
       {history.map((rec) => (
@@ -37,7 +38,7 @@ function HistoryRow({ rec, open, onToggle }: { rec: LoopRecord; open: boolean; o
     <article className={`history-row ${won ? 'won' : 'lost'} ${open ? 'open' : ''}`}>
       <button className="history-head" onClick={onToggle} aria-expanded={open}>
         <span className="history-title">
-          Loop {rec.loop} · {won ? 'Escaped' : s.abandoned ? 'Abandoned' : `Fell at depth ${rec.depth}`}
+          Loop {rec.loop} · {rec.unmadeSleeper ? 'Unmade the Sleeper' : won ? 'Escaped' : s.abandoned ? 'Abandoned' : `Fell at depth ${rec.depth}`}
         </span>
         <span className="history-sub">
           {warden} · {shift}

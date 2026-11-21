@@ -94,6 +94,14 @@ export const RELICS: RelicDef[] = [
 
   // ─── Hour-Thief relics ───
   {
+    // Never rolled: every loop starts with it once the Sleeper has been unmade.
+    id: 'sleepers-eye',
+    name: "Sleeper's Eye",
+    rarity: 'rare',
+    passive: [{ on: 'combatStart', effects: [{ kind: 'ward', amount: 6 }, { kind: 'draw', amount: 1 }] }],
+    flavor: 'It still blinks, sometimes. You try not to notice when.',
+  },
+  {
     id: 'cracked-hourglass',
     name: 'Cracked Hourglass',
     rarity: 'starter',

@@ -14,6 +14,8 @@ export interface Ctx {
   depth: number;
   /** The card whose effects are resolving (labels timeline entries). */
   sourceCardId?: string;
+  /** The enemy move resolving (labels an enemy's delayed attacks). */
+  moveName?: string;
 }
 
 export const PLAYER_ID = 'player';

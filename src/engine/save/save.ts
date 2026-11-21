@@ -17,7 +17,7 @@ import { defaultCombatModifiers } from '../combat/combat';
 import type { Echo, NextLoop, OutpostState, RunState, RunStats, WorldState } from '../types';
 
 export const SAVE_KEY = 'eotv.save';
-export const SAVE_VERSION = 8;
+export const SAVE_VERSION = 9;
 
 export interface MetaProgress {
   /** Loops completed, by any means. */
@@ -46,6 +46,8 @@ export interface LoopRecord {
   echoTraitId: string;
   /** Awakening stage the loop ran at. */
   awakeningStage: number;
+  /** This loop unmade the Sleeper (ending a cycle). */
+  unmadeSleeper?: boolean;
 }
 
 export interface SaveData {
@@ -192,6 +194,12 @@ export const MIGRATIONS: Record<number, Migration> = {
       world: { factions: {}, ...v7.world, awakening: { stage: a.stage ?? 0, progress: a.progress ?? 0, cycle: 1, lullsThisStage: 0 } },
       meta: { ...v7.meta, history: v7.meta.history.map((h: Loose) => ({ ...h, awakeningStage: 0 })) },
     };
+  },
+
+  // v8 → v9: Awakening stages 4–5 and cycles. A loop in progress is in cycle 1.
+  8: (v8: Loose) => {
+    if (v8.run) v8.run.awakeningCycle = 1;
+    return { ...v8, version: 9 };
   },
 };
 

@@ -20,6 +20,21 @@ export const AWAKENING_LORE: LoreFragment[] = [
     title: 'Teeth',
     text: 'The elites have begun to wear what it dreams of them. It dreams of you, too.',
   },
+  {
+    id: 'lore-wakeful',
+    title: 'The Lock Weeps',
+    text: 'The Lock was never guarding the way down. It was holding the lid shut. Now it cannot stop crying.',
+  },
+  {
+    id: 'lore-awake',
+    title: 'Awake',
+    text: 'It has opened its eyes. They are your eyes, from every loop, looking back at you.',
+  },
+  {
+    id: 'lore-unmade',
+    title: 'Unmade',
+    text: 'You unmade it, and it began to dream again at once. Of you. It always dreams of you first.',
+  },
 ];
 
 export const AWAKENING_CONTENT: AwakeningContent = {
@@ -43,8 +58,18 @@ export const AWAKENING_CONTENT: AwakeningContent = {
       reward: 'Rarer card rewards. Elites drop 25 Shards.',
       loreId: 'lore-teeth',
     },
-    { name: 'Wakeful', danger: 'Not yet. The Sleeper is still dreaming this far.', reward: '' },
-    { name: 'Awake', danger: 'Not yet.', reward: '' },
+    {
+      name: 'Wakeful',
+      danger: "A new Shift, The Sleeper's Breath, joins the rotation. The Lock gains a second phase at half HP.",
+      reward: 'Escaping banks 50 Shards.',
+      loreId: 'lore-wakeful',
+    },
+    {
+      name: 'Awake',
+      danger: 'The Sleeper replaces the Lock as the final boss. Lull and Give no longer work.',
+      reward: "Unmake it: 200 Shards, the Sleeper's Eye in every loop after, and a new cycle.",
+      loreId: 'lore-awake',
+    },
   ],
   affixes: {
     hardened: { id: 'hardened', name: 'Hardened', description: '20% more HP.', hpMult: 1.2 },

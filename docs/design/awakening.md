@@ -1,6 +1,6 @@
 # Design proposal: the Awakening
 
-*Status: design approved 2026-11-21. Milestone 1 (stages 1–3) built in 0.12.0; milestone 2 (stages 4–5, the Sleeper, cycles) not yet.*
+*Status: built. Milestone 1 (stages 1–3) in 0.12.0; milestone 2 (stages 4–5, the Sleeper, cycles) in 0.13.0.*
 *Decided: it rises with **activity only**: loops played and Echo work done. Time away never raises it.*
 
 > Something sleeps beneath the vault. Every loop is a footstep in its dream.
@@ -77,8 +77,16 @@ What changed from the draft above while building:
 - **The meter appears after your first closed loop**, so a brand-new player isn't faced with it on the first screen.
 - **Tuning** (bot, 1,500 loops per class): stage 0: 35% / 33%; stage 1: 32% / 33%; stage 2: 30% / 30%; stage 3: 27% / 28%. That's slightly above the 25% target for stage 3, but the bot ignores the stage's Shards and barely benefits from rarer rewards. Waking enemies have +15% HP and Frenzied elites +3 damage (both raised from the draft while tuning).
 
+## Milestone 2 as built (0.13.0)
+- **Boss phases** are a general engine feature: an enemy enters a phase at an HP threshold, gets new moves and a new pattern, shows its new intent at once, and can be renamed ("The Lock, Weeping Open"). A phase can require an Awakening stage.
+- **Enemies can delay attacks.** Their timeline entries tick and land on *that enemy's* turn, not at the start of yours, so the Ward you build still blocks them. They show as red chips on the timeline and fizzle if the enemy dies first. Hasten only moves your own entries.
+- **Stage 4 reward:** escaping banks 50 Shards, instead of the Lock dropping a relic (a relic at the end of a loop would never be used).
+- **The Sleeper's unique relic** (the Sleeper's Eye: 6 Ward and a card draw at the start of each fight) goes into every loop *after* you unmake it, instead of joining the relic pools.
+- **The Sleeper** opens by replaying the hardest move of each enemy fought that loop (up to 4, at full strength), then Dreaming (delayed attacks), then Waking (it Fractures itself every turn).
+- **Tuning** (bot, 1,500 loops per class): stage 4 is 17% / 23%; stage 5 is 14% / 17%. To get there, the Sleeper went from about 220 HP to 150–160, and the Lock's second phase was softened. The Relic-Breaker finds the weeping Lock harder than the Hour-Thief does.
+
 ## Decisions (2026-11-21)
-1. **Cycles stack:** +5% enemy HP per cycle after the first, capped at Cycle 5 (+25%).
+1. **Cycles stack:** +5% enemy HP per cycle after the first, capped at Cycle 5 (+20%; the draft said +25%, which miscounted the first cycle).
 2. **Any Echo can be given to the Sleeper**, behind a two-tap confirm.
 3. **Pace stays at about 20–25 loops** to reach Awake.
 4. **The Awakening ships first, on its own** (save v8); the Echo-Caller follows (v9).

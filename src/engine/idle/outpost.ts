@@ -7,7 +7,7 @@
 import { BALANCE } from '../../data/balance';
 import type { Content, EchoTaskKind, IdleReport, MapNode } from '../types';
 import type { SaveData } from '../save/save';
-import { addAwakening, giveValue, lullCost } from './awakening';
+import { AWAKE, addAwakening, giveValue, lullCost } from './awakening';
 import { advanceIdle, researchComplete } from './idle';
 import { closeLoop, nextRunPreview, prepareNextLoop, ringShiftBell, startLoop } from './loop';
 
@@ -68,6 +68,7 @@ function apply(s: SaveData, action: OutpostAction, now: number, content: Content
       return s.pendingEcho ? { ...s, pendingEcho: null } : 'No Echo is waiting.';
     case 'lull': {
       const a = s.world.awakening;
+      if (a.stage >= AWAKE) return 'It is awake. It will not be lulled now.';
       if (a.progress <= 0) return 'The Sleeper is already still.';
       const cost = lullCost(a);
       if (Math.floor(s.outpost.shards) < cost) return 'Not enough Shards.';
@@ -79,6 +80,7 @@ function apply(s: SaveData, action: OutpostAction, now: number, content: Content
     case 'giveEcho': {
       const echo = s.echoes.find((e) => e.id === action.echoId);
       if (!echo) return 'That Echo is gone.';
+      if (s.world.awakening.stage >= AWAKE) return 'It is awake. No gift will put it back to sleep.';
       if (s.world.awakening.progress <= 0) return 'The Sleeper is already still.';
       return addAwakening({ ...s, echoes: s.echoes.filter((e) => e.id !== echo.id) }, -giveValue(echo), content);
     }

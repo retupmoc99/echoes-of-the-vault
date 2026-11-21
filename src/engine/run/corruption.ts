@@ -54,5 +54,11 @@ export function combatModifiersFor(r: RunState, content: Content): CombatModifie
   const tier = corruptionTier(r.corruption);
   mods.enemyHpMult *= 1 + tier * C.enemyHpPerTier;
   mods.enemyDamageBonus += tier * C.enemyDamagePerTier;
+
+  // The Awakening: the stage gates boss phases; each cycle after the first toughens enemies.
+  const A = BALANCE.awakening;
+  mods.awakeningStage = r.awakeningStage ?? 0;
+  const cycles = Math.min(r.awakeningCycle ?? 1, A.cycleCap) - 1;
+  mods.enemyHpMult *= 1 + cycles * A.cycleHpBonus;
   return mods;
 }

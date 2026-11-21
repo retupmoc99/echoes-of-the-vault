@@ -2137,3 +2137,13 @@ body.has-screen-art::before {
   flex: 1;
   min-width: 0;
 }
+/* An enemy's delayed attack (the Sleeper's dreams). */
+.timeline-chip.foe {
+  border-color: hsl(330 60% 50% / 0.7);
+  background: hsl(330 30% 8%);
+  color: hsl(330 75% 78%);
+}
+.timeline-chip.foe.soon {
+  border-color: hsl(340 90% 62%);
+  box-shadow: 0 0 12px hsl(340 90% 55% / 0.55);
+}

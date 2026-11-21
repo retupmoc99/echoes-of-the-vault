@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { CONTENT } from '../../data';
 import { ArtImg, artUrl } from '../art';
 import { onFx } from '../fx/fxBus';
-import { previewIntent, type CombatState, type EnemyState } from '../../engine';
+import { enemyName, previewIntent, type CombatState, type EnemyState } from '../../engine';
 import { useHitFx } from '../fx/useHitFx';
 import { Floaters } from './Floaters';
 import { HpBar } from './HpBar';
@@ -41,6 +41,8 @@ export function EnemyView({ state, enemy, targeted, size, onSelect, onInspect }:
   const acting = useActing(enemy.id);
   const dead = enemy.hp <= 0;
   const affix = enemy.affix ? CONTENT.awakening.affixes[enemy.affix] : undefined;
+  // A boss phase renames it ("The Lock, Weeping Open").
+  const name = enemyName(enemy, CONTENT);
 
   return (
     <div
@@ -49,7 +51,7 @@ export function EnemyView({ state, enemy, targeted, size, onSelect, onInspect }:
       onClick={() => {
         if (dead) return;
         onSelect();
-        onInspect(affix ? `${affix.name} ${def.name}. ${affix.description} ${def.flavor}` : `${def.name}. ${def.flavor}`);
+        onInspect(affix ? `${affix.name} ${name}. ${affix.description} ${def.flavor}` : `${name}. ${def.flavor}`);
       }}
     >
       <div className="enemy-intent">{!dead && <IntentBadge intent={previewIntent(state, enemy, CONTENT)} onInspect={onInspect} />}</div>
@@ -57,7 +59,7 @@ export function EnemyView({ state, enemy, targeted, size, onSelect, onInspect }:
         <ArtImg src={artUrl('enemies', def.id, def.image)} className="enemy-art" size={size} fallback={<Sigil spec={def.sigil} size={size} />} />
         <Floaters items={floaters} />
       </div>
-      <div className="enemy-name">{affix ? `${affix.name} ${def.name}` : def.name}</div>
+      <div className="enemy-name">{affix ? `${affix.name} ${name}` : name}</div>
       <HpBar hp={enemy.hp} maxHp={enemy.maxHp} ward={enemy.ward} />
       <StatusChips statuses={enemy.statuses} onInspect={onInspect} />
     </div>

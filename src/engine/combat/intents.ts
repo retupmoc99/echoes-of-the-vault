@@ -2,12 +2,12 @@
  * Enemy intents: choosing the next move and previewing it for the player.
  */
 import { rngWeighted, type RngState } from '../rng';
-import type { CombatState, Content, Effect, EnemyDef, EnemyState } from '../types';
+import type { CombatState, Content, Effect, EnemyState, IntentPattern } from '../types';
 import { attackDamage } from './damage';
 import { resolveAmount } from './effects';
+import { moveOf } from './phases';
 
-export function chooseIntent(rng: RngState, def: EnemyDef, history: string[]): string {
-  const p = def.pattern;
+export function chooseIntent(rng: RngState, p: IntentPattern, history: string[]): string {
   if (history.length === 0 && p.opening) return p.opening;
   const used = history.length - (p.opening ? 1 : 0);
 
@@ -31,7 +31,7 @@ export interface IntentPreview {
 
 /** What the enemy will do, with live numbers (Weakened, Exposed, etc. applied). */
 export function previewIntent(s: CombatState, enemy: EnemyState, content: Content): IntentPreview {
-  const move = content.enemies[enemy.defId].moves[enemy.intent];
+  const move = moveOf(enemy, content);
   const kinds = new Set<IntentKind>();
   let damage: number | undefined;
   let hits: number | undefined;
@@ -43,6 +43,7 @@ export function previewIntent(s: CombatState, enemy: EnemyState, content: Conten
         damage = attackDamage(s, enemy, s.player, resolveAmount(e.amount, enemy, s.player));
         hits = e.hits ?? 1;
       } else if (e.kind === 'ward') kinds.add('defend');
+      else if (e.kind === 'delay') kinds.add('strange'); // lands later: shown on the timeline
       else if (e.kind === 'applyStatus') kinds.add(e.target === 'self' ? 'buff' : 'debuff');
       else if (e.kind === 'if') {
         walk(e.then);

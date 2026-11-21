@@ -23,13 +23,13 @@ const atProgress = (progress: number, patch: Partial<SaveData> = {}): SaveData =
 const echo = (patch: Partial<Echo> = {}): Echo => ({ ...createEcho(endedRun(), 1, T0, CONTENT), traitId: 'faded', stability: 100, maxStability: 100, task: null, ...patch });
 
 describe('Awakening progress and stages', () => {
-  it('maps progress to stages, and stops short of stages not built yet', () => {
+  it('maps progress to stages, capped at the last threshold', () => {
     expect(stageFor(0)).toBe(0);
     expect(stageFor(A.thresholds[0])).toBe(1);
     expect(stageFor(A.thresholds[2])).toBe(3);
-    expect(stageFor(999)).toBe(A.maxStage);
+    expect(stageFor(999)).toBe(5);
     expect(atProgress(500).world.awakening.progress).toBe(awakeningCap());
-    expect(awakeningCap()).toBe(A.thresholds[A.maxStage] - 1);
+    expect(awakeningCap()).toBe(A.thresholds[4]);
   });
 
   it('never goes below zero', () => {
