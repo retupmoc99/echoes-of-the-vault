@@ -1145,7 +1145,9 @@ button {
 .reward-cards .card-hand,
 .tainted-offer .card-hand {
   max-width: none;
-  height: 156px;
+  /* Grow to fit art + text, so nothing spills out at any screen width. */
+  height: auto;
+  min-height: 132px;
 }
 .tainted-offer {
   display: grid;
@@ -1711,9 +1713,14 @@ button {
   height: 46px;
   aspect-ratio: auto;
 }
+/* Reward cards have room to show the painting: art scales with the card's
+   width (cover screen to inner screen), capped so it never crowds the text. */
 .reward-cards .card-hand .card-art,
 .tainted-offer .card-hand .card-art {
-  height: 54px;
+  height: auto;
+  aspect-ratio: 4 / 3;
+  /* Short screens (an inner screen held sideways) get smaller art. */
+  max-height: min(150px, 16dvh);
 }
 .card-detail .card-art {
   width: calc(100% + 36px);
