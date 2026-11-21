@@ -1145,7 +1145,7 @@ button {
 .reward-cards .card-hand,
 .tainted-offer .card-hand {
   max-width: none;
-  height: 132px;
+  height: 156px;
 }
 .tainted-offer {
   display: grid;
@@ -1702,6 +1702,18 @@ button {
   object-fit: cover;
   border-radius: var(--radius) var(--radius) 0 0;
   mask-image: linear-gradient(#000 70%, transparent);
+}
+/* Small cards get a fixed art height: sized by width, art on wide cards
+   (rewards, the tainted offer) grew taller than the card and pushed the
+   name and rules text out of it. */
+.card-hand .card-art {
+  flex: none;
+  height: 46px;
+  aspect-ratio: auto;
+}
+.reward-cards .card-hand .card-art,
+.tainted-offer .card-hand .card-art {
+  height: 54px;
 }
 .card-detail .card-art {
   width: calc(100% + 36px);
