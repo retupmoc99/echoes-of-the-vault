@@ -16,16 +16,16 @@ The game never waits on art. Every card, enemy, relic, node type and background 
 ### Generating art automatically
 With ComfyUI running locally (SDXL base and the LaxpeintXL LoRA installed), run:
 ```bash
-COMFY_URL=http://127.0.0.1:8188 npm run art:gen -- [ids...] [--folder cards|backgrounds] [--seeds 101,303] [--force]
+COMFY_URL=http://127.0.0.1:8188 npm run art:gen -- [ids...] [--folder cards|backgrounds|enemies|relics|ui] [--seeds 101,303] [--force]
 ```
 The script reads each item's prompt from the tables below (cards by default), plus the style and negative prompts. It writes one image per seed to `art-raw/_candidates/<folder>/<id>_<seed>.png`. With no IDs, it does every item in the folder and skips images that already exist. Copy the keeper to `art-raw/<folder>/<id>.png` and run `npm run art`. `art-raw/_candidates/SEEDS.txt` records which seed won for each image.
 
 Comfy Desktop users: the desktop app may not expose a local API. You can run the install's server directly, from its `ComfyUI` folder: `.venv/Scripts/python.exe main.py --port 8190 --extra-model-paths-config <yaml pointing at your models folder>`.
 
-**Current set (0.9.0):**
+**Current set (0.10.0):** the full set, 98 images, 3.1 MB.
 - All 55 cards, picked from ~180 generated images on an RTX 5080 (~6 s each). Weakest, worth a reroll: *Second Hand* (a clock, not a blade), *Loop the Moment*, *Unmake the Hour* and *Mirror Sigil* (pale backgrounds), *Twin Shards* (pillars, not crossed blades).
 - All 8 backgrounds: `npm run art:gen -- --folder backgrounds`. 768×1344 plus a built-in second pass (latent upscale ×1.5, denoise 0.45) to 1152×2016, ~16 s each.
-- Enemies, relics and node icons still need a background-removal model before they can be generated.
+- All 11 enemies, 18 relics and 6 node icons: `--folder enemies|relics|ui`. Cut out with ComfyUI's built-in Remove Background node and BiRefNet (`birefnet.safetensors`, 424 MB, from huggingface.co/Comfy-Org/BiRefNet, in the `background_removal` models folder). Over budget but kept for detail: *Vein Crawler* (166 KB), *Bone Abacus* (34 KB), *Gilded Gear* (26 KB).
 
 You can also point a content entry at a specific file with its `image` field (path relative to `public/assets/`), e.g. `image: 'cards/shatter-lens-alt.webp'`.
 
@@ -89,10 +89,9 @@ text, letters, watermark, signature, logo, frame, border, ui, white background, 
 - **Consistency boosters:**
   - An IP-Adapter (style) fed with your 2–3 favourite finished pieces, weight 0.4–0.6.
   - Or train a small style LoRA on ~20 keepers once you have them.
-- **Transparent sprites** (enemies, relics, UI): generate on the near-black background, then remove it:
-  - A background-removal node (e.g. a BiRefNet / RMBG-class model) gives clean alpha.
-  - Then feather the mask edge by 1–2 px, so glows don't get a hard halo.
-  - Keep some outer glow: let the mask include a soft falloff, rather than cutting at the subject's edge.
+- **Transparent sprites** (enemies, relics, UI): `npm run art:gen` does this automatically. It generates on black, cuts the subject out with BiRefNet, feathers the mask by ~1 px, and keeps coloured glow within ~30 px of the subject as soft falloff. Grey or white backdrops don't count as glow, so they drop away.
+  - Don't write "isolated on a black background": SDXL reads "isolated" as a white studio backdrop. "Floating alone in total black darkness" works.
+  - For abstract enemies (lattices, machines, locks), say "no body". Otherwise the creature wording turns them into hooded figures.
 - **Check at real size:** look at every result at 64–96 px before keeping it. If the silhouette isn't readable that small, it fails on a phone.
 
 ### Per-item prompts
@@ -133,25 +132,29 @@ Write each as: *shared style prompt* + the line below. Hue hints are optional.
 | leaden-thought | a heavy dull green metal weight chained to a glowing mind-sigil |
 
 #### Enemies (`art-raw/enemies/<id>.png`, 1:1, transparent)
+Add to the negative prompt: `white background, grey background, studio backdrop, floor, ground, shadow, pedestal, wall, paper, parchment, disc behind, robed figure, hooded cloak`.
+Add to the style prompt: `a single subject, the whole subject in frame, centred, facing the viewer, floating alone in total black darkness, black void around it, nothing else in the frame`.
 | ID | Hue | Prompt |
 |---|---|---|
 | hollow-sentinel | 200 cyan | a hollow armoured construct with a square glowing core, empty helm, guarding pose, cyan runes |
-| bleeding-lattice | 350 red | a floating hexagonal lattice of razor-thin red light, dripping glowing droplets |
+| bleeding-lattice | 350 red | an abstract floating hexagonal cage made of razor-thin red light beams, glowing crimson droplets falling from it, geometric, no body |
 | mirror-wraith | 265 violet | a triangular mirror-faced wraith with a smeared reflection of a warden, violet glow |
 | choir-shard | 170 teal | a singing pentagonal crystal shard with a mouth-like fissure, teal sound rings |
 | rust-seraph | 25 orange | a rusted six-winged seraph of corroded metal, cracks glowing orange, burning halo |
 | vein-crawler | 340 crimson | an eight-legged conduit crawler made of cables and glowing crimson veins |
 | ash-hound | 15 ember | a lean hound of ash and cinders with ember eyes and a triangular skull plate |
-| tithe-engine | 48 gold | a massive hexagonal machine-idol with a collection bowl, gold gears, three rings of light |
+| tithe-engine | 48 gold | a massive hexagonal brass machine-idol of turning gold gears and three glowing rings of light, a collection bowl at its base, mechanical, no body |
 | warden-unmade | 210 blue | a fallen warden in broken armour, face a void, blue-white sigil eyes, sword lowered |
 | lens-tyrant | 300 magenta | a colossal floating eye-lens cracked with magenta light, orbiting fragments |
-| grieving-lock | 280 violet | an immense circular vault lock with a weeping face of light, four concentric rings, chains |
+| grieving-lock | 280 violet | an immense round vault-door lock mechanism of four concentric metal rings, a sorrowful weeping face of violet light at its centre, heavy chains, no body |
 
 #### Relics (`art-raw/relics/<id>.png`, 1:1, transparent)
+Add to the negative prompt: `white background, grey background, studio backdrop, floor, table, shadow, pedestal, wall, paper, parchment`.
+Add to the style prompt: `a single small object, centred, floating alone in total black darkness, black void around it, bold readable silhouette, nothing else in the frame`.
 | ID | Prompt |
 |---|---|
 | cinder-core | a dead star caged in bone-white metal, orange embers inside |
-| grieving-prism | a tall prism weeping drops of white light |
+| grieving-prism | a tall clear crystal prism glowing bright white from inside, weeping drops of white light down its faces |
 | thorned-halo | a crown of glass thorns with a faint red glow |
 | stilled-heart | a still mechanical heart of black metal with one cyan vein |
 | bone-abacus | an abacus of carved bone beads on dark metal rods, faint violet glow |
@@ -194,6 +197,8 @@ Shared accent: **pale jade and silver** (Temporal cards), with ember for strikes
 | age-the-flesh | a hand withering to bone where jade time-light touches it, red mist |
 
 #### Hour-Thief relics (`art-raw/relics/<id>.png`, 1:1, transparent)
+Add to the negative prompt: `white background, grey background, studio backdrop, floor, table, shadow, pedestal, wall, paper, parchment`.
+Add to the style prompt: `a single small object, centred, floating alone in total black darkness, black void around it, bold readable silhouette, nothing else in the frame`.
 | ID | Prompt |
 |---|---|
 | cracked-hourglass | a cracked hourglass with sand flowing both up and down, jade glow |
@@ -205,6 +210,7 @@ Shared accent: **pale jade and silver** (Temporal cards), with ember for strikes
 | thief-of-moments | a small sack spilling glowing seconds like coins, jade and gold |
 
 #### Node icons (`art-raw/ui/node-<type>.png`, transparent)
+Add to the style prompt: `a simple bold symmetrical glyph emblem, centred, floating in total black darkness, flat graphic icon, thick glowing lines`.
 | ID | Prompt |
 |---|---|
 | node-fight | two crossed relic blades, glyph style, red glow, flat emblem |
@@ -214,7 +220,7 @@ Shared accent: **pale jade and silver** (Temporal cards), with ember for strikes
 | node-shrine | an arched shrine with a small flame, green-teal glow, flat emblem |
 | node-boss | a great lock sigil, nested diamonds, violet glow, flat emblem |
 
-Add to the negative prompt for icons: `scene, background detail, perspective`.
+Add to the negative prompt for icons: `scene, background detail, perspective, white background, grey background, paper, parchment, disc behind, frame`.
 
 #### Backgrounds (`art-raw/backgrounds/<key>.png`, 9:16)
 Add to the negative prompt: `person, figure, silhouette, character, monk, robed figure, moon, clouds`.

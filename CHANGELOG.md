@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.10.0 — Enemies, relics and map icons (2026-11-21)
+
+### Added
+- **Painted art for all 11 enemies, 18 relics and 6 map icons,** cut out with transparent backgrounds. With this, every art slot in the game has an image: 98 images, 3.1 MB, all loaded on demand.
+- `npm run art:gen -- --folder enemies|relics|ui` cuts sprites out with ComfyUI's built-in Remove Background node (BiRefNet model). It keeps coloured glow near the subject as soft falloff, so sprites don't get a hard cut-out edge.
+
+### Changed
+- Enemy images glow in each enemy's own colour instead of a fixed violet.
+- `ART_GUIDE.md`: sprite prompts, what to avoid ("isolated" gives white backdrops; abstract enemies need "no body"), and reworded prompts for 4 items.
+
 ## 0.9.0 — Painted backgrounds (2026-11-21)
 
 ### Added

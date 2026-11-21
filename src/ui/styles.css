@@ -1738,7 +1738,8 @@ body.has-screen-art::before {
 .enemy-art {
   display: block;
   object-fit: contain;
-  filter: drop-shadow(0 0 10px hsl(270 90% 60% / 0.6));
+  /* Glow in the enemy's own hue (set on .enemy-sigil from its sigil data). */
+  filter: drop-shadow(0 0 10px hsl(var(--hue, 270) 90% 60% / 0.55));
 }
 .enemy.hit .enemy-art {
   filter: brightness(2.2) drop-shadow(0 0 16px #fff);

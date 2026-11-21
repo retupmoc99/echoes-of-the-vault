@@ -52,7 +52,7 @@ export function EnemyView({ state, enemy, targeted, size, onSelect, onInspect }:
       }}
     >
       <div className="enemy-intent">{!dead && <IntentBadge intent={previewIntent(state, enemy, CONTENT)} onInspect={onInspect} />}</div>
-      <div className="enemy-sigil">
+      <div className="enemy-sigil" style={{ ['--hue' as string]: def.sigil.hue }}>
         <ArtImg src={artUrl('enemies', def.id, def.image)} className="enemy-art" size={size} fallback={<Sigil spec={def.sigil} size={size} />} />
         <Floaters items={floaters} />
       </div>
