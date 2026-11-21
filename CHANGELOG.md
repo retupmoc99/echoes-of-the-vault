@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.14.2 — Touch targets and fit (2026-11-21)
+
+### Fixed
+- **Every tappable chip now meets the 44px touch-target rule.**
+  - The Vault Shift chip and timeline chips are now 44px tall.
+  - Enemy intent badges, status chips and Echo trait chips keep their look but get an invisible 44×44 tap area.
+- **Enemy art shrinks to fit on short screens.** With two allies and a timeline on a small phone, the art used to overflow onto the turn label, and its name and HP bar collided with the info line and the ally row. It now scales between 64px and full size to fit the space left.
+
+### Changed
+- Rerolled art for *Soul Lance* (now a reaper hurling a spear of light) and *Severed Thread* (a thick cord splitting with blue lightning).
+
 ## 0.14.1 — Echo-Caller art (2026-11-21)
 
 ### Added

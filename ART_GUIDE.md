@@ -22,7 +22,7 @@ The script reads each item's prompt from the tables below (cards by default), pl
 
 Comfy Desktop users: the desktop app may not expose a local API. You can run the install's server directly, from its `ComfyUI` folder: `.venv/Scripts/python.exe main.py --port 8190 --extra-model-paths-config <yaml pointing at your models folder>`.
 
-**Current set (0.14.1):** the full set, 132 images, 3.8 MB. The Sleeper, its Eye and The Sleeper's Breath background came in 0.13; the Echo-Caller's 24 cards and 7 relics in 0.14.1. Weakest of those: *Soul Lance* (a ghost with spears, not a literal spear of souls) and *Severed Thread* (a glowing thread in a ring).
+**Current set (0.14.1):** the full set, 132 images, 3.8 MB. The Sleeper, its Eye and The Sleeper's Breath background came in 0.13; the Echo-Caller's 24 cards and 7 relics in 0.14.1. *Soul Lance* and *Severed Thread* were rerolled in 0.14.2.
 - All 55 cards, picked from ~180 generated images on an RTX 5080 (~6 s each). Weakest, worth a reroll: *Second Hand* (a clock, not a blade), *Loop the Moment*, *Unmake the Hour* and *Mirror Sigil* (pale backgrounds), *Twin Shards* (pillars, not crossed blades).
 - All 8 backgrounds: `npm run art:gen -- --folder backgrounds`. 768×1344 plus a built-in second pass (latent upscale ×1.5, denoise 0.45) to 1152×2016, ~16 s each.
 - All 11 enemies, 18 relics and 6 node icons: `--folder enemies|relics|ui`. Cut out with ComfyUI's built-in Remove Background node and BiRefNet (`birefnet.safetensors`, 424 MB, from huggingface.co/Comfy-Org/BiRefNet, in the `background_removal` models folder). Over budget but kept for detail: *Vein Crawler* (166 KB), *Bone Abacus* (34 KB), *Gilded Gear* (26 KB).
@@ -229,7 +229,7 @@ Shared accent: **spectral pale blue and silver**: the dead, called back. Add to 
 | choir-of-the-lost | countless glowing translucent faces pressed together in the dark like a wall of souls, mouths open in song, blue and silver light, no architecture |
 | release | a ghostly figure bursting apart into hundreds of white-blue shards of light flying outward |
 | grave-tithe | a translucent hand dropping a glowing coin of blue light into a dark stone offering bowl |
-| soul-lance | a long spear of pale blue light made of twisting wailing ghostly faces, flying diagonally through the dark, its point blazing white |
+| soul-lance | a single straight spear of pure pale blue light flying through the dark, ghostly faces streaming along its shaft like a comet tail, no person holding it |
 | mourning | a wall of dark stacked gravestones glowing faintly cyan, standing like a shield in the dark |
 | last-rites | a single candle flame being snuffed between two ghostly fingers, a thin trail of blue smoke rising |
 | final-chorus | a ring of translucent figures erupting outward together into a shockwave of white and blue light |
@@ -253,7 +253,7 @@ Add to the style prompt: `a single small object, centred, floating alone in tota
 | choir-stone | a smooth dark stone carved with many tiny open mouths, faint blue light glowing inside them |
 | mourners-veil | a folded black lace veil with a faint silver shimmer |
 | grave-ledger | a thick black ledger book bound shut with chains, sickly green light leaking from its pages |
-| severed-thread | a short length of glowing silver thread hanging in the dark, cut through in the middle, its two loose ends curling apart |
+| severed-thread | a thick glowing silver cord snapped in two in the dark, two bold frayed ends close together with bright sparks between them, close-up, no ring, no frame |
 
 #### Node icons (`art-raw/ui/node-<type>.png`, transparent)
 Add to the style prompt: `a simple bold symmetrical glyph emblem, centred, floating in total black darkness, flat graphic icon, thick glowing lines`.

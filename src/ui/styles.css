@@ -1006,7 +1006,7 @@ button {
   animation: throb 2.6s ease-in-out infinite;
 }
 .shift-chip {
-  min-height: 36px;
+  min-height: 44px;
   max-width: 48%;
   padding: 0 10px;
   border-radius: 8px;
@@ -1844,7 +1844,7 @@ body.has-screen-art::before {
   display: flex;
   align-items: center;
   gap: 5px;
-  min-height: 36px;
+  min-height: 44px;
   padding: 0 10px;
   border-radius: 999px;
   border: 1px solid hsl(165 60% 45% / 0.6);
@@ -2224,4 +2224,24 @@ body.has-screen-art::before {
   margin: 0;
   font-size: 12px;
   color: var(--muted);
+}
+
+/* Small tappable chips keep their look, but get an invisible tap area of at
+   least 44×44 px around them (the touch-target rule). Not used where an
+   ancestor clips overflow: those chips are simply 44px tall instead. */
+.intent,
+.chip,
+.trait-chip {
+  position: relative;
+}
+.intent::after,
+.chip::after,
+.trait-chip::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: max(100%, 44px);
+  height: max(100%, 44px);
+  transform: translate(-50%, -50%);
 }

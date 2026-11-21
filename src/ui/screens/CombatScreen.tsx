@@ -5,7 +5,7 @@
  * Playing a card is two taps: tap a card to read it, tap Play (or the card
  * again). Tap an enemy to aim at it. Nothing depends on hover.
  */
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { CONTENT } from '../../data';
 import { BALANCE } from '../../data/balance';
 import { PLAYER_ID, livingEnemies, needsTarget, type CombatAction, type CombatState, type Effect } from '../../engine';
@@ -56,8 +56,26 @@ const OUTCOME = {
   lost: ['The loop closes.', 'You wake at the outpost. Something remembers you.'],
 } as const;
 
+/** Height an enemy needs besides its art: intent badge, name, HP bar, statuses. */
+const ENEMY_CHROME = 104;
+
+/** The element's height, kept current as the layout changes. */
+function useElementHeight(ref: React.RefObject<HTMLElement | null>): number | undefined {
+  const [height, setHeight] = useState<number>();
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || typeof ResizeObserver === 'undefined') return;
+    const observer = new ResizeObserver(([entry]) => setHeight(Math.round(entry.contentRect.height)));
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [ref]);
+  return height;
+}
+
 export function CombatScreen({ state, error, label, tier, dispatch, onMenu, onContinue, bgKeys = ['combat'] }: Props) {
   useScreenAtmosphere(...bgKeys);
+  const enemiesRef = useRef<HTMLElement>(null);
+  const enemyArea = useElementHeight(enemiesRef);
   const [selectedUid, setSelectedUid] = useState<string>();
   const [targetId, setTargetId] = useState<string>();
   const [info, setInfo] = useState<string>('Tap a card to read it. Tap an enemy to aim.');
@@ -102,7 +120,10 @@ export function CombatScreen({ state, error, label, tier, dispatch, onMenu, onCo
     else setSelectedUid(uid);
   };
 
-  const enemySize = alive.length > 1 || state.enemies.length > 1 ? 112 : 168;
+  // Enemy art shrinks to fit the space left over (allies and the timeline take
+  // room on short screens), keeping space for the intent, name and HP bar.
+  const preferred = alive.length > 1 || state.enemies.length > 1 ? 112 : 168;
+  const enemySize = enemyArea ? Math.max(64, Math.min(preferred, enemyArea - ENEMY_CHROME)) : preferred;
   const noMoves =
     state.phase === 'player' &&
     !state.piles.hand.some((c) => {
@@ -135,7 +156,7 @@ export function CombatScreen({ state, error, label, tier, dispatch, onMenu, onCo
         ]}
       />
 
-      <section className="enemies">
+      <section className="enemies" ref={enemiesRef}>
         {state.enemies.map((enemy) => (
           <EnemyView
             key={enemy.id}
