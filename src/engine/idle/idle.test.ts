@@ -238,6 +238,33 @@ describe('Outpost actions', () => {
     expect(run.options).toEqual({ shrinePurge: true, cacheChoices: BALANCE.outpost.keyCacheChoices, rewardRerolls: 1 });
   });
 
+  it('a Warden’s kit works stay locked until that Warden is built', () => {
+    const rich = { ...newSave(T0), outpost: { ...newSave(T0).outpost, shards: 500 } };
+    expect(outpostStep(rich, { type: 'buy', unlockId: 'kit-fuse-setter' }, T0, CONTENT).error).toMatch(/not yet/i);
+    const withThief = outpostStep(rich, { type: 'buy', unlockId: 'stolen-hour' }, T0, CONTENT).save;
+    const bought = outpostStep(withThief, { type: 'buy', unlockId: 'kit-fuse-setter' }, T0, CONTENT).save;
+    expect(bought.outpost.unlocks).toContain('kit-fuse-setter');
+    const thief = outpostStep(bought, { type: 'selectClass', classId: 'hour-thief' }, T0, CONTENT).save;
+    expect(outpostStep(thief, { type: 'selectKit', kitId: 'afterimage' }, T0, CONTENT).error).toBeDefined();
+    const picked = outpostStep(thief, { type: 'selectKit', kitId: 'fuse-setter' }, T0, CONTENT).save;
+    const run = outpostStep(picked, { type: 'startLoop' }, T0, CONTENT).save.run!;
+    expect(run.deck).toContain('patient-blade');
+    expect(run.deck).toContain('accelerate');
+  });
+
+  it('every kit is a 10-card deck of its own class’s cards, with a matching work', () => {
+    const workIds = CONTENT.idle.unlocks.map((u) => u.id);
+    for (const cls of Object.values(CONTENT.classes)) {
+      const own = new Set([...cls.starterDeck, ...cls.cardPool]);
+      for (const kit of cls.kits) {
+        expect(kit.deck, kit.id).toHaveLength(10);
+        for (const id of kit.deck) expect(own.has(id), `${kit.id}: ${id}`).toBe(true);
+        for (const id of kit.deck) expect(cls.lockedCards, `${kit.id}: ${id} is research-locked`).not.toContain(id);
+        if (kit.unlock) expect(workIds, kit.id).toContain(kit.unlock);
+      }
+    }
+  });
+
   it('the Shift Bell rerolls the next Shift once, to a different one', () => {
     const s = prepareNextLoop({ ...newSave(T0), outpost: { ...newSave(T0).outpost, unlocks: ['shift-bell'] } }, CONTENT);
     const rung = outpostStep(s, { type: 'ringBell' }, T0, CONTENT).save;

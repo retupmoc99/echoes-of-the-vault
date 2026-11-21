@@ -12,9 +12,11 @@ import { ParticleLayer } from './fx/ParticleLayer';
 import { HintsProvider } from './hints';
 import { OutpostScreen } from './screens/OutpostScreen';
 import { RunView } from './screens/RunView';
+import { useUiScale } from './uiScale';
 
 export function App() {
   const game = useGame();
+  const scale = useUiScale();
   // Defaults guard saves without these fields (only dev saves; v7 adds them).
   const sound = game.save.settings.sound ?? 0.65;
   const music = game.save.settings.music ?? 0.35;
@@ -73,10 +75,13 @@ export function App() {
   return (
     <HintsProvider value={hintsApi}>
       <ParticleLayer />
-      {screen}
-      <Toasts items={game.notices} onDismiss={game.dismissNotice} />
-      {game.awayReport && <AwayReport report={game.awayReport} onClose={game.dismissAwayReport} />}
-      <UpdatePrompt />
+      {/* Everything but the particles scales up on wide screens (see uiScale.ts). */}
+      <div className="ui-scale" style={scale === 1 ? undefined : { zoom: scale }}>
+        {screen}
+        <Toasts items={game.notices} onDismiss={game.dismissNotice} />
+        {game.awayReport && <AwayReport report={game.awayReport} onClose={game.dismissAwayReport} />}
+        <UpdatePrompt />
+      </div>
     </HintsProvider>
   );
 }

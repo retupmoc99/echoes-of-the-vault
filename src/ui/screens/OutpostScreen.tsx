@@ -309,7 +309,8 @@ function WorksTab({ save, outpost }: { save: SaveData; outpost: Props['outpost']
       </div>
 
       <h2 className="panel-title">Works</h2>
-      {CONTENT.idle.unlocks.map((u) => {
+      {/* Works that need something else (a Warden's kits) stay hidden until it is built. */}
+      {CONTENT.idle.unlocks.filter((u) => !u.requires || save.outpost.unlocks.includes(u.requires)).map((u) => {
         const owned = save.outpost.unlocks.includes(u.id);
         return (
           <div key={u.id} className={`work ${owned ? 'owned' : ''}`}>

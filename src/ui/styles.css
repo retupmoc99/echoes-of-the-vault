@@ -125,7 +125,7 @@ button {
   position: relative;
   display: flex;
   flex-direction: column;
-  height: 100dvh;
+  height: calc(100dvh / var(--ui-scale, 1));
   max-width: 480px;
   margin: 0 auto;
   padding: env(safe-area-inset-top) 12px calc(env(safe-area-inset-bottom) + 8px);
@@ -675,7 +675,7 @@ button {
   position: relative;
   display: flex;
   flex-direction: column;
-  height: 100dvh;
+  height: calc(100dvh / var(--ui-scale, 1));
   max-width: 480px;
   margin: 0 auto;
   padding: env(safe-area-inset-top) 12px calc(env(safe-area-inset-bottom) + 10px);
@@ -1728,7 +1728,7 @@ body.has-screen-art::before {
   height: auto;
   aspect-ratio: 4 / 3;
   /* Short screens (an inner screen held sideways) get smaller art. */
-  max-height: min(150px, 16dvh);
+  max-height: min(150px, calc(16dvh / var(--ui-scale, 1)));
 }
 .card-detail .card-art {
   width: calc(100% + 36px);

@@ -277,12 +277,18 @@ Target: about 1 minute (3–5 turns) per normal fight.
 |---|---|---|
 | Kit: The Fault-Walker | 60 | Alternate starting deck (Fracture) |
 | Kit: The Bastion | 60 | Alternate starting deck (Ward) |
+| Kit: The Fuse-Setter | 60 | Hour-Thief deck: Patient Blade and Accelerate (delayed blows) |
+| Kit: The Afterimage | 60 | Hour-Thief deck: Afterimage and Repeating Edge (Echo cards) |
+| Kit: The Shepherd | 60 | Echo-Caller deck: Rally the Dead and Hymn of Iron (more allies, shielded) |
+| Kit: The Mourner | 60 | Echo-Caller deck: Release and Mourning (spends allies) |
 | Second Sight | 70 | Reroll one card reward per loop |
 | Shrine of Ash | 80 | Shrines gain "Purge 2 Corruption" |
 | The Shift Bell | 90 | Reroll the Vault Shift once per loop |
 | Reliquary Key | 100 | Relic Caches offer 3 relics instead of 2 |
 
-Total 460 Shards: roughly 8 to 10 Echo lifetimes of digging.
+Total 460 Shards for the Relic-Breaker's works: roughly 8 to 10 Echo lifetimes of digging. Each other Warden's two kits add 120 more.
+
+**Kits** swap 2 of the 10 starting cards for 2 themed cards from that Warden's reward pool, never research-locked ones. They set a direction, not more power. A Warden's kit works stay hidden until that Warden is built (`requires` on the work).
 
 **UI:**
 - The Outpost replaces the old title screen. Bottom tabs: Descend, Echoes, Works, Archive.
@@ -302,6 +308,11 @@ Total 460 Shards: roughly 8 to 10 Echo lifetimes of digging.
   - Hit flashes, floating numbers, screen shake, an enemy lunge when it acts, pulsing attack intents, and an End Turn button that breathes when no card is playable.
   - Haptics where supported; they can be turned off in Archive → Settings.
 - **Reduced motion:** `prefers-reduced-motion` turns off ambient particles, bursts, card flight, shake and pulses.
+- **Screen sizes:** the game is laid out for a phone, in a column up to 480px wide.
+  - On wider screens (520px and up), such as a foldable's inner screen held upright, the whole game scales up with CSS `zoom` to fill the width.
+  - The scale is the smaller of width ÷ 440 and height ÷ 720, in steps of 0.05, between 1 and 1.75. So no screen has less than 720px of layout height, and sideways screens barely scale.
+  - Examples: 720×960 gives 1.3, 900×1100 gives 1.5, and phones and sideways screens give 1.
+  - The particle layer and the painted background stay outside the scaled layer. Code that positions things from screen coordinates converts them with `layoutRect()` (`src/ui/uiScale.ts`).
 
 ## PWA
 - `vite-plugin-pwa` in `generateSW` mode, with a manifest (standalone, portrait), icons (192, 512, maskable, Apple touch) and iOS meta tags.
@@ -364,6 +375,7 @@ Full design: [docs/design/awakening.md](docs/design/awakening.md). Stages 1–3 
 `npm run sim` plays many loops with a bot (`src/sim/bot.ts`) and prints a report: win rate per class, how often the boss is reached and beaten, deaths by node type and row, win rate per Vault Shift, and the cards most and least linked to winning. `SIM_RUNS=1500 npm run sim` for steadier numbers (about 10 seconds).
 - The bot plays like a careful new player: it blocks when enemies will out-hit its Ward, otherwise plays its most expensive card; takes Shrines when hurt and Elites only when healthy; takes the rarest reward, never the tainted one. Loops use the full card pool (all research done).
 - It plays any affordable card, so cards that need setup (Release the Fault, Rampart Breaker) score badly in the card list through no fault of their own.
+- `SIM_KITS=1 npm run sim` plays every starting kit on the same seeds, so kits can be compared. **0.15 kit check** (400 loops each): Breaker 36%, Fault-Walker 46%, Bastion 24%; Thief 37%, Fuse-Setter 37%, Afterimage 39%; Caller 32%, Shepherd 31%, Mourner 37%. The bot is very sensitive to single swaps (Flicker or Stand Before Me in a kit pushed it to 57–66%), so new kits were tuned to within a few points of their standard deck. The Relic-Breaker's two older kits are further apart; see Open questions.
 - **0.11 pass** (1,500 loops per class), before → after:
   - Relic-Breaker 32% → 35%; Hour-Thief 26% → 33%.
   - Boss beaten when reached: 39% / 37% → 43% / 43%.
@@ -413,6 +425,7 @@ All sound is generated in code with Web Audio (`src/ui/audio/`): no audio files,
 - **Multiplayer:** not planned. To revisit in a later milestone.
 
 ## Open questions / flagged
+- **Relic-Breaker kit spread (flagged 0.15):** in the bot sim the Fault-Walker wins 46% and the Bastion 24%, against 36% for the standard deck. Not changed yet; worth evening out (or accepting, since the Bastion may suit real players better than the bot).
 - **Hand overflow.** Past 5 cards, the hand scrolls sideways instead of overlapping, so every card stays a full-size tap target. Revisit if scrolling feels clumsy.
 - **Targeting reach.** Enemies sit at the top of the screen, which is a stretch for one thumb. They're only tapped to switch targets in multi-enemy fights, and the default target is the first living enemy.
 - **iOS haptics.** Safari doesn't support vibration, so iPhones get visual feedback only.

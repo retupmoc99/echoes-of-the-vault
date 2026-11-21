@@ -1,5 +1,26 @@
 # Changelog
 
+## 0.15.0 — Starting kits (2026-11-21)
+
+### Added
+- **Four new starting kits,** two each for the Hour-Thief and the Echo-Caller. Each is a Work for 60 Shards and swaps 2 of the 10 starting cards for a theme:
+  - **The Fuse-Setter** (Hour-Thief): Patient Blade and Accelerate. Delayed blows that land sooner.
+  - **The Afterimage** (Hour-Thief): Afterimage and Repeating Edge. Echo cards that play twice.
+  - **The Shepherd** (Echo-Caller): Rally the Dead and Hymn of Iron. A second Call, and Ward for your allies.
+  - **The Mourner** (Echo-Caller): Release and Mourning. Spend your allies for damage and Ward.
+- A Warden's kit works stay hidden in Works until you own that Warden.
+- `SIM_KITS=1 npm run sim` compares every kit on the same seeds.
+
+### Balance
+- Each new kit wins within 2 points of its Warden's standard deck in the bot sim (31–39%).
+- **Changed from the plan:** the Fuse-Setter uses Accelerate instead of Sundial Ward, and the Afterimage uses Repeating Edge instead of Refrain. With the planned cards, the Fuse-Setter won 48% and the Afterimage 26%. The Shepherd keeps its cards but replaces two Grave Strikes instead of a Strike and a Shroud (it won 22% the first way).
+
+## 0.14.3 — Wide screens (2026-11-21)
+
+### Changed
+- **The game scales up to fill wide screens,** such as a foldable's inner screen held upright. It used to sit in a narrow phone-sized strip with phone-sized cards and text. Now everything (cards, text, enemies and buttons) grows to fill the width: 1.3× at 720×960 and 1.5× at 900×1100.
+  - The scale is also limited by the screen's height, so nothing gets cut off. Phones, and screens held sideways, are unchanged.
+  - The played-card flight still lands on its target when scaled.
 ## 0.14.2 — Touch targets and fit (2026-11-21)
 
 ### Fixed

@@ -22,6 +22,7 @@ import { Floaters } from '../components/Floaters';
 import { HpBar } from '../components/HpBar';
 import { RelicBar } from '../components/RelicBar';
 import { StatusChips } from '../components/StatusChips';
+import { layoutRect } from '../uiScale';
 
 interface Props {
   state: CombatState;
@@ -103,10 +104,13 @@ export function CombatScreen({ state, error, label, tier, dispatch, onMenu, onCo
     if (!selected || !selectedDef) return;
     buzz(HAPTIC.cardPlay);
     // Launch a ghost of the card from its spot in the hand toward its target.
-    const from = document.querySelector(`.hand [data-card-uid="${selected.uid}"]`)?.getBoundingClientRect();
+    const fromEl = document.querySelector(`.hand [data-card-uid="${selected.uid}"]`);
     const toId = needsTarget(selectedDef.effects) ? aim : 'player';
-    const to = toId ? document.querySelector(`[data-fx-id="${toId}"]`)?.getBoundingClientRect() : undefined;
-    if (from && to) {
+    const toEl = toId ? document.querySelector(`[data-fx-id="${toId}"]`) : undefined;
+    if (fromEl && toEl) {
+      // Layout pixels: the ghost sits inside the scaled layer (see uiScale.ts).
+      const from = layoutRect(fromEl);
+      const to = layoutRect(toEl);
       const ghost: Ghost = { key: `${selected.uid}-${Date.now()}`, cardId: selected.cardId, from, dx: to.left + to.width / 2 - (from.left + from.width / 2), dy: to.top + to.height / 2 - (from.top + from.height / 2) };
       setGhosts((g) => [...g, ghost]);
       setTimeout(() => setGhosts((g) => g.filter((x) => x.key !== ghost.key)), GHOST_MS);

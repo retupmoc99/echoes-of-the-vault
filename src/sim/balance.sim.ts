@@ -4,6 +4,7 @@
  *   npm run sim                 (300 loops per class)
  *   SIM_RUNS=1000 npm run sim
  *   SIM_STAGE=3 npm run sim     (play at an Awakening stage)
+ *   SIM_KITS=1 npm run sim      (every starting kit, not just each class's first)
  *
  * Runs under Vitest (it already compiles TypeScript), but it is not a test:
  * it never fails, and `npm test` skips it (only *.test.ts files run there).
@@ -20,6 +21,8 @@ const env = (globalThis as { process?: { env: Record<string, string | undefined>
 const RUNS = Number(env.SIM_RUNS ?? 300);
 /** Awakening stage to play at (SIM_STAGE=3 npm run sim). */
 const STAGE = Number(env.SIM_STAGE ?? 0);
+/** Play every kit (SIM_KITS=1 npm run sim); otherwise each class's first kit. */
+const ALL_KITS = Boolean(env.SIM_KITS);
 
 const SIM_CHORUS: ChorusMember[] = Object.values(CONTENT.classes).map((c, i) => ({
   echoId: `sim-echo-${i}`,
@@ -44,11 +47,11 @@ interface Outcome {
   deck: string[];
 }
 
-function playLoop(classId: string, seed: string): Outcome {
+function playLoop(classId: string, kitId: string, seed: string): Outcome {
   const cls = CONTENT.classes[classId];
   // The Echo-Caller needs Echoes to Call: three mid-depth ones, carrying each Warden's starting deck.
   const chorus = classId === 'echo-caller' ? SIM_CHORUS : undefined;
-  let r: RunState = createRun({ seed, classId, unlockedCards: cls.lockedCards, awakeningStage: STAGE, chorus }, CONTENT);
+  let r: RunState = createRun({ seed, classId, kitId, unlockedCards: cls.lockedCards, awakeningStage: STAGE, chorus }, CONTENT);
   for (let i = 0; i < 20000 && r.phase !== 'ended'; i++) {
     const res = stepRun(r, nextBotAction(r, CONTENT), CONTENT);
     if (res.error) throw new Error(`${seed}: bot made an illegal move: ${res.error}`);
@@ -71,12 +74,12 @@ function playLoop(classId: string, seed: string): Outcome {
 
 const pct = (n: number, d: number) => (d ? `${((n / d) * 100).toFixed(0)}%` : '-');
 
-function report(classId: string, outcomes: Outcome[]): string {
+function report(classId: string, kitId: string, outcomes: Outcome[]): string {
   const n = outcomes.length;
   const wins = outcomes.filter((o) => o.won).length;
   const reachedBoss = outcomes.filter((o) => o.won || o.diedAt === 'boss').length;
   const lines = [
-    `\n=== ${CONTENT.classes[classId].name}: ${n} loops, Awakening stage ${STAGE} ===`,
+    `\n=== ${CONTENT.classes[classId].name} (${CONTENT.classes[classId].kits.find((k) => k.id === kitId)?.name}): ${n} loops, Awakening stage ${STAGE} ===`,
     `Won ${pct(wins, n)} | reached the boss ${pct(reachedBoss, n)} | beat it when reached ${pct(wins, reachedBoss)}`,
     `Turns per fight ${(outcomes.reduce((s, o) => s + o.turns, 0) / Math.max(1, outcomes.reduce((s, o) => s + o.fights, 0))).toFixed(1)} | avg peak Corruption ${(outcomes.reduce((s, o) => s + o.corruption, 0) / n).toFixed(1)}`,
   ];
@@ -111,9 +114,12 @@ function report(classId: string, outcomes: Outcome[]): string {
 
 it('balance report', () => {
   const out: string[] = [];
-  for (const classId of Object.keys(CONTENT.classes)) {
-    const outcomes = Array.from({ length: RUNS }, (_, i) => playLoop(classId, `sim-${classId}-${i}`));
-    out.push(report(classId, outcomes));
+  for (const [classId, cls] of Object.entries(CONTENT.classes)) {
+    for (const kit of ALL_KITS ? cls.kits : cls.kits.slice(0, 1)) {
+      // Same seeds for every kit of a class, so kits are compared on the same maps.
+      const outcomes = Array.from({ length: RUNS }, (_, i) => playLoop(classId, kit.id, `sim-${classId}-${i}`));
+      out.push(report(classId, kit.id, outcomes));
+    }
   }
   console.log(out.join('\n'));
 }, 600_000);

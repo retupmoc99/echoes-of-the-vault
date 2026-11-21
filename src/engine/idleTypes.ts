@@ -89,6 +89,8 @@ export interface OutpostUnlockDef {
   description: string;
   cost: number;
   flavor: string;
+  /** Another work (or Warden) that must be built first; hidden until then. */
+  requires?: string;
 }
 
 export type ResearchItem = { kind: 'card'; cardId: string } | { kind: 'lore'; loreId: string };
