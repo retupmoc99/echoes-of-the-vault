@@ -33,6 +33,25 @@ describe('deeds', () => {
     expect(outpostStep(bought, { type: 'selectClass', classId: 'somnant' }, 0, CONTENT).error).toBeUndefined();
   });
 
+  it("each later Warden's Work waits for its deed; the Tollkeeper needs only Shards", () => {
+    const base = newSave(0);
+    const works = (save: SaveData) => CONTENT.idle.unlocks.filter((u) => requirementMet(save, u.requires, CONTENT)).map((u) => u.id);
+    const shown = works(base);
+    for (const id of ['ash-table', 'mirror-that-kept-its-face', 'the-weathervane', 'the-worn-road']) expect(shown).not.toContain(id);
+    expect(shown).toContain('the-toll-gate');
+    const done: SaveData = {
+      ...base,
+      deeds: {
+        ...base.deeds,
+        maxCursesCarried: 3,
+        shiftsEscaped: ['a', 'b', 'c'],
+        deepEscapes: 1,
+        elitesBeaten: Object.values(CONTENT.encounters).filter((e) => e.tier === 'elite').map((e) => e.id),
+      },
+    };
+    for (const id of ['ash-table', 'mirror-that-kept-its-face', 'the-weathervane', 'the-worn-road']) expect(works(done)).toContain(id);
+  });
+
   it('closing a loop tallies curses carried, elites beaten and Shifts escaped', () => {
     const run = createRun({ seed: 'deed', classId: 'relic-breaker' }, CONTENT);
     run.deck.push('gnawing-static', 'hollow-echo');

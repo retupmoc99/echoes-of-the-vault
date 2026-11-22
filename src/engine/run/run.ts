@@ -19,13 +19,14 @@ import type {
   MapNode,
   NodeType,
   OmenDef,
+  Aspect,
   RunAction,
   RunSetup,
   RunState,
   RunStepResult,
   VaultShiftDef,
 } from '../types';
-import { addCorruption, combatModifiersFor } from './corruption';
+import { addCorruption, addCurse, combatModifiersFor } from './corruption';
 import { pickEvent, resolveOption } from './events';
 import { generateMap, reachableNodes, type MapConfig } from './map';
 import { rollCardReward, rollRelics } from './rewards';
@@ -160,10 +161,24 @@ function apply(r: RunState, action: RunAction, content: Content, events: CombatE
     case 'rerollReward': {
       const node = r.node;
       if (node?.kind !== 'reward' || node.cardTaken) return 'There is nothing to reroll.';
-      if (r.options.rewardRerolls <= 0) return 'Your second sight is spent.';
-      r.options.rewardRerolls--;
+      // Second Sight's free rerolls first; then the Tollkeeper can pay Toll.
+      if (r.options.rewardRerolls > 0) r.options.rewardRerolls--;
+      else if ((r.toll ?? 0) >= BALANCE.toll.rerollCost) r.toll = (r.toll ?? 0) - BALANCE.toll.rerollCost;
+      else return 'Your second sight is spent.';
       const tier = node.relicId ? 'elite' : 'normal';
       Object.assign(node, rollCardReward(r, content, tier));
+      return undefined;
+    }
+    case 'shrineTithe': {
+      if (r.node?.kind !== 'shrine') return 'There is no shrine here.';
+      if ((r.toll ?? 0) < BALANCE.toll.titheCost) return 'Not enough Toll.';
+      if (r.deck.length <= BALANCE.shrine.minDeckSize) return 'Your deck is already thin.';
+      if (!r.deck[action.deckIndex]) return 'No such card.';
+      r.toll = (r.toll ?? 0) - BALANCE.toll.titheCost;
+      r.hp = Math.min(r.maxHp, r.hp + shrineHeal(r, content));
+      r.deck.splice(action.deckIndex, 1);
+      r.stats.cardsRemoved++;
+      backToMap(r);
       return undefined;
     }
     case 'shrineSearch':
@@ -235,6 +250,7 @@ function chooseNode(r: RunState, nodeId: string, content: Content, events: Comba
   const node = r.map.nodes[nodeId];
   r.position = nodeId;
   r.visited.push(nodeId);
+  r.miles = (r.miles ?? 0) + milesFor(r, node, content);
   r.phase = 'node';
 
   switch (node.type) {
@@ -258,6 +274,22 @@ function chooseNode(r: RunState, nodeId: string, content: Content, events: Comba
   }
 }
 
+/** Pilgrim: Miles for entering a node (elites give 2), plus relic bonuses. */
+function milesFor(r: RunState, node: MapNode, content: Content): number {
+  let n = node.type === 'elite' ? 2 : 1;
+  for (const id of r.relics) {
+    const m = content.relics[id]?.runMods;
+    if (!m) continue;
+    n += m.milesPerNode ?? 0;
+    if (node.type === 'elite') n += m.milesPerElite ?? 0;
+    if (r.floor > 1) n += m.milesDeep ?? 0;
+  }
+  return n;
+}
+
+/** Shiftwright: each fight starts in the Aspect matching the loop's Shift. */
+const SHIFT_ASPECT: Record<string, Aspect> = { 'drowned-halls': 'drowned', 'fractured-sky': 'fractured', 'choir-awake': 'choir' };
+
 function encounterPool(node: MapNode, awakeningStage: number, floor: number, content: Content): EncounterDef[] {
   // Awakening-gated encounters join at their stage and push out the ones they replace.
   const usable = Object.values(content.encounters).filter((e) => (e.minAwakening ?? 0) <= awakeningStage && (e.floor ?? 1) === floor);
@@ -269,6 +301,15 @@ function encounterPool(node: MapNode, awakeningStage: number, floor: number, con
   if (floor > 1) return all.filter((e) => e.tier === 'normal');
   const stage = node.row >= BALANCE.map.lateStageFromRow ? 'late' : 'early';
   return all.filter((e) => e.tier === 'normal' && (e.stage ?? 'early') === stage);
+}
+
+/** What the Warden carries into each fight: Aspect, Miles, Toll. */
+function wardenResources(r: RunState, content: Content): { aspect?: Aspect; miles?: number; toll?: number } {
+  const res = content.classes[r.classId]?.resource;
+  if (res === 'aspect') return { aspect: SHIFT_ASPECT[r.vaultShiftId] ?? 'drowned' };
+  if (res === 'miles') return { miles: r.miles ?? 0 };
+  if (res === 'toll') return { toll: r.toll ?? 0 };
+  return {};
 }
 
 /** Omen: Crowded Halls adds an enemy to every normal fight. */
@@ -304,6 +345,7 @@ function startFight(r: RunState, node: MapNode, content: Content, events: Combat
       memories: r.seenEncounters.slice(0, -1).flatMap((id) => content.encounters[id]?.enemies ?? []),
       chorus: r.chorus,
       extraEnemies: extraEnemiesFor(r, node, content),
+      ...wardenResources(r, content),
     },
     content,
   );
@@ -332,7 +374,9 @@ function pickCard(r: RunState, choice: number | 'tainted', content: Content, not
   if (choice === 'tainted') {
     if (!node.tainted) return 'Nothing tainted is offered.';
     r.deck.push(node.tainted);
-    addCorruption(r, BALANCE.corruption.taintedCardCost, content, notices);
+    // The Sin-Eater pays for tainted cards in curses (its food), not Corruption.
+    if (content.classes[r.classId]?.taintedGivesCurse) addCurse(r, content, notices);
+    else addCorruption(r, BALANCE.corruption.taintedCardCost, content, notices);
   } else {
     const cardId = node.cards[choice];
     if (!cardId) return 'No such card.';
@@ -367,6 +411,13 @@ function leave(r: RunState, content: Content): string | undefined {
   if (node.kind === 'combat') {
     const combat = r.combat!;
     if (combat.phase !== 'won' && combat.phase !== 'lost') return 'The fight is not over.';
+    // Back to the run: Miles gained and Toll held; curses Absolution removed for good.
+    if (combat.milesGained) r.miles = (r.miles ?? 0) + combat.milesGained;
+    if (combat.toll !== undefined) r.toll = combat.toll;
+    for (const id of combat.purged ?? []) {
+      const i = r.deck.indexOf(id);
+      if (i >= 0) r.deck.splice(i, 1);
+    }
     r.stats.damageTaken += Math.max(0, node.hpBefore - r.hp);
     r.stats.turns += combat.turn;
     // Echo-Caller: tally this fight's Calls and falls; they cost stability when the loop closes.

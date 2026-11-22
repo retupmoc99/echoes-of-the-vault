@@ -6,6 +6,7 @@ import { CorruptionMeter } from './CorruptionMeter';
 import { DeckSheet } from './DeckSheet';
 import { HpBar } from './HpBar';
 import { RelicBar } from './RelicBar';
+import { ResourceChip } from './ResourceChip';
 
 interface Props {
   run: RunState;
@@ -56,6 +57,7 @@ export function RunHeader({ run, onMenu, onInspect }: Props) {
       <div className="run-header-row relic-row">
         <RelicBar relics={relics} onInspect={onInspect} />
         {run.awakeningStage > 0 && <AwakeningChip stage={run.awakeningStage} onInspect={onInspect} />}
+        <ResourceChip classId={run.classId} miles={run.miles} toll={run.toll} onInspect={onInspect} />
         {run.floor > 1 && (
           <button className="omen-chip floor-chip" onClick={() => onInspect(`Floor 2. The Weight: if enemies break through all your Ward, you lose ${BALANCE.deep.weightDamage} HP as your turn starts.`)}>
             ⇩ Floor 2

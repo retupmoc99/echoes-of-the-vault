@@ -95,6 +95,8 @@ function RelicOffer({ relicId, selected, onSelect }: { relicId: string; selected
 
 export function ShrineScreen({ run, error, dispatch, onMenu }: ScreenProps) {
   const [removing, setRemoving] = useState(false);
+  const [tithing, setTithing] = useState(false);
+  const canTithe = (run.toll ?? 0) >= BALANCE.toll.titheCost && run.deck.length > BALANCE.shrine.minDeckSize;
   const heal = Math.min(run.maxHp - run.hp, shrineHeal(run, CONTENT));
   const canRemove = run.deck.length > BALANCE.shrine.minDeckSize;
 
@@ -114,6 +116,11 @@ export function ShrineScreen({ run, error, dispatch, onMenu }: ScreenProps) {
           <button className="ghost-btn wide" disabled={!canRemove} onClick={() => setRemoving(true)}>
             {canRemove ? 'Cut away a card' : 'Your deck is already thin'}
           </button>
+          {CONTENT.classes[run.classId]?.resource === 'toll' && (
+            <button className="ghost-btn wide" disabled={!canTithe} onClick={() => setTithing(true)}>
+              Tithe · {BALANCE.toll.titheCost} Toll: rest and cut a card
+            </button>
+          )}
           {canSearchShrine(run) && (
             <button className="ghost-btn wide" onClick={() => dispatch({ type: 'shrineSearch' })}>
               Search · open a relic cache
@@ -134,6 +141,14 @@ export function ShrineScreen({ run, error, dispatch, onMenu }: ScreenProps) {
           title="Cut away a card"
           onClose={() => setRemoving(false)}
           pick={{ label: 'Remove', onPick: (deckIndex) => dispatch({ type: 'shrineRemove', deckIndex }) }}
+        />
+      )}
+      {tithing && (
+        <DeckSheet
+          deck={run.deck}
+          title="Tithe: rest, and cut a card"
+          onClose={() => setTithing(false)}
+          pick={{ label: 'Cut', onPick: (deckIndex) => dispatch({ type: 'shrineTithe', deckIndex }) }}
         />
       )}
     </Chamber>
@@ -262,6 +277,17 @@ export function RewardScreen({ run, error, dispatch, onMenu }: ScreenProps) {
           {!node.cardTaken && (
             <button className="primary-btn wide" disabled={!pickedDef} onClick={() => picked !== undefined && dispatch({ type: 'pickCard', choice: picked })}>
               {pickedDef ? `Take ${pickedDef.name}${picked === 'tainted' ? ` · +${BALANCE.corruption.taintedCardCost} Corruption` : ''}` : 'Choose a card'}
+            </button>
+          )}
+          {!node.cardTaken && run.options.rewardRerolls <= 0 && (run.toll ?? 0) >= BALANCE.toll.rerollCost && (
+            <button
+              className="ghost-btn wide"
+              onClick={() => {
+                setPicked(undefined);
+                dispatch({ type: 'rerollReward' });
+              }}
+            >
+              Pay {BALANCE.toll.rerollCost} Toll · reroll these cards
             </button>
           )}
           {!node.cardTaken && run.options.rewardRerolls > 0 && (

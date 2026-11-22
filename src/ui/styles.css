@@ -2374,3 +2374,16 @@ body.has-screen-art::before {
 .deed.done strong {
   color: hsl(45 85% 70%);
 }
+
+/* The Warden's resource (Aspect, Miles, Toll), by the HP bar. */
+.resource-chip {
+  flex: none;
+  min-height: 44px;
+  padding: 0 10px;
+  border-radius: 16px;
+  border: 1px solid hsl(var(--hue) 70% 55% / 0.6);
+  background: hsl(var(--hue) 30% 10% / 0.85);
+  color: hsl(var(--hue) 80% 75%);
+  font-size: 12px;
+  white-space: nowrap;
+}

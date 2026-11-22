@@ -89,6 +89,12 @@ export const BALANCE = {
     weights: { fight: 40, event: 20, elite: 15, cache: 15, shrine: 10 },
   },
 
+  /** Tollkeeper: Toll prices outside fights. */
+  toll: {
+    titheCost: 4,
+    rerollCost: 3,
+  },
+
   /** The Daily Descent: small and flat, a treat rather than a chore. */
   daily: {
     finishShards: 25,

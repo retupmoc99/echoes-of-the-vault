@@ -4,7 +4,7 @@
  * `s` is a private clone of the combat state that the step may mutate freely;
  * `events` collects what happened so the UI can animate it afterwards.
  */
-import type { CombatEvent, CombatState, Combatant, Content, EnemyState } from '../types';
+import type { CombatEvent, CombatState, Combatant, Content, EnemyState, Aspect } from '../types';
 
 export interface Ctx {
   s: CombatState;
@@ -23,6 +23,11 @@ export interface Ctx {
 }
 
 export const PLAYER_ID = 'player';
+
+/** Shiftwright: is this Aspect active (its own, or every Aspect this turn)? */
+export function aspectActive(s: CombatState, a: Aspect): boolean {
+  return s.aspect === a || (s.allAspectsTurn !== undefined && s.allAspectsTurn === s.turn);
+}
 
 export function getCombatant(s: CombatState, id: string): Combatant | undefined {
   if (id === PLAYER_ID) return s.player;

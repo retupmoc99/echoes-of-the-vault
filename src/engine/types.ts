@@ -18,7 +18,15 @@ export type StatusId = 'fracture' | 'bleed' | 'weakened' | 'exposed' | 'paradox'
 export type CardType = 'strike' | 'ward' | 'overload' | 'rite' | 'temporal' | 'curse';
 
 /** Synergy family, used for reward weighting and the card library. */
-export type Archetype = 'fracture' | 'ward' | 'overload' | 'bleed' | 'delay' | 'echo' | 'unwinding' | 'chorus' | 'communion' | 'remembrance' | 'slumber' | 'dream';
+export type Archetype =
+  | 'fracture' | 'ward' | 'overload' | 'bleed' | 'delay' | 'echo' | 'unwinding' | 'chorus' | 'communion' | 'remembrance'
+  | 'slumber' | 'dream' | 'devour' | 'burden' | 'reflection' | 'theft' | 'tide' | 'storm' | 'choir' | 'road' | 'rest' | 'toll' | 'coin';
+
+/** The Shiftwright's three weathers. */
+export type Aspect = 'drowned' | 'fractured' | 'choir';
+
+/** What an enemy's shown intent is, for cards that read it (Mirrorborn). */
+export type IntentClass = 'attack' | 'defend' | 'debuff' | 'buff';
 
 export type Rarity = 'starter' | 'common' | 'uncommon' | 'rare' | 'curse';
 
@@ -35,7 +43,14 @@ export type Amount =
   /** Allies on the field, allies fallen this fight, or the cost of each ally's next card (Echo-Caller). */
   | { per: 'allies' | 'alliesFallen' | 'allyTopCost'; times: number; plus?: number }
   /** Somnant: foes Asleep right now; half the Awakening stage (rounded down). */
-  | { per: 'foesAsleep' | 'halfAwakening'; times: number; plus?: number };
+  | { per: 'foesAsleep' | 'halfAwakening'; times: number; plus?: number; max?: number }
+  /** Sin-Eater, Mirrorborn, Pilgrim, Tollkeeper counts. `times` may be fractional (rounded down); `max` caps the result. */
+  | {
+      per: 'cursesInDeck' | 'devouredThisFight' | 'targetIntentDamage' | 'allIntentDamage' | 'foesIntendingAttack' | 'miles' | 'toll' | 'tollPaid' | 'lastPaid';
+      times: number;
+      plus?: number;
+      max?: number;
+    };
 
 /**
  * Targets are relative to whoever is acting:
@@ -51,7 +66,13 @@ export type Condition =
   | { kind: 'targetHasStatus'; status: StatusId }
   | { kind: 'allyFellThisFight' }
   | { kind: 'targetAsleep' }
-  | { kind: 'anyFoeAsleep' };
+  | { kind: 'anyFoeAsleep' }
+  | { kind: 'curseInHand' }
+  | { kind: 'targetIntends'; intent: IntentClass }
+  | { kind: 'anyFoeIntends'; intent: IntentClass }
+  | { kind: 'inAspect'; aspect: Aspect }
+  | { kind: 'milesAtLeast'; n: number }
+  | { kind: 'tollAtLeast'; n: number };
 
 export type Effect =
   | { kind: 'damage'; amount: Amount; target?: 'target' | 'allFoes' | 'asleepFoes'; hits?: number }
@@ -60,8 +81,8 @@ export type Effect =
   | { kind: 'removeStatus'; status: StatusId; target: EffectTarget }
   | { kind: 'loseHp'; amount: number }
   // Player-only effects (ignored when an enemy uses them):
-  | { kind: 'gainResonance'; amount: number }
-  | { kind: 'draw'; amount: number }
+  | { kind: 'gainResonance'; amount: Amount }
+  | { kind: 'draw'; amount: Amount }
   | { kind: 'overloadRelic'; which: 'random' | 'all' }
   | { kind: 'clearStrain' }
   | { kind: 'retainWard' }
@@ -91,6 +112,27 @@ export type Effect =
   | { kind: 'playAllyTop'; count: number }
   /** For the rest of the fight: allies act more often, and/or lose HP each time they act. */
   | { kind: 'empowerAllies'; acts?: number; hpLoss?: number }
+  /** Sin-Eater: eat up to `count` curses from hand (leftmost first); `each` resolves per curse. `permanent` also removes them from the run deck. */
+  | { kind: 'devour'; count: number | 'all'; each: Effect[]; permanent?: boolean }
+  /** Put fight-only copies of a card (or a random curse) into your draw or discard pile. */
+  | { kind: 'shuffleIn'; cardId: string; count?: number; pile?: 'draw' | 'discard' }
+  /** Mirrorborn: play the target's (or every foe's) shown move yourself, turned around, at `scale` strength. */
+  | { kind: 'mirrorIntent'; scale: number; who?: 'target' | 'all'; times?: number }
+  /** Mirrorborn: mirror at 50%, then the foe loses that move (bosses: Weakened 2 instead). */
+  | { kind: 'stealIntent'; who?: 'target' | 'all' }
+  /** Shiftwright: switch Aspect ('next' cycles Drowned → Fractured → Choir). */
+  | { kind: 'attune'; aspect: Aspect | 'next' }
+  /** Shiftwright: double your Aspect's effect this fight; or count as in every Aspect this turn. */
+  | { kind: 'aspectBoost' }
+  | { kind: 'allAspects' }
+  /** Pilgrim: Miles gained now count at once and stay for the loop. */
+  | { kind: 'gainMiles'; n: number }
+  /** Tollkeeper: gain Toll (by the dead foe's tier when `elite`/`boss` are set; 'double' doubles it, up to `max`). */
+  | { kind: 'gainToll'; n: number | 'double'; elite?: number; boss?: number; max?: number }
+  /** Tollkeeper: pay Toll for a bonus; without enough, `else` (if any). */
+  | { kind: 'pay'; amount: number | 'all'; then: Effect[]; else?: Effect[] }
+  /** Runs `then` if the target died (after this card's earlier effects). */
+  | { kind: 'ifKilled'; then: Effect[] }
   /** Somnant: lower every foe's sleep threshold (bosses only, if set); extra sleeps lift the Sleeper's once-per-fight limit. */
   | { kind: 'thresholdMod'; amount: number; bossesOnly?: boolean; extraSleeps?: number }
   /** Enemies only: put a card into the player's discard pile (Rot Lantern's Smoke). */
@@ -99,7 +141,11 @@ export type Effect =
 
 /** Something that reacts to combat events (used by relics; card "powers" later). */
 export interface Trigger {
-  on: 'combatStart' | 'turnStart' | 'turnEnd' | 'cardPlayed' | 'gainedStatus' | 'delayFired' | 'allyCalled' | 'allyFell' | 'foeSlept' | 'foeWoke';
+  on:
+    | 'combatStart' | 'turnStart' | 'turnEnd' | 'cardPlayed' | 'gainedStatus' | 'delayFired' | 'allyCalled' | 'allyFell' | 'foeSlept' | 'foeWoke'
+    | 'devoured' | 'mirrored' | 'stole' | 'attuned' | 'foeDied' | 'paid';
+  /** Fire at most once per turn. */
+  oncePerTurn?: boolean;
   /** For cardPlayed: only react to this card type. */
   cardType?: CardType;
   /** For gainedStatus: only react to this status. */
@@ -143,6 +189,10 @@ export interface RelicDef {
   maxStrain?: number;
   /** Tainted relics add this much Corruption when taken. */
   corruption?: number;
+  /** Fight-wide rule changes while carried (Glass Heart, Golden Key). */
+  combatMods?: Partial<CombatModifiers>;
+  /** Run-level effects (Pilgrim): extra Miles per node, per elite, or per node on floor 2. */
+  runMods?: { milesPerNode?: number; milesPerElite?: number; milesDeep?: number };
   /** Found at the bottom of the Well: joins this Warden's relic pool once floor 2 has been escaped. */
   deepFor?: string;
   /** Hand-written rules text for effects outside combat (shown before any passive text). */
@@ -247,6 +297,10 @@ export interface WardenClassDef {
   kits: StarterKit[];
   /** Outpost unlock needed to play this class (none = available from the start). */
   /** A deed that must be done before its unlock Work appears (see docs/design/deed-unlocks.md). */
+  /** A resource shown by the HP bar: the Shiftwright's Aspect, the Pilgrim's Miles, the Tollkeeper's Toll. */
+  resource?: 'aspect' | 'miles' | 'toll';
+  /** Sin-Eater: tainted cards add a random curse to the deck instead of Corruption. */
+  taintedGivesCurse?: boolean;
   deed?: string;
   unlock?: string;
   /** One line on how the class plays, for the class picker. */
@@ -507,6 +561,8 @@ export interface EnemyState extends Combatant {
   asleep?: boolean;
   /** Asleep, but its skipped turn is done: it wakes and acts on its next turn. */
   waking?: boolean;
+  /** Mirrorborn: its move was stolen; it does nothing on its next turn. */
+  robbed?: boolean;
   sleepThreshold?: number;
   sleeps?: number;
   maxSleeps?: number;
@@ -525,6 +581,8 @@ export interface CardInstance {
   ephemeral?: boolean;
   /** Costs 0 until it leaves your hand (Rewrite). */
   freeThisTurn?: boolean;
+  /** A fight-only copy (Smoke, shuffled-in curses): never part of the run deck. */
+  conjured?: boolean;
 }
 
 /** An effect waiting on the timeline (from a Delay card). */
@@ -567,6 +625,9 @@ export interface CombatModifiers {
   playerWardMult?: number;
   /** Floor 2's Weight: HP you lose at the start of each turn you begin with no Ward. */
   weightDamage?: number;
+  /** Mirrorborn: extra Mirror strength (0.25 = +25%). Tollkeeper: Pay costs this much lower (at least 1). */
+  mirrorBonus?: number;
+  payDiscount?: number;
 }
 
 export interface CombatState {
@@ -604,6 +665,22 @@ export interface CombatState {
   rng: RngState;
   nextUid: number;
   modifiers: CombatModifiers;
+  /** Sin-Eater: curses eaten this fight; curse ids to remove from the run deck when the fight ends. */
+  devoured?: number;
+  purged?: string[];
+  /** Shiftwright: current Aspect, doubled for the fight, or every Aspect during one turn. */
+  aspect?: Aspect;
+  aspectBoost?: boolean;
+  allAspectsTurn?: number;
+  /** Pilgrim: Miles now, and how many were gained in this fight. */
+  miles?: number;
+  milesGained?: number;
+  /** Tollkeeper: Toll held, paid this fight, and the last payment. */
+  toll?: number;
+  tollPaid?: number;
+  lastPaid?: number;
+  /** Relic triggers already fired this turn (oncePerTurn), as "relicId:index". */
+  firedThisTurn?: string[];
 }
 
 export interface CombatSetup {
@@ -622,6 +699,10 @@ export interface CombatSetup {
   chorus?: ChorusMember[];
   /** Enemies added to the encounter (Omen: Crowded Halls). */
   extraEnemies?: string[];
+  /** Shiftwright's starting Aspect; Pilgrim's Miles; Tollkeeper's Toll (from the run). */
+  aspect?: Aspect;
+  miles?: number;
+  toll?: number;
 }
 
 /** An Awakening elite affix: pure numbers, applied when the fight starts. */
@@ -664,6 +745,11 @@ export type CombatEvent =
   | { type: 'rewound'; count: number }
   | { type: 'fellAsleep'; enemyId: string }
   | { type: 'woke'; enemyId: string }
+  | { type: 'devoured'; cardId: string }
+  | { type: 'mirrored'; enemyId: string }
+  | { type: 'robbed'; enemyId: string }
+  | { type: 'attuned'; aspect: Aspect }
+  | { type: 'toll'; delta: number }
   | { type: 'paradoxSnap'; damage: number }
   | { type: 'phaseChange'; enemyId: string; name: string }
   | { type: 'allyCalled'; allyId: string; name: string }
@@ -756,6 +842,9 @@ export interface RunState {
   /** Deeper Vault: depth reached on earlier floors (added to this floor's row), and the escape bonus held while descending. */
   depthBase?: number;
   heldShards?: number;
+  /** Pilgrim: Miles walked this loop. Tollkeeper: Toll held. */
+  miles?: number;
+  toll?: number;
   /** Relics rewards may offer on top of the class pool (the Well's relics). */
   extraRelicPool?: string[];
   /** Always 1 for now. Hook for deeper multi-floor runs. */
@@ -837,6 +926,8 @@ export type RunAction =
   | { type: 'shrinePurge' }
   /** Last-row Shrines: open a sealed relic cache instead of resting. */
   | { type: 'shrineSearch' }
+  /** Tollkeeper: pay 4 Toll to rest and cut a card. */
+  | { type: 'shrineTithe'; deckIndex: number }
   /** An event asked you to remove cards of your choice. */
   | { type: 'removeCard'; deckIndex: number }
   | { type: 'rerollReward' }

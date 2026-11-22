@@ -1,6 +1,6 @@
 import type { IntentKind, IntentPreview } from '../../engine';
 
-const KIND_HUE: Record<IntentKind, number> = { attack: 0, defend: 190, debuff: 285, buff: 45, strange: 120, asleep: 255 };
+const KIND_HUE: Record<IntentKind, number> = { attack: 0, defend: 190, debuff: 285, buff: 45, strange: 120, asleep: 255, robbed: 190 };
 
 function Icon({ kind }: { kind: IntentKind }) {
   const common = { fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinejoin: 'round' as const };
@@ -15,6 +15,9 @@ function Icon({ kind }: { kind: IntentKind }) {
       return <path d="M4 15 L12 6 L20 15 M4 21 L12 12 L20 21" {...common} />;
     case 'strange':
       return <circle cx="12" cy="12" r="8" {...common} strokeDasharray="3 3" />;
+    case 'robbed':
+      // A cracked mirror.
+      return <path d="M5 3 H19 V21 H5 Z M12 3 L10 10 L14 13 L11 21" {...common} />;
     case 'asleep':
       // A closed eye.
       return <path d="M3 11 C7 16 17 16 21 11 M7 14 L5.5 17 M12 15.5 L12 19 M17 14 L18.5 17" {...common} />;

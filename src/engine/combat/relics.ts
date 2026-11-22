@@ -37,11 +37,16 @@ export function fireTriggers(ctx: Ctx, on: Trigger['on'], info: TriggerInfo = {}
   for (const relic of ctx.s.relics) {
     if (relic.cracked || isOver(ctx.s)) continue;
     const def = ctx.content.relics[relic.relicId];
-    for (const trigger of def.passive ?? []) {
-      if (matches(trigger, on, info)) {
-        resolveEffects(ctx, trigger.effects, PLAYER_ID, info.targetId ?? randomEnemyId(ctx));
+    (def.passive ?? []).forEach((trigger, i) => {
+      if (!matches(trigger, on, info)) return;
+      if (trigger.oncePerTurn) {
+        const key = `${relic.relicId}:${i}`;
+        const fired = (ctx.s.firedThisTurn ??= []);
+        if (fired.includes(key)) return;
+        fired.push(key);
       }
-    }
+      resolveEffects(ctx, trigger.effects, PLAYER_ID, info.targetId ?? randomEnemyId(ctx));
+    });
   }
   ctx.depth--;
 }

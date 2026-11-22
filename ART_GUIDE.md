@@ -22,7 +22,7 @@ The script reads each item's prompt from the tables below (cards by default), pl
 
 Comfy Desktop users: the desktop app may not expose a local API. You can run the install's server directly, from its `ComfyUI` folder: `.venv/Scripts/python.exe main.py --port 8190 --extra-model-paths-config <yaml pointing at your models folder>`.
 
-**Current set (0.20.0):** the full set, 180 images, 5.46 MB (Rewrite in 0.16; floor 2’s 9 enemies, 3 relics and 2 backgrounds in 0.19; the Somnant’s 24 cards and 9 relics in 0.20). The Sleeper, its Eye and The Sleeper's Breath background came in 0.13; the Echo-Caller's 24 cards and 7 relics in 0.14.1. *Soul Lance* and *Severed Thread* were rerolled in 0.14.2.
+**Current set (0.21.0):** the full set, 344 images, 8.81 MB (Rewrite in 0.16; floor 2 in 0.19; the Somnant in 0.20; the Sin-Eater, Mirrorborn, Shiftwright, Pilgrim and Tollkeeper, 119 cards and 45 relics, in 0.21). The Sleeper, its Eye and The Sleeper's Breath background came in 0.13; the Echo-Caller's 24 cards and 7 relics in 0.14.1. *Soul Lance* and *Severed Thread* were rerolled in 0.14.2.
 - All 55 cards, picked from ~180 generated images on an RTX 5080 (~6 s each). Weakest, worth a reroll: *Second Hand* (a clock, not a blade), *Loop the Moment*, *Unmake the Hour* and *Mirror Sigil* (pale backgrounds), *Twin Shards* (pillars, not crossed blades).
 - All 8 backgrounds: `npm run art:gen -- --folder backgrounds`. 768×1344 plus a built-in second pass (latent upscale ×1.5, denoise 0.45) to 1152×2016, ~16 s each.
 - All 11 enemies, 18 relics and 6 node icons: `--folder enemies|relics|ui`. Cut out with ComfyUI's built-in Remove Background node and BiRefNet (`birefnet.safetensors`, 424 MB, from huggingface.co/Comfy-Org/BiRefNet, in the `background_removal` models folder). Over budget but kept for detail: *Vein Crawler* (166 KB), *Bone Abacus* (34 KB), *Gilded Gear* (26 KB).
@@ -313,6 +313,235 @@ Add to the style prompt: `a single small object, centred, floating alone in tota
 | lethe-vial | a slender glass vial of pale silver water, swirling mist inside |
 | the-last-lullaby | a single torn page of sheet music glowing violet at its edges, curling in on itself |
 | drowned-hymnal | a small waterlogged hymn book, dripping, faint violet light between its swollen pages |
+
+#### Sin-Eater cards (`art-raw/cards/<id>.png`, 4:3)
+Shared accent: **ash grey, bone white and sickly gold**. Add to the style prompt: `ash grey and sickly gold light, smoke and embers`.
+
+| ID | Prompt |
+|---|---|
+| bitter-strike | a single black iron dagger lying on grey ash, thick gold tar dripping from its blade, no person |
+| ash-shroud | a tattered grey burial shroud billowing in a wind of falling ash |
+| swallow | a huge shadowy open mouth swallowing a coiling knot of black smoke |
+| take-the-sin | a pale outstretched hand receiving a glowing black coal from another hand |
+| bitter-feast | a long stone table set with cracked bowls of black smoke and gold ash |
+| grave-hunger | a skeletal figure kneeling over an open grave, gold light rising from it |
+| gnash | rows of jagged teeth snapping shut in the dark, sparks of gold between them |
+| salt-the-wound | a hand pouring glittering grey salt onto a glowing red wound in stone |
+| sackcloth | a rough sackcloth robe hanging on a hook, stitched with gold thread runes |
+| hungry-eyes | a pair of glowing gold eyes staring hungrily out of total darkness |
+| ash-mouth | a stone face breathing out a great cloud of ash and embers |
+| communion-of-ash | a cup overflowing with grey ash held up in a dim chapel, gold light |
+| gorge | a huge cracked iron cauldron overflowing with black smoke and glowing gold embers, no face |
+| feast-of-crows | a flock of black crows over a ruined feast table, gold light in their eyes |
+| bile | a cracked flask spilling sickly yellow green liquid onto black stone |
+| sin-shield | a heavy shield made of fused black chains and grey ash, gold rivets glowing |
+| heavy-heart | a heavy iron heart wrapped in chains sinking through darkness, gold glow inside |
+| glutton | a hunched shadowy figure stuffing glowing black embers into its mouth |
+| absolution | a pale figure bathed in a column of clean gold light, black smoke burning away |
+| sin-bloated | a swollen glowing gold and black sack bursting at the seams, smoke leaking out, no face |
+| maw-of-the-vault | an enormous stone mouth opening in a vault wall, swallowing curses |
+| last-supper | a candlelit stone table set for many, every chair empty but one |
+| eat-the-sky | a colossal shadow taking a bite out of a dark sky full of gold stars |
+
+#### Sin-Eater relics (`art-raw/relics/<id>.png`, 1:1, transparent)
+Add to the negative prompt: `white background, grey background, studio backdrop, floor, table, shadow, pedestal, wall, paper, parchment`.
+Add to the style prompt: `a single small object, centred, floating alone in total black darkness, black void around it, bold readable silhouette, nothing else in the frame, sickly gold glow`.
+
+| ID | Prompt |
+|---|---|
+| black-salt | a small heap of black salt crystals glinting gold |
+| iron-stomach | a small anatomical iron stomach bound with rivets |
+| bone-fork | a two-tined fork carved from yellowed bone |
+| tithe-bowl | a small cracked bronze bowl filled with black smoke |
+| sin-ledger | a thick black book bound with chain, gold letters on the cover |
+| gilded-tongue | a severed tongue covered in gold leaf |
+| the-last-meal | a single small plate with a burnt black crust of bread |
+| ash-crown | a crown made of grey ash and charred bone, gold sparks |
+| drowned-chalice | a tarnished chalice dripping with dark water, gold rim |
+
+#### Mirrorborn cards (`art-raw/cards/<id>.png`, 4:3)
+Shared accent: **silver and cold cyan**. Add to the style prompt: `silver and cold cyan light, glass reflections and shards`.
+
+| ID | Prompt |
+|---|---|
+| glass-edge | a long blade made of a single shard of mirror glass, reflecting a cold cyan light |
+| silvered-ward | a round shield of polished silver mirror reflecting a dark vault |
+| reflection | a figure facing its own reflection in a tall cracked mirror, the reflection moving first |
+| mimics-guard | a silver mirror held up catching a falling blade, sparks of cyan light |
+| copycat | two identical masks side by side, one slightly cracked, silver and cyan |
+| foreknowledge | a silver eye in a hand mirror seeing a blow coming, cyan glow |
+| glass-shards | a burst of flying mirror shards glittering cyan in the dark |
+| reflected-ward | two mirrored walls facing each other reflecting into infinity |
+| silver-tongue | a silver tongue of liquid metal curling out of a mask mouth |
+| hairline-crack | a perfect mirror with a single thin crack spreading across it |
+| mimicry | a shadow on a wall copying the pose of a creature in front of it |
+| second-glance | a mirror showing a figure looking over its shoulder, cyan light |
+| two-faces | a single mask split down the middle into two different faces, silver |
+| turn-it-back | a blade bouncing off a mirror back toward the one who swung it |
+| pilfer | a thin silver hand plucking a glowing cyan orb out of a dark figure |
+| hall-of-mirrors | an endless corridor of mirrors reflecting a single cyan light |
+| shard-storm | a whirlwind of mirror shards spinning around a dark figure |
+| inverse | an upside down reflection of a vault in a still silver pool |
+| silvering | liquid silver flowing over a raised arm like armour |
+| perfect-copy | a flawless silver statue identical to the creature beside it |
+| shatter-the-glass | a great mirror exploding into a thousand pieces, cyan light bursting through |
+| mirror-maze | a labyrinth of tall mirrors seen from above, cyan glow |
+| face-of-the-foe | a silver mask shaped like a monster face held over a human face |
+| thousand-faces | a wall covered in hundreds of different silver masks |
+
+#### Mirrorborn relics (`art-raw/relics/<id>.png`, 1:1, transparent)
+Add to the negative prompt: `white background, grey background, studio backdrop, floor, table, shadow, pedestal, wall, paper, parchment`.
+Add to the style prompt: `a single small object, centred, floating alone in total black darkness, black void around it, bold readable silhouette, nothing else in the frame, cold cyan glow`.
+
+| ID | Prompt |
+|---|---|
+| cracked-mirror | a small round hand mirror with a long crack across the glass |
+| silver-dust | a small pouch spilling glittering silver dust |
+| hand-mirror | an ornate silver hand mirror with a sharp edge |
+| two-sided-coin | a silver coin with a face on both sides |
+| thiefs-glove | a thin black leather glove with silver fingertips |
+| glass-heart | a heart made of clear glass glowing cyan inside |
+| the-true-reflection | a small oval mirror reflecting a bright cyan eye |
+| black-glass | a shard of black obsidian glass with a cyan glint |
+| drowned-mirror | a small mirror dripping dark water, its glass clouded |
+
+#### Shiftwright cards (`art-raw/cards/<id>.png`, 4:3)
+Shared accent: **stormy teal, deep blue and lightning white**. Add to the style prompt: `stormy teal and deep blue light, rain and lightning`.
+
+| ID | Prompt |
+|---|---|
+| tide-strike | a wave of dark water crashing like a fist against black rocks |
+| squall-ward | a wall of driving rain standing like a shield in the dark |
+| turn-the-tide | a figure raising its arm as dark water rises around it |
+| break-the-sky | a bolt of white lightning cracking a dark sky in two |
+| undertow | dark water dragging a figure under by the ankles, teal glow |
+| stormglass | a glass storm bottle with cloudy crystals forming inside |
+| hymn-of-the-choir | a ring of hooded singers in a vault, golden sound rings rising |
+| rising-water | black water rising up stone stairs, reflecting teal light |
+| thunderclap | a shockwave of lightning bursting outward from a slammed staff |
+| plainsong | a single candlelit singer in a vast dark nave, soft gold notes |
+| squall-line | a line of storm clouds marching across a dark sea, rain in sheets |
+| brine-ward | a shield crusted with white salt and dripping seawater |
+| riptide | a spiralling current of dark water pulling into the depths |
+| skyfall | pieces of a shattered sky falling like stones, lightning between them |
+| chorus-of-storms | storm clouds shaped like singing faces, lightning in their mouths |
+| barometer | an old brass barometer with its needle swinging wildly |
+| deep-current | a deep underwater current glowing teal sweeping through ruins |
+| lightning-rod | a tall iron rod on a spire catching a white lightning strike |
+| canticle | an open hymn book glowing gold on a stone lectern in the rain |
+| eye-of-the-storm | the calm round eye of a hurricane seen from within, stars above |
+| the-long-weather | an endless grey storm over a drowned city, no end in sight |
+| maelstrom | a vast whirlpool of water and lightning turning in the dark |
+| weathermaker | a cloaked figure holding a small storm cloud in its hands |
+| cataclysm | a gigantic lightning strike splitting the ground of a vault in two |
+
+#### Shiftwright relics (`art-raw/relics/<id>.png`, 1:1, transparent)
+Add to the negative prompt: `white background, grey background, studio backdrop, floor, table, shadow, pedestal, wall, paper, parchment`.
+Add to the style prompt: `a single small object, centred, floating alone in total black darkness, black void around it, bold readable silhouette, nothing else in the frame, teal glow`.
+
+| ID | Prompt |
+|---|---|
+| weathervane | an iron weathervane shaped like a crow pointing downward |
+| rain-chime | a small chime of glass droplets hanging from a ring |
+| storm-jar | a glass jar with a tiny thundercloud trapped inside |
+| tide-pool | a small stone bowl of dark seawater with a glowing anemone |
+| choir-bell | a small golden handbell with engraved musical notes |
+| broken-barometer | a cracked brass barometer with a bent needle |
+| eye-of-the-vault | a round glass lens with a swirling storm inside |
+| the-fourth-weather | a compass rose with a fourth unnamed point glowing |
+| drowned-vane | a rusted weathervane dripping with dark water |
+
+#### Pilgrim cards (`art-raw/cards/<id>.png`, 4:3)
+Shared accent: **dusty amber, road brown and candle gold**. Add to the style prompt: `dusty amber and candle gold light, long roads and distant lights`.
+
+| ID | Prompt |
+|---|---|
+| road-strike | a heavy wooden walking staff swung against a dark shape on a dusty road |
+| travel-cloak | a patched travelling cloak billowing on a windy road at dusk |
+| long-stride | a single booted foot taking a huge step across a gap in the road |
+| milestone | a weathered stone milestone carved with a number, a candle on top |
+| trailblaze | a lantern bearer cutting a path through thorns, amber light ahead |
+| wayshrine-ward | a tiny roadside shrine with a candle, sheltering a traveller |
+| second-wind | a tired traveller standing up again on a long road, dawn light ahead |
+| footsore | worn blistered boots resting on a stone, the road behind them |
+| walking-stick | a carved walking stick planted in the dust of a crossroads |
+| dust-of-the-road | a cloud of amber dust kicked up by passing feet |
+| bedroll | a rolled blanket and a small campfire beside a dark road |
+| map-fragment | a torn scrap of an old map with a glowing path drawn on it |
+| pack-mule | a laden mule plodding along a mountain path under lanterns |
+| long-road-home | an endless road winding toward a single distant warm light |
+| forced-march | a line of weary pilgrims marching through the night by torchlight |
+| pilgrims-rest | a traveller asleep under a stone arch, a candle burning low |
+| milestone-ward | two stone milestones standing like shields on either side of a path |
+| waystation | a small stone hut with a lit window on a long dark road |
+| cairn | a tall cairn of balanced stones on a hill, amber sunset |
+| carved-stone | a hand carving a mark into a road stone with a knife |
+| pilgrims-end | a pilgrim arriving at a great glowing gate at the end of a road |
+| thousand-steps | a vast stone staircase climbing into clouds, tiny figure halfway up |
+| far-horizon | a lone figure looking at a glowing horizon from a hilltop |
+| the-last-mile | a final stretch of road ending at a door of light, footprints leading to it |
+
+#### Pilgrim relics (`art-raw/relics/<id>.png`, 1:1, transparent)
+Add to the negative prompt: `white background, grey background, studio backdrop, floor, table, shadow, pedestal, wall, paper, parchment`.
+Add to the style prompt: `a single small object, centred, floating alone in total black darkness, black void around it, bold readable silhouette, nothing else in the frame, warm amber glow`.
+
+| ID | Prompt |
+|---|---|
+| worn-compass | an old brass compass with a broken needle |
+| hobnail-boots | a pair of heavy hobnail boots caked in dust |
+| prayer-beads | a long string of worn wooden prayer beads |
+| road-map | a folded leather map tied with string |
+| tin-cup | a dented tin drinking cup hanging from a cord |
+| pilgrims-badge | a small lead pilgrim badge shaped like a scallop shell |
+| saints-sandal | a single worn leather sandal with a faint halo |
+| the-long-way-round | a coiled length of road-worn rope shaped into a spiral |
+| drowned-lantern | an old lantern dripping water, its flame still lit |
+
+#### Tollkeeper cards (`art-raw/cards/<id>.png`, 4:3)
+Shared accent: **tarnished gold, black iron and lamp light**. Add to the style prompt: `tarnished gold and warm lamp light, coins and black iron`.
+
+| ID | Prompt |
+|---|---|
+| collectors-blade | a short black iron sword lying across a pile of gold coins, lamp light glinting on the blade, no person |
+| iron-ledger | a huge iron-bound ledger book held up like a shield |
+| exact-payment | a single gold coin balanced on the edge of a sword blade |
+| bribe-the-dark | a gloved hand offering a gold coin into deep shadow, eyes watching |
+| shake-down | coins spilling out of an upturned purse, shadowy hands grabbing |
+| hired-steel | a row of mercenary swords hanging on a wall with price tags |
+| gilded-ward | an iron shield covered in flaking gold leaf |
+| coin-toss | a gold coin spinning in the air above an open palm |
+| counting-house | a dim room of stacked coins and ledgers lit by one lamp |
+| collection | a collector with a lantern knocking on a row of dark doors |
+| paid-guard | an armoured guard standing before a gate holding out a palm |
+| small-change | a scatter of small copper coins on dark stone |
+| interest | a pile of coins growing taller, a lamp beside it |
+| bought-time | an hourglass filled with gold coins instead of sand |
+| golden-hail | gold coins raining down from above like hail |
+| blood-money | a single gold coin lying in a dark red pool |
+| ransom | a chained figure behind a small gold coin on a scale |
+| hostile-takeover | a great iron hand closing around a tower of coins |
+| vault-dividend | a vault door opening onto shelves of gold, lamp light |
+| debt-collector | a tall hooded collector with a ledger and a lantern |
+| the-final-toll | a great bronze bell tolling above a gate, coins falling |
+| golden-ward | a wall made of stacked gold coins |
+| toll-of-ages | an ancient toll gate overgrown with roots, gold glimmering |
+| bankrupt-the-dark | an empty treasure chest with the darkness pouring out of it |
+
+#### Tollkeeper relics (`art-raw/relics/<id>.png`, 1:1, transparent)
+Add to the negative prompt: `white background, grey background, studio backdrop, floor, table, shadow, pedestal, wall, paper, parchment`.
+Add to the style prompt: `a single small object, centred, floating alone in total black darkness, black void around it, bold readable silhouette, nothing else in the frame, warm gold glow`.
+
+| ID | Prompt |
+|---|---|
+| tollhouse-lantern | an iron lantern with a coin slot on top, gold flame inside |
+| coin-purse | a small leather coin purse bulging with coins |
+| brass-scales | a small set of brass weighing scales |
+| ledger-of-debts | a small black ledger with gold clasps |
+| weighted-dice | a pair of ivory dice with gold pips |
+| gilded-hand | a mummified hand covered in gold leaf |
+| golden-key | an ornate golden key with a coin-shaped bow |
+| the-last-coin | a single worn gold coin on a chain |
+| drowned-coin | a tarnished gold coin crusted with barnacles, dripping water |
 
 #### Node icons (`art-raw/ui/node-<type>.png`, transparent)
 Add to the style prompt: `a simple bold symmetrical glyph emblem, centred, floating in total black darkness, flat graphic icon, thick glowing lines`.

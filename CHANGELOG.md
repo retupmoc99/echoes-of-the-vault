@@ -1,5 +1,29 @@
 # Changelog
 
+## 0.21.0 — Five more Wardens (2026-11-21)
+
+### Added
+- **The Sin-Eater:** Devour cards eat the curses in your hand for power, and Burden cards grow with every curse you carry. For the Sin-Eater, tainted cards cost a curse instead of Corruption: curses are its food.
+- **The Mirrorborn:** Mirror plays the enemy's shown move yourself, turned around. Its attack hits it, its Ward shields you, its debuffs land on it. Steal takes the move away (bosses are Weakened instead).
+- **The Shiftwright:** always in one of three Aspects: Drowned, Fractured or Choir. Attune cards switch between them, and each fight starts in the Aspect of the loop's Vault Shift.
+- **The Pilgrim:** every chamber you enter is a Mile, and road cards grow with your Miles. Strongest deep in a loop.
+- **The Tollkeeper:** foes pay Toll when they die, and Pay cards spend it for a bonus. Shrines offer a Tithe, and rewards can be rerolled for Toll. Toll is gone when the loop ends: it never becomes Shards.
+- **The full set for each:**
+  - 23–24 cards, 7 relics, a starter relic and a relic from the Well.
+  - Two kits.
+  - A first-time hint.
+  - Painted art for every card and relic.
+- **Unlocks:**
+  - The first four are revealed by deeds: carry 3 curses out of a loop; beat every elite; escape under 3 different Shifts; escape floor 2. Each one's Work then appears.
+  - The Tollkeeper's Work (150 Shards) is available straight away.
+- The Warden's resource (Aspect, Miles or Toll) shows as a chip by your HP.
+
+### Fixed
+- Ward gained as a fight begins (Sleeper's Eye, Ash Crown, Eye of the Vault) is no longer wiped before your first turn.
+
+### Balance
+- Every new standard deck wins 27–38% of bot loops (the first four Wardens: 31–37%). Their kits are within about 5 points, except the Penitent (+9). The design docs list every number changed in tuning.
+
 ## 0.20.0 — The Somnant, and deeds (2026-11-21)
 
 ### Added

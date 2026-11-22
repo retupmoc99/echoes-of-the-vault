@@ -1,6 +1,6 @@
 # Design ideas: six more Wardens
 
-*Status: ideas (2026-11-21). Agreed build order: Somnant, Sin-Eater, Mirrorborn, Shiftwright, Pilgrim; the Tollkeeper to be reworked (Toll spent inside the loop, never turned into Shards) or dropped. Each Warden is unlocked by a deed (see `deed-unlocks.md`). The Somnant is fully designed in `somnant.md`.*
+*Status: all six built (the Somnant in 0.20, the rest in 0.21). Each has its own design doc with the as-built numbers. Original agreed build order: Somnant, Sin-Eater, Mirrorborn, Shiftwright, Pilgrim; the Tollkeeper to be reworked (Toll spent inside the loop, never turned into Shards) or dropped. Each Warden is unlocked by a deed (see `deed-unlocks.md`). The Somnant is fully designed in `somnant.md`.*
 
 > The vault keeps more than three kinds of prisoner. Some of them have learned its rules.
 

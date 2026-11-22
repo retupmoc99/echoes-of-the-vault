@@ -19,7 +19,7 @@ export function chooseIntent(rng: RngState, p: IntentPattern, history: string[])
   return rngWeighted(rng, weights);
 }
 
-export type IntentKind = 'attack' | 'defend' | 'debuff' | 'buff' | 'strange' | 'asleep';
+export type IntentKind = 'attack' | 'defend' | 'debuff' | 'buff' | 'strange' | 'asleep' | 'robbed';
 
 export interface IntentPreview {
   kinds: IntentKind[];
@@ -31,6 +31,7 @@ export interface IntentPreview {
 
 /** What the enemy will do, with live numbers (Weakened, Exposed, etc. applied). */
 export function previewIntent(s: CombatState, enemy: EnemyState, content: Content): IntentPreview {
+  if (enemy.robbed) return { kinds: ['robbed'], name: 'Robbed: it does nothing this turn' };
   // Asleep: it skips its next turn (its planned move comes after).
   if (enemy.asleep && !enemy.waking) return { kinds: ['asleep'], name: `Asleep (then ${moveOf(enemy, content).name})` };
   const move = moveOf(enemy, content);

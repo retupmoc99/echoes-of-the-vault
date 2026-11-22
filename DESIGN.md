@@ -338,6 +338,27 @@ Built in 0.20. See `docs/design/somnant.md` for the full card and relic list.
 - **Unlock:** the deed *You hear it dreaming* (reach Awakening stage 3), then the Work *The Sleeper's Hymnal* (170 Shards).
 - **Bot check:** 33% at stage 0 (the others: 33–36%), 28% at stage 3. **Flagged:** 8% at stage 5 (the others: 11–17%), and it escapes floor 2 20% of the time (the others: 28–47%). It struggles in long fights against big HP pools (the Sleeper, the Well). If that holds in real play, the likely fix is more damage on its rares, not more sleep.
 
+## Wardens 5–9
+Built in 0.21. Full designs: `docs/design/sin-eater.md`, `mirrorborn.md`, `shiftwright.md`, `pilgrim.md`, `tollkeeper.md`.
+
+| Warden | Core rule | Unlock |
+|---|---|---|
+| **Sin-Eater** (66 HP) | **Devour** eats the leftmost curse in hand for a bonus (back next fight). **Burden** cards scale with curses carried. Tainted cards cost it a curse instead of Corruption. | Deed *Fed on sin* (close a loop with 3+ curses), then The Ash Table (170) |
+| **Mirrorborn** (62 HP) | **Mirror** plays a foe's shown move yourself, turned around. **Steal** mirrors at 50% and robs the foe of its move (bosses: Weakened 2). | Deed *Seen in every glass* (beat every elite), then The Mirror That Kept Its Face (180) |
+| **Shiftwright** (68 HP) | Always in one **Aspect**: Drowned (+1 to Bleed you apply), Fractured (+1 per hit, 1 HP a turn), Choir (+1 draw). Attune cards switch; fights start in the loop's Shift. | Deed *Weathered* (escape under 3 Shifts), then The Weathervane (180) |
+| **Pilgrim** (62 HP) | **Miles:** +1 per chamber (elites 2) for the loop. Road cards grow with Miles. | Deed *Back from the Well* (escape floor 2), then The Worn Road (180) |
+| **Tollkeeper** (70 HP) | **Toll:** from kills; **Pay N** cards spend it for a bonus; Shrines' Tithe (4) and reward rerolls (3) take it too. Never becomes Shards. | The Toll Gate (150), no deed |
+
+- Each has 23–24 cards (6 research-locked), 7 relics plus a starter and a Well relic, two kits, a hint, and painted art.
+- **Engine pieces added:** Devour and fight-only curses, Mirror and Steal (enemy moves resolved from the player), Aspects, run-level Miles and Toll carried into fights, `ifKilled`, once-per-turn relic triggers, relic `combatMods`, intent-reading amounts and conditions, and scaling draw and Resonance amounts.
+- **Fixed on the way:**
+  - Ward gained at the very start of a fight (Sleeper's Eye, Ash Crown) used to be wiped before your first turn.
+  - "Retain Ward" lasts the whole fight. It's only used where that's intended.
+- **Balance note:** the bot wins *more* with no card rewards (the Relic-Breaker 56% against 36% with them), because it picks the rarest card, not the best. So a Warden's win rate depends heavily on its reward pool, and the new pools were tuned against that.
+- **Bot check (400 loops):**
+  - Standard decks: Sin-Eater 27%, Mirrorborn 37%, Shiftwright 37%, Pilgrim 38%, Tollkeeper 33%.
+  - All kits are within about 5 points of their standard deck, except the Penitent (+9) and the Glass Wall (+3).
+
 ## Deeds
 See `docs/design/deed-unlocks.md`. New Wardens (the Somnant first) are revealed by a **deed**: something done in the vault that fits the Warden. Then their Work appears with a Shards cost.
 - The save keeps a **tally**: peak Awakening stage, most curses carried, elites beaten, Shifts escaped, and floor-2 escapes. It's updated when loops (and Dailies) close and when the Awakening rises.
@@ -490,13 +511,14 @@ All sound is generated in code with Web Audio (`src/ui/audio/`): no audio files,
 3. **The Deeper Vault** (0.18–0.19, built): Escape or Descend after the boss, into a shorter, harsher second floor with 9 new enemies; Echoes born there are stronger. See `docs/design/deeper-vault.md`.
 4. **The Somnant** (Warden 4, built in 0.20): builds Drowse until enemies fall Asleep and skip a turn; grows with the Awakening. Unlocked by the first deed. See `docs/design/somnant.md`.
 5. **Deed unlocks** (built in 0.20): new Wardens appear as Works only after a themed deed (reach Awakening stage 3, carry 3 curses, beat every elite, escape under 3 Shifts, escape floor 2). See `docs/design/deed-unlocks.md`.
+6. **Wardens 5–9** (built in 0.21): the Sin-Eater, Mirrorborn, Shiftwright, Pilgrim and Tollkeeper. See "Wardens 5–9" above.
 
 ## Future hooks (not built)
 - **Classes:** `WardenClassDef` holds the deck, pools, kits, HP and an optional unlock. The Hour-Thief proved the pattern: a new class is mostly data, plus new `Effect` kinds for genuinely new mechanics. Built in 0.14.0 (see "Echo-Caller (class 3)"). **Decided (2026-11-21):** it summons your *real* Outpost Echoes as allies, each fighting from its own deck snapshot, with its trait shaping how it fights. Needs player-side ally combatants. Full design to be agreed before building.
 - **Factions / awakening:** `SaveData.world` exists (empty). **Decided (2026-11-21):** the Awakening rises with *activity only* (loops played, Echo work done), never with real time away, so breaks are never punished. As it rises, loops get new dangers and new rewards, and the Outpost can push it back. Stages 1–3 built in 0.12.0; see "The Awakening" above.
 - **Echo allies:** each Echo stores its loop's deck snapshot and origin.
 - **More floors:** floor 2 is built (see The Deeper Vault). `descend()` works for any floor, so a third floor is mostly a new map config and enemy set.
-- **More Wardens:** six concepts are written up in `docs/design/warden-ideas.md` (the Somnant is the recommended fourth).
+- **More Wardens:** all six concepts from `docs/design/warden-ideas.md` are built (the Somnant in 0.20, the other five in 0.21).
 - **Multiplayer:** not planned. To revisit in a later milestone.
 
 ## Open questions / flagged

@@ -28,6 +28,7 @@ export function RunView({ run, error, dispatch, onMenu, onLoopDone }: Props) {
       return (
         <CombatScreen
           state={run.combat!}
+          classId={run.classId}
           error={error}
           // At Awakening stage 5 the boss chamber holds the Sleeper, not the Lock.
           label={`${run.floor > 1 ? '⇩ ' : ''}Depth ${(run.depthBase ?? 0) + mapNode.row + 1} · ${CONTENT.encounters[node.encounterId].tier === 'boss' && node.encounterId !== 'grieving-lock' ? CONTENT.enemies[CONTENT.encounters[node.encounterId].enemies[0]].name : NODE_INFO[mapNode.type].name}`}

@@ -35,6 +35,7 @@ export function nextBotAction(r: RunState, content: Content): RunAction {
       if (curse >= 0) return { type: 'shrineRemove', deckIndex: curse };
       const starter = r.deck.findIndex((id) => content.cards[id].rarity === 'starter' && content.cards[id].type === 'strike');
       if (starter >= 0 && r.deck.length > 8) return { type: 'shrineRemove', deckIndex: starter };
+      if ((r.toll ?? 0) >= 4 && r.deck.length > 8 && starter >= 0) return { type: 'shrineTithe', deckIndex: starter };
       if (canSearchShrine(r)) return { type: 'shrineSearch' };
       return { type: 'shrineRest' };
     }
@@ -45,6 +46,8 @@ export function nextBotAction(r: RunState, content: Content): RunAction {
     case 'reward': {
       if (node.relicId && !node.relicTaken) return { type: 'takeRelic' };
       if (node.cardTaken || !node.cards.length) return { type: 'leave' };
+      // The Sin-Eater wants the tainted offer: curses are its food.
+      if (r.classId === 'sin-eater' && node.tainted) return { type: 'pickCard', choice: 'tainted' };
       let best = 0;
       node.cards.forEach((id, i) => {
         if (RARITY_RANK[content.cards[id].rarity] > RARITY_RANK[content.cards[node.cards[best]].rarity]) best = i;
@@ -122,6 +125,8 @@ function combatAction(r: RunState, content: Content): CombatAction {
   let target = weakest(enemies);
   if (pick.def.archetype === 'dream' && asleep.length) target = weakest(asleep);
   else if (pick.def.archetype === 'slumber' && awake.length) target = awake.reduce((x, y) => (hits(y) > hits(x) ? y : x));
+  // Mirrorborn: mirror (or rob) the foe about to hit hardest.
+  else if ((pick.def.archetype === 'reflection' || pick.def.archetype === 'theft') && awake.length) target = awake.reduce((x, y) => (hits(y) > hits(x) ? y : x));
   return needsTarget(pick.def.effects)
     ? { type: 'playCard', uid: pick.card.uid, targetId: target.id }
     : { type: 'playCard', uid: pick.card.uid };

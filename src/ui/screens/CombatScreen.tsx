@@ -23,6 +23,7 @@ import { Floaters } from '../components/Floaters';
 import { HpBar } from '../components/HpBar';
 import { RelicBar } from '../components/RelicBar';
 import { StatusChips } from '../components/StatusChips';
+import { ResourceChip } from '../components/ResourceChip';
 import { layoutRect } from '../uiScale';
 
 interface Props {
@@ -37,6 +38,8 @@ interface Props {
   onContinue: () => void;
   /** Background art keys to try, in order (e.g. the Vault Shift, then "combat"). */
   bgKeys?: string[];
+  /** The Warden, for its resource chip and first-time hints. */
+  classId?: string;
 }
 
 /** A played card's ghost, flying from the hand to its target. */
@@ -74,7 +77,7 @@ function useElementHeight(ref: React.RefObject<HTMLElement | null>): number | un
   return height;
 }
 
-export function CombatScreen({ state, error, label, tier, dispatch, onMenu, onContinue, bgKeys = ['combat'] }: Props) {
+export function CombatScreen({ state, error, label, tier, dispatch, onMenu, onContinue, bgKeys = ['combat'], classId }: Props) {
   useScreenAtmosphere(...bgKeys);
   const enemiesRef = useRef<HTMLElement>(null);
   const enemyArea = useElementHeight(enemiesRef);
@@ -164,6 +167,11 @@ export function CombatScreen({ state, error, label, tier, dispatch, onMenu, onCo
           ['echo-copy', state.piles.hand.some((c) => c.ephemeral)],
           ['paradox', (state.player.statuses.paradox ?? 0) > 0],
           ['somnant', state.enemies.some((e) => (e.statuses.drowse ?? 0) > 0 || e.asleep)],
+          ['sin-eater', classId === 'sin-eater'],
+          ['mirrorborn', classId === 'mirrorborn'],
+          ['shiftwright', classId === 'shiftwright'],
+          ['pilgrim', classId === 'pilgrim'],
+          ['tollkeeper', classId === 'tollkeeper'],
           ['statuses', [state.player, ...state.enemies].some((c) => Object.keys(c.statuses).length > 0)],
           ['allies', (state.allies ?? []).some((a) => a.hp > 0)],
         ]}
@@ -200,6 +208,7 @@ export function CombatScreen({ state, error, label, tier, dispatch, onMenu, onCo
           <div className="player-hp">
             <HpBar hp={state.player.hp} maxHp={state.player.maxHp} ward={state.player.ward} />
           </div>
+          {classId && <ResourceChip classId={classId} aspect={state.aspect} miles={state.miles} toll={state.toll} onInspect={setInfo} />}
         </div>
         <div className="player-row">
           <RelicBar relics={state.relics} strainBonus={state.modifiers.maxStrainBonus} onInspect={setInfo} />

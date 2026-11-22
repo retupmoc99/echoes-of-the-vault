@@ -92,6 +92,26 @@ export const HINTS = {
     title: 'Drowse and sleep',
     text: 'Drowse builds on a foe; the chip shows how close it is (4/6). At its threshold it falls Asleep and skips its next turn. Hit it then: some cards strike far harder at a sleeper.',
   },
+  'sin-eater': {
+    title: 'Curses are food',
+    text: 'Devour cards eat the leftmost curse in your hand for a bonus. It is back next fight. Cards with Burden grow with every curse you carry, so the tainted offer is a meal.',
+  },
+  mirrorborn: {
+    title: 'Mirror',
+    text: 'Mirror plays the enemy’s shown move yourself, turned around: its attack hits it, its Ward shields you, its debuffs land on it. Steal takes the move away entirely.',
+  },
+  shiftwright: {
+    title: 'Three weathers',
+    text: 'You are always in one Aspect: Drowned (Bleed on foes stays), Fractured (+2 per hit, lose 1 HP a turn) or Choir (draw 1 more). Attune cards switch; "In X:" bonuses only work in that Aspect. Fights start in the loop’s Shift.',
+  },
+  pilgrim: {
+    title: 'Miles',
+    text: 'Every chamber you enter is a Mile (elites give 2). Road cards grow with your Miles, so you are weak early and strong deep in a loop, and on floor 2.',
+  },
+  tollkeeper: {
+    title: 'Toll',
+    text: 'Foes pay Toll when they die. Pay cards spend it for a bonus; Shrines and rewards take it too. Toll is gone when the loop ends: spend it.',
+  },
   stairs: {
     title: 'The stairs',
     text: 'Past the boss, the vault goes on. Escape now and the loop ends as a win. Descend and you keep everything for a shorter, harsher floor: escape it for far more Shards, but die there and the loop counts as a death.',

@@ -19,7 +19,7 @@ import type {
   EnemyState,
   StepResult,
 } from '../types';
-import { PLAYER_ID, isOver, livingEnemies, type Ctx } from './context';
+import { PLAYER_ID, aspectActive, isOver, livingEnemies, type Ctx } from './context';
 import { checkCombatEnd, loseHp } from './damage';
 import { cardCost, discardHand, drawCards } from './deck';
 import { needsTarget, resolveEffects } from './effects';
@@ -46,6 +46,12 @@ export function defaultCombatModifiers(): CombatModifiers {
 export function createCombat(setup: CombatSetup, content: Content): StepResult {
   const rng = createRng(setup.seed);
   const modifiers = { ...defaultCombatModifiers(), ...setup.modifiers };
+  // Relics that change fight-wide rules (numbers add up).
+  for (const id of setup.relics) {
+    for (const [k, v] of Object.entries(content.relics[id]?.combatMods ?? {}) as [keyof CombatModifiers, number][]) {
+      (modifiers as Record<string, number>)[k] = ((modifiers as Record<string, number | undefined>)[k] ?? 0) + v;
+    }
+  }
 
   const deck: CardInstance[] = setup.deck.map((cardId, i) => ({ uid: `c${i}`, cardId }));
   const encounter = content.encounters[setup.encounterId];
@@ -92,6 +98,11 @@ export function createCombat(setup: CombatSetup, content: Content): StepResult {
     nextUid: deck.length,
     modifiers,
   };
+
+  // Warden resources carried in from the run.
+  if (setup.aspect) s.aspect = setup.aspect;
+  if (setup.miles !== undefined) Object.assign(s, { miles: setup.miles, milesGained: 0 });
+  if (setup.toll !== undefined) Object.assign(s, { toll: setup.toll, tollPaid: 0 });
 
   const ctx: Ctx = { s, content, events: [], depth: 0 };
   fireTriggers(ctx, 'combatStart');
@@ -166,6 +177,9 @@ function endTurn(ctx: Ctx): string | undefined {
   discardHand(ctx);
   tickEndOfTurn(ctx, s.player);
   if (isOver(s)) return undefined;
+  // Shiftwright, Fractured: the blows cost you.
+  if (aspectActive(s, 'fractured')) loseHp(ctx, s.player, s.aspectBoost && s.aspect === 'fractured' ? 2 : 1, 'effect');
+  if (isOver(s)) return undefined;
 
   // Your allies act after you, before the enemies.
   allyPhase(ctx, 'turnEnd');
@@ -184,6 +198,15 @@ function endTurn(ctx: Ctx): string | undefined {
     if (s.timeline.some((t) => t.sourceId === enemy.id)) advanceTimeline(ctx, 1, enemy.id);
     if (isOver(s)) return undefined;
     if (enemy.hp <= 0) continue;
+
+    // Robbed (Mirrorborn): its move was taken; it does nothing this turn.
+    if (enemy.robbed) {
+      enemy.robbed = false;
+      enemy.history.push(enemy.intent);
+      tickEndOfTurn(ctx, enemy);
+      if (isOver(s)) return undefined;
+      continue;
+    }
 
     // Asleep: it skips this move, and sleeps on through your next turn. On the
     // turn after that it wakes and makes the move it had planned.
@@ -227,9 +250,12 @@ function startPlayerTurn(ctx: Ctx): void {
   const s = ctx.s;
   // Floor 2's Weight: if the enemies broke through all your Ward, it presses on you.
   const pressed = !!s.modifiers.weightDamage && s.turn > 0 && s.player.ward === 0;
+  const firstTurn = s.turn === 0;
   s.turn++;
   s.overloadsThisTurn = 0;
-  if (!s.player.retainWard) s.player.ward = 0;
+  s.firedThisTurn = [];
+  // Ward from fight-start relics carries into the first turn.
+  if (!s.player.retainWard && !firstTurn) s.player.ward = 0;
   for (const ally of s.allies ?? []) {
     ally.guard = false;
     ally.ward = 0;
@@ -245,7 +271,9 @@ function startPlayerTurn(ctx: Ctx): void {
 
   s.resonance = BALANCE.player.resonancePerTurn + (s.modifiers.resonanceBonus ?? 0);
   ctx.events.push({ type: 'turnStart', turn: s.turn });
-  drawCards(ctx, BALANCE.player.drawPerTurn + (s.modifiers.drawBonus ?? 0));
+  // Shiftwright, Choir: one more card (two, doubled).
+  const choir = aspectActive(s, 'choir') ? (s.aspectBoost && s.aspect === 'choir' ? 2 : 1) : 0;
+  drawCards(ctx, BALANCE.player.drawPerTurn + (s.modifiers.drawBonus ?? 0) + choir);
   returnEchoes(ctx);
   fireTriggers(ctx, 'turnStart');
   // Pathfinder allies act at the start of your turn, so you see what they did before you plan.

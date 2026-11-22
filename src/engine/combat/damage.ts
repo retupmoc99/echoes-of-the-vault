@@ -6,8 +6,9 @@
 import { BALANCE } from '../../data/balance';
 import type { AllyState, CombatState, Combatant, EnemyState, HpLossCause } from '../types';
 import { onAllyFell } from './allies';
-import { PLAYER_ID, isAlly, isEnemy, type Ctx } from './context';
+import { PLAYER_ID, aspectActive, isAlly, isEnemy, type Ctx } from './context';
 import { checkPhase } from './phases';
+import { fireTriggers } from './relics';
 import { addStatus } from './statuses';
 
 /**
@@ -18,6 +19,8 @@ export function attackDamage(s: CombatState, attacker: Combatant, defender: Comb
   const st = BALANCE.status;
   let dmg = base + (attacker.statuses.fracture ?? 0) * s.modifiers.fractureDamagePerStack;
   if (isEnemy(s, attacker.id)) dmg += s.modifiers.enemyDamageBonus + ((attacker as EnemyState).damageBonus ?? 0);
+  // Shiftwright, Fractured: your blows hit harder (doubled by The Long Weather).
+  if (attacker.id === PLAYER_ID && aspectActive(s, 'fractured')) dmg += s.aspectBoost && s.aspect === 'fractured' ? 2 : 1;
   if ((attacker.statuses.weakened ?? 0) > 0) dmg *= 1 - st.weakened.damageReduction;
   if ((defender.statuses.exposed ?? 0) > 0) dmg *= 1 + st.exposed.damageIncrease;
   // Somnant: a sleeping foe takes more from every blow.
@@ -36,6 +39,8 @@ export function dealAttack(ctx: Ctx, attacker: Combatant, defender: Combatant, b
   // Omen: Bleeding Moon. Every wound stays open.
   const bleed = ctx.s.modifiers.bleedOnAttack ?? 0;
   if (bleed && amount > blocked && defender.hp > 0) addStatus(ctx, defender, 'bleed', bleed);
+  // Shiftwright, Drowned doubled: every hit of yours also bleeds.
+  if (attacker.id === PLAYER_ID && ctx.s.aspectBoost && ctx.s.aspect === 'drowned' && defender.hp > 0) addStatus(ctx, defender, 'bleed', 1);
 }
 
 /** Direct HP loss (Bleed, Fracture, self-harm). Ignores Ward. */
@@ -63,7 +68,10 @@ function reduceHp(ctx: Ctx, target: Combatant, amount: number): void {
   }
   if (target.hp === 0) {
     ctx.events.push({ type: 'death', targetId: target.id });
-    if (target.id !== PLAYER_ID) kinMourn(ctx, target.id);
+    if (target.id !== PLAYER_ID) {
+      kinMourn(ctx, target.id);
+      fireTriggers(ctx, 'foeDied', { targetId: target.id });
+    }
     checkCombatEnd(ctx);
   } else if (target.id !== PLAYER_ID) {
     checkPhase(ctx, target as EnemyState);
