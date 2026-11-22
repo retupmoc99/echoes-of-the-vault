@@ -274,7 +274,7 @@ export const IDLE_CONTENT: IdleContent = {
     {
       id: 'kit-glutton',
       name: "Kit: The Glutton",
-      description: "A Sin-Eater deck that eats everything: Gorge and Take the Sin.",
+      description: "A Sin-Eater deck that eats everything: Gorge and Sackcloth.",
       cost: 60,
       flavor: "Seconds. Thirds. All of it.",
       requires: 'ash-table',
@@ -282,7 +282,7 @@ export const IDLE_CONTENT: IdleContent = {
     {
       id: 'kit-penitent',
       name: "Kit: The Penitent",
-      description: "A Sin-Eater deck that wears its curses: Communion of Ash and Sackcloth.",
+      description: "A Sin-Eater deck that wears its curses: Communion of Ash.",
       cost: 60,
       flavor: "Carry it. Let it carry you.",
       requires: 'ash-table',

@@ -354,10 +354,21 @@ Built in 0.21. Full designs: `docs/design/sin-eater.md`, `mirrorborn.md`, `shift
 - **Fixed on the way:**
   - Ward gained at the very start of a fight (Sleeper's Eye, Ash Crown) used to be wiped before your first turn.
   - "Retain Ward" lasts the whole fight. It's only used where that's intended.
-- **Balance note:** the bot wins *more* with no card rewards (the Relic-Breaker 56% against 36% with them), because it picks the rarest card, not the best. So a Warden's win rate depends heavily on its reward pool, and the new pools were tuned against that.
-- **Bot check (400 loops):**
-  - Standard decks: Sin-Eater 27%, Mirrorborn 37%, Shiftwright 37%, Pilgrim 38%, Tollkeeper 33%.
-  - All kits are within about 5 points of their standard deck, except the Penitent (+9) and the Glass Wall (+3).
+- **Balance note (0.21.0):** the old bot won *more* with no card rewards (the Relic-Breaker 56% against 36% with them), because it took the rarest card, not the best.
+
+### Test mode (0.21.1)
+A hidden option for trying Wardens without earning them. Tap the version line at the foot of Archive → Settings five times, and an *Unlock all Wardens and kits* button appears. It adds every class's and kit's unlock (`testUnlockWardens`), costs nothing, leaves deeds and Shards alone, and sets `settings.testMode`. After that the section stays visible and the version line says "test unlocks used". **Design flag:** it's open to any player who finds it. That's fine for a free single-player game, but it could be hidden behind a dev build later.
+
+### The drafting bot (0.21.1)
+The balance bot now **drafts** (`src/sim/draft.ts`). It scores each offered card by rough value per Resonance, a bonus for archetypes already in the deck, and what the deck is short of (Ward or damage). It **skips** any card that doesn't beat the deck's average by a margin that grows with deck size. The Sin-Eater weighs the tainted card the same way, instead of always taking it.
+- It beats both the old rarest-first bot and taking no cards, for every Warden (Relic-Breaker 69% against 38% and 55%). Its numbers are the ones to trust, and `SIM_PICK=rarest|none` still runs the old modes. `SIM_CLASS=<id>` sims one Warden.
+- **All win rates rose about 20 points.** The old 32–37% target was set against the weak bot. With the drafter, the Wardens sit at **45–68%** at stage 0, about **17–28%** at stage 5, and 24–48% for a full floor-2 loop. Whether the game should be harder overall is an open question; the spread between Wardens is what the tuning aims at.
+- **Old flags that were bot artifacts:** the Sin-Eater's 27% (always taking the tainted card) and the Somnant's stage-5 weakness. Both are mid-pack now.
+- **Bot check, standard decks (400 loops, stage 0):** Relic-Breaker 68%, Somnant 60%, Pilgrim 55%, Sin-Eater 54%, Mirrorborn 54%, Shiftwright 53%, Tollkeeper 51%, Hour-Thief 50%, Echo-Caller 45%.
+- **Still open:**
+  - The Relic-Breaker is high and the Echo-Caller low.
+  - Kits more than 5 points off: the Fuse-Setter +11, the Mourner +13, the Spendthrift −10, the Drowned −7, the Glutton −6.
+  - On a full floor-2 loop the Sin-Eater (46%) and the Pilgrim (48%) lead; the others are at 24–30%, apart from the Relic-Breaker (44%). The Pilgrim is meant to shine there; the Sin-Eater isn't.
 
 ## Deeds
 See `docs/design/deed-unlocks.md`. New Wardens (the Somnant first) are revealed by a **deed**: something done in the vault that fits the Warden. Then their Work appears with a Shards cost.

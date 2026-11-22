@@ -11,6 +11,13 @@
 - **Pilgrim's Rest** gives 7 Ward + ½ per Mile and draws 1. "Retain Ward" lasts the whole fight, which made Ward stack forever.
 - **Kits:** the Wanderer swaps two Road Strikes; the Long Road swaps a strike and a cloak.
 - **Bot:** 38% standard; the Wanderer 42% and the Long Road 40%.
+
+**Changed in 0.21.1:** Miles cards are capped so floor 2 can't run away. They stop growing at about 14 Miles; floor 1 is unchanged:
+- Long Stride at most 10, Footsore 11, Milestone 9, Wayshrine Ward 10, Trailblaze 6.
+- Long Road Home at most 14, Pilgrim's End 24, Thousand Steps 7 a hit, The Last Mile 21.
+- Pilgrim's Rest at most 14, Milestone Ward 13 each, Cairn 11.
+
+Drafting bot: 55% standard; the Wanderer 53%, the Long Road 57%. It escapes floor 2 88% of the times it gets there.
 *Unlocked by the deed **Back from the Well** (escape floor 2), then the Work **The Worn Road** (180 Shards).*
 
 > The road is long. It counts every stone.

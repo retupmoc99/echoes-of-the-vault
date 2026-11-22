@@ -28,7 +28,9 @@ export type OutpostAction =
   /** Spend Shards to quiet the Sleeper (Awakening progress down). */
   | { type: 'lull' }
   /** Release an Echo into the Sleeper's dream (progress down by its stability). */
-  | { type: 'giveEcho'; echoId: string };
+  | { type: 'giveEcho'; echoId: string }
+  /** Test mode (hidden in Settings): build every Warden's and kit's Work for free. Never removes anything. */
+  | { type: 'testUnlockWardens' };
 
 export interface OutpostResult {
   save: SaveData;
@@ -44,6 +46,12 @@ export function outpostStep(save: SaveData, action: OutpostAction, now: number, 
   return { save: result, report: ticked.report };
 }
 
+/** The Works test mode builds: every Warden's unlock and every kit's. */
+export function testUnlockIds(content: Content): string[] {
+  const ids = Object.values(content.classes).flatMap((c) => [c.unlock, ...c.kits.map((k) => k.unlock)]);
+  return [...new Set(ids.filter((id): id is string => Boolean(id)))];
+}
+
 function apply(s: SaveData, action: OutpostAction, now: number, content: Content): SaveData | string {
   switch (action.type) {
     case 'assign': {
@@ -52,6 +60,11 @@ function apply(s: SaveData, action: OutpostAction, now: number, content: Content
       if (action.task === 'research' && researchComplete(s, content)) return 'There is nothing left to research.';
       const task = action.task ? { kind: action.task, startedAt: now } : null;
       return { ...s, echoes: s.echoes.map((e) => (e.id === echo.id ? { ...e, task } : e)) };
+    }
+    case 'testUnlockWardens': {
+      const ids = testUnlockIds(content).filter((id) => !s.outpost.unlocks.includes(id));
+      if (!ids.length) return 'Every Warden and kit is already unlocked.';
+      return { ...s, outpost: { ...s.outpost, unlocks: [...s.outpost.unlocks, ...ids] }, settings: { ...s.settings, testMode: true } };
     }
     case 'buy': {
       const unlock = content.idle.unlocks.find((u) => u.id === action.unlockId);

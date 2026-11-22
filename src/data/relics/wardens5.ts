@@ -18,10 +18,10 @@ export const SIN_EATER_RELICS: RelicDef[] = [
     passive: [{ on: 'combatStart', effects: [{ kind: 'shuffleIn', cardId: 'randomCurse' }, { kind: 'draw', amount: 1 }] }],
     flavor: 'It fills itself. You never see with what.',
   },
-  { id: 'sin-ledger', name: 'Sin Ledger', rarity: 'uncommon', passive: [{ on: 'turnEnd', effects: [{ kind: 'ward', amount: { per: 'cursesInDeck', times: 1 } }] }], flavor: 'Every wrong, written down. It makes a thick book.' },
+  { id: 'sin-ledger', name: 'Sin Ledger', rarity: 'uncommon', passive: [{ on: 'turnEnd', effects: [{ kind: 'ward', amount: { per: 'cursesInDeck', times: 1, max: 6 } }] }], flavor: 'Every wrong, written down. It makes a thick book.' },
   { id: 'gilded-tongue', name: 'Gilded Tongue', rarity: 'uncommon', corruption: 1, passive: [{ on: 'devoured', effects: [{ kind: 'gainResonance', amount: 1 }] }], flavor: 'Gold makes anything taste better. Almost.' },
   { id: 'the-last-meal', name: 'The Last Meal', rarity: 'rare', passive: [{ on: 'devoured', effects: [{ kind: 'draw', amount: 1 }] }], flavor: 'Always the last. Always another.' },
-  { id: 'ash-crown', name: 'Ash Crown', rarity: 'rare', passive: [{ on: 'combatStart', effects: [{ kind: 'ward', amount: { per: 'cursesInDeck', times: 2 } }] }], flavor: 'A king of every sin in the vault.' },
+  { id: 'ash-crown', name: 'Ash Crown', rarity: 'rare', passive: [{ on: 'combatStart', effects: [{ kind: 'ward', amount: { per: 'cursesInDeck', times: 2, max: 12 } }] }], flavor: 'A king of every sin in the vault.' },
   { id: 'drowned-chalice', name: 'Drowned Chalice', rarity: 'rare', deepFor: 'sin-eater', passive: [{ on: 'devoured', effects: [{ kind: 'damage', amount: 3, target: 'allFoes' }] }], flavor: 'It held the Well’s water. It holds worse now.' },
 ];
 

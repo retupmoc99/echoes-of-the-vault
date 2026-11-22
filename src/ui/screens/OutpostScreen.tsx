@@ -9,7 +9,7 @@ import { useState } from 'react';
 import { CONTENT } from '../../data';
 import { BALANCE } from '../../data/balance';
 import { NODE_INFO } from '../../data/nodeTypes';
-import { canPushBack, researchComplete, researchCost, scoutInfo, traitOf, type OutpostAction, type SaveData, activeDeeds, deedStatus, requirementMet } from '../../engine';
+import { canPushBack, researchComplete, researchCost, scoutInfo, traitOf, type OutpostAction, type SaveData, activeDeeds, deedStatus, requirementMet, testUnlockIds } from '../../engine';
 import { AwakeningPanel } from '../components/AwakeningPanel';
 import { DailyCard } from '../components/DailyCard';
 
@@ -75,7 +75,7 @@ export function OutpostScreen({ save, error, notice, outpost, onSettings, onEnte
         {tab === 'descend' && <DescendTab save={save} outpost={outpost} onEnterRun={onEnterRun} onAbandon={onAbandon} />}
         {tab === 'echoes' && <EchoesTab save={save} outpost={outpost} onInspect={setInfo} />}
         {tab === 'works' && <WorksTab save={save} outpost={outpost} />}
-        {tab === 'archive' && <ArchiveTab save={save} onSettings={onSettings} backup={backup} onRestored={() => setTab('descend')} />}
+        {tab === 'archive' && <ArchiveTab save={save} onSettings={onSettings} outpost={outpost} backup={backup} onRestored={() => setTab('descend')} />}
       </section>
 
       <p className="info-line">{error ?? info}</p>
@@ -357,6 +357,7 @@ function WorksTab({ save, outpost }: { save: SaveData; outpost: Props['outpost']
 interface ArchiveProps {
   save: SaveData;
   onSettings: Props['onSettings'];
+  outpost: Props['outpost'];
   backup: Props['backup'];
   onRestored: () => void;
 }
@@ -388,8 +389,12 @@ function ArchiveTab(props: ArchiveProps) {
   );
 }
 
-function ArchiveSettings({ save, onSettings, backup, onRestored }: ArchiveProps) {
+function ArchiveSettings({ save, onSettings, outpost, backup, onRestored }: ArchiveProps) {
   const s = save.settings;
+  // Test mode: hidden until the version line is tapped five times (or once it has been used).
+  const [taps, setTaps] = useState(0);
+  const showTest = taps >= 5 || Boolean(s.testMode);
+  const locked = testUnlockIds(CONTENT).filter((id) => !save.outpost.unlocks.includes(id)).length;
   return (
     <>
       <h2 className="panel-title">Backup</h2>
@@ -412,6 +417,27 @@ function ArchiveSettings({ save, onSettings, backup, onRestored }: ArchiveProps)
           <span>{s.hintsSeen.length} seen</span>
         </button>
       )}
+
+      {showTest && (
+        <div className="test-mode">
+          <h2 className="panel-title">Test mode</h2>
+          <p className="record">For trying things out. Unlocks every Warden and every kit for free, without their deeds. Nothing is taken away, and it can't be undone.</p>
+          <button
+            className="ghost-btn wide setting"
+            disabled={locked === 0}
+            onClick={() => {
+              if (window.confirm('Unlock every Warden and kit for free? This is for testing and cannot be undone.')) outpost({ type: 'testUnlockWardens' });
+            }}
+          >
+            <span>Unlock all Wardens and kits</span>
+            <span>{locked === 0 ? 'All unlocked' : `${locked} locked`}</span>
+          </button>
+        </div>
+      )}
+      <button className="version-line" onClick={() => setTaps((t) => t + 1)} aria-label={`Version ${__APP_VERSION__}`}>
+        Echoes of the Vault {__APP_VERSION__}
+        {s.testMode ? ' · test unlocks used' : ''}
+      </button>
     </>
   );
 }

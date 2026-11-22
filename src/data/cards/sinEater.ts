@@ -6,7 +6,7 @@
 import type { CardDef, Effect } from '../../engine/types';
 
 const devour = (each: Effect[], count: number | 'all' = 1, permanent = false): Effect => ({ kind: 'devour', count, each, ...(permanent ? { permanent } : {}) });
-const perCurse = (times: number, plus?: number) => ({ per: 'cursesInDeck' as const, times, ...(plus !== undefined ? { plus } : {}) });
+const perCurse = (times: number, plus?: number, max?: number) => ({ per: 'cursesInDeck' as const, times, ...(plus !== undefined ? { plus } : {}), ...(max !== undefined ? { max } : {}) });
 
 export const SIN_EATER_CARDS: CardDef[] = [
   // ───────────── Starters ─────────────
@@ -35,7 +35,7 @@ export const SIN_EATER_CARDS: CardDef[] = [
     effects: [{ kind: 'shuffleIn', cardId: 'randomCurse' }, { kind: 'gainResonance', amount: 1 }],
     flavor: 'Hand it here. I will carry it.',
   },
-  { id: 'bitter-feast', name: 'Bitter Feast', type: 'strike', cost: 1, rarity: 'common', archetype: 'burden', effects: [{ kind: 'damage', amount: perCurse(2, 4) }], flavor: 'Every sin has a flavour. None of them are good.' },
+  { id: 'bitter-feast', name: 'Bitter Feast', type: 'strike', cost: 1, rarity: 'common', archetype: 'burden', effects: [{ kind: 'damage', amount: perCurse(2, 4, 16) }], flavor: 'Every sin has a flavour. None of them are good.' },
   { id: 'grave-hunger', name: 'Grave Hunger', type: 'ward', cost: 1, rarity: 'common', archetype: 'devour', effects: [{ kind: 'ward', amount: 5 }, devour([{ kind: 'draw', amount: 2 }])], flavor: 'Hungry enough to eat the dark.' },
   { id: 'gnash', name: 'Gnash', type: 'strike', cost: 1, rarity: 'common', archetype: 'devour', effects: [{ kind: 'damage', amount: 7 }, devour([{ kind: 'damage', amount: 6 }])], flavor: 'Teeth first. Questions never.' },
   {
@@ -72,8 +72,8 @@ export const SIN_EATER_CARDS: CardDef[] = [
   },
 
   // ───────────── Uncommons ─────────────
-  { id: 'communion-of-ash', name: 'Communion of Ash', type: 'ward', cost: 1, rarity: 'uncommon', archetype: 'burden', effects: [{ kind: 'ward', amount: { per: 'cursesInDeck', times: 3, plus: 3 } }], flavor: 'Share the weight. It does not get lighter.' },
-  { id: 'gorge', name: 'Gorge', type: 'strike', cost: 2, rarity: 'uncommon', archetype: 'devour', effects: [devour([{ kind: 'damage', amount: 7, target: 'allFoes' }], 3)], flavor: 'More. More. More.' },
+  { id: 'communion-of-ash', name: 'Communion of Ash', type: 'ward', cost: 1, rarity: 'uncommon', archetype: 'burden', effects: [{ kind: 'ward', amount: perCurse(1, 3, 9) }], flavor: 'Share the weight. It does not get lighter.' },
+  { id: 'gorge', name: 'Gorge', type: 'strike', cost: 2, rarity: 'uncommon', archetype: 'devour', effects: [devour([{ kind: 'damage', amount: 8, target: 'allFoes' }], 3)], flavor: 'More. More. More.' },
   { id: 'feast-of-crows', name: 'Feast of Crows', type: 'strike', cost: 1, rarity: 'uncommon', archetype: 'devour', effects: [{ kind: 'damage', amount: { per: 'devouredThisFight', times: 4, plus: 5 } }], flavor: 'The birds come for what is left over.' },
   {
     id: 'bile',
@@ -86,12 +86,12 @@ export const SIN_EATER_CARDS: CardDef[] = [
     flavor: 'Some things should not be swallowed. It spits them back.',
   },
   { id: 'sin-shield', name: 'Sin Shield', type: 'ward', cost: 2, rarity: 'uncommon', archetype: 'devour', effects: [{ kind: 'ward', amount: 12 }, devour([{ kind: 'ward', amount: 8 }])], flavor: 'A wall of everything you would rather forget.' },
-  { id: 'heavy-heart', name: 'Heavy Heart', type: 'strike', cost: 1, rarity: 'uncommon', archetype: 'burden', effects: [{ kind: 'damage', amount: perCurse(1, 5), hits: 2 }], flavor: 'It weighs a great deal. So does it hit.' },
+  { id: 'heavy-heart', name: 'Heavy Heart', type: 'strike', cost: 1, rarity: 'uncommon', archetype: 'burden', effects: [{ kind: 'damage', amount: perCurse(1, 5, 11), hits: 2 }], flavor: 'It weighs a great deal. So does it hit.' },
   { id: 'glutton', name: 'Glutton', type: 'rite', cost: 1, rarity: 'uncommon', archetype: 'devour', effects: [devour([{ kind: 'gainResonance', amount: 2 }, { kind: 'draw', amount: 1 }])], flavor: 'Never full. Never finished.' },
 
   // ───────────── Rares ─────────────
   { id: 'absolution', name: 'Absolution', type: 'rite', cost: 2, rarity: 'rare', archetype: 'devour', fade: true, effects: [devour([{ kind: 'ward', amount: 6 }], 'all', true)], flavor: 'Not forgiveness. Digestion.' },
-  { id: 'sin-bloated', name: 'Sin-Bloated', type: 'strike', cost: 2, rarity: 'rare', archetype: 'burden', effects: [{ kind: 'damage', amount: perCurse(2), target: 'allFoes', hits: 2 }], flavor: 'Swollen with every wrong the vault ever did.' },
+  { id: 'sin-bloated', name: 'Sin-Bloated', type: 'strike', cost: 2, rarity: 'rare', archetype: 'burden', effects: [{ kind: 'damage', amount: perCurse(2, undefined, 12), target: 'allFoes', hits: 2 }], flavor: 'Swollen with every wrong the vault ever did.' },
   { id: 'maw-of-the-vault', name: 'Maw of the Vault', type: 'strike', cost: 3, rarity: 'rare', archetype: 'devour', effects: [devour([{ kind: 'damage', amount: 9, target: 'allFoes' }], 'all')], flavor: 'Open wide.' },
   {
     id: 'last-supper',

@@ -1,5 +1,27 @@
 # Changelog
 
+## 0.21.1 — Test mode and a smarter balance bot (2026-11-22)
+
+### Added
+- **Test mode:** Archive → Settings now ends with the game's version. Tap it five times to show *Unlock all Wardens and kits*. It builds every Warden's and kit's Work for free, without their deeds, after a confirm. It never takes anything away or fakes deed progress, and the version line notes "test unlocks used" afterwards.
+
+### Balance
+- **Sin-Eater kits:**
+  - The Penitent starts with Communion of Ash in place of an Ash Shroud (it no longer brings Sackcloth too).
+  - The Glutton starts with Gorge and Sackcloth in place of two Bitter Strikes.
+- **Communion of Ash:** 3 Ward + 1 per curse (at most 9), was 3 per curse + 3.
+- **Gorge:** 8 damage per curse eaten, was 7.
+- **Scaling caps:**
+  - Sin-Eater Burden cards and relics now have a ceiling (shown on the card).
+  - So do Pilgrim Miles cards, at about 14 Miles. Floor 1 plays the same; deep loops can't run away.
+
+### Art
+- New art for Sin-Bloated: a split black orb leaking gold, in place of the robed figure.
+
+### Tools
+- The balance bot now drafts reward cards by value, archetype and what the deck needs, and skips weak offers, instead of always taking the rarest card. Every win rate it reports went up about 20 points. The spread between Wardens is what matters; see "The drafting bot" in DESIGN.md.
+- New sim options: `SIM_PICK=rarest|none` (the old bot, or no reward cards) and `SIM_CLASS=<id>` (one Warden). The report shows the average final deck size.
+
 ## 0.21.0 — Five more Wardens (2026-11-21)
 
 ### Added

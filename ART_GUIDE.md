@@ -338,7 +338,7 @@ Shared accent: **ash grey, bone white and sickly gold**. Add to the style prompt
 | heavy-heart | a heavy iron heart wrapped in chains sinking through darkness, gold glow inside |
 | glutton | a hunched shadowy figure stuffing glowing black embers into its mouth |
 | absolution | a pale figure bathed in a column of clean gold light, black smoke burning away |
-| sin-bloated | a swollen glowing gold and black sack bursting at the seams, smoke leaking out, no face |
+| sin-bloated | still life: a bloated leather wineskin swollen to bursting on a stone floor, its stitched seams splitting, black smoke and sickly gold light leaking from the cracks, no people |
 | maw-of-the-vault | an enormous stone mouth opening in a vault wall, swallowing curses |
 | last-supper | a candlelit stone table set for many, every chair empty but one |
 | eat-the-sky | a colossal shadow taking a bite out of a dark sky full of gold stars |

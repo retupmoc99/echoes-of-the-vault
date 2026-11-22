@@ -5,14 +5,23 @@
  * - Combat: blocks when enemies will hit harder than its Ward, otherwise
  *   plays its most expensive card; aims at the weakest enemy.
  * - Map: takes Shrines when hurt, Elites only when healthy.
- * - Rewards: the rarest card offered; never the tainted one.
+ * - Rewards: drafts by value, archetype and deck needs, and skips weak
+ *   offers (see draft.ts); never the tainted one (except the Sin-Eater).
  * - Shrines: rest when below 80% HP, otherwise cut a curse or a starter card.
  * - Events: the first option it can afford. Caches: the first clean relic.
  */
 import type { CardDef, CombatAction, Content, RunAction, RunState } from '../engine';
+import { draftPick } from './draft';
 import { canSearchShrine, cardCost, livingEnemies, needsTarget, optionAvailable, previewIntent, reachableNodes } from '../engine';
 
 const RARITY_RANK: Record<string, number> = { curse: -1, starter: 0, common: 1, uncommon: 2, rare: 3 };
+
+/** How the bot picks reward cards: draft (default), the old rarest-first, or none at all. */
+export type PickMode = 'draft' | 'rarest' | 'none';
+let pickMode: PickMode = 'draft';
+export function setBotPicks(mode: PickMode): void {
+  pickMode = mode;
+}
 
 /** Whether the bot takes the Descend door. Set by the balance report. */
 let botDescends = false;
@@ -46,7 +55,13 @@ export function nextBotAction(r: RunState, content: Content): RunAction {
     case 'reward': {
       if (node.relicId && !node.relicTaken) return { type: 'takeRelic' };
       if (node.cardTaken || !node.cards.length) return { type: 'leave' };
-      // The Sin-Eater wants the tainted offer: curses are its food.
+      if (pickMode === 'none') return { type: 'leave' };
+      if (pickMode === 'draft') {
+        // The Sin-Eater weighs the tainted offer too: it costs it a curse, which is food.
+        const tainted = content.classes[r.classId]?.taintedGivesCurse ? (node.tainted ?? undefined) : undefined;
+        const pick = draftPick(r, node.cards, content, tainted);
+        return pick === -1 ? { type: 'leave' } : { type: 'pickCard', choice: pick };
+      }
       if (r.classId === 'sin-eater' && node.tainted) return { type: 'pickCard', choice: 'tainted' };
       let best = 0;
       node.cards.forEach((id, i) => {

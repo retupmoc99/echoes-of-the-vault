@@ -108,6 +108,8 @@ export interface Settings {
   hints: boolean;
   /** Hint ids already dismissed. */
   hintsSeen: string[];
+  /** Set once test mode has unlocked the Wardens (shown in Settings; missing = never). */
+  testMode?: boolean;
   /** Effects and music volume, 0 to 1. */
   sound: number;
   music: number;

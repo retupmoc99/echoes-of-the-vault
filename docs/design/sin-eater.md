@@ -12,6 +12,12 @@
 - Gorge, Maw and Gnash were trimmed for the same reason.
 - Sin Shield gives 12 Ward, plus 8 with Devour (not "retain Ward", which lasts the whole fight).
 - **Bot:** 27% standard; the Glutton 24% and the Penitent 36%.
+
+**Changed in 0.21.1 (with the drafting bot):**
+- The old 27% came from the bot always taking the tainted card. Drafting properly, the Sin-Eater wins 54%, in line with the others.
+- **Communion of Ash:** 3 Ward + 1 per curse (at most 9), was 3 per curse + 3. **Gorge:** 8 per curse eaten, was 7.
+- **Burden caps:** Bitter Feast at most 16, Heavy Heart at most 11 a hit, Sin-Bloated at most 12 a hit, Sin Ledger at most 6, Ash Crown at most 12.
+- **Kits:** the Glutton is Gorge and Sackcloth; the Penitent is just Communion of Ash. Bot: Glutton 48%, Penitent 56%.
 *Unlocked by the deed **Fed on sin** (close a loop carrying 3+ curses), then the Work **The Ash Table** (170 Shards).*
 
 > Every curse is a meal. The Sin-Eater is never full.
@@ -84,8 +90,8 @@ That turns the game's punishments into resources. The tainted offer after each f
 Plus the shared relics (Lodestone Heart, Mirrorglass Ward, Ash Rosary) in its pool.
 
 ### Kits (60 Shards each, shown once the Sin-Eater is owned)
-- **The Glutton:** Gorge and Take the Sin in place of two Bitter Strikes. Eat everything.
-- **The Penitent:** Communion of Ash and Sackcloth in place of a Bitter Strike and an Ash Shroud. Carry the weight, wear it as armour.
+- **The Glutton:** Gorge and Sackcloth in place of two Bitter Strikes. Eat everything. *(0.21.1: was Gorge and Take the Sin.)*
+- **The Penitent:** Communion of Ash in place of an Ash Shroud. Carry the weight, wear it as armour. *(0.21.1: was Communion and Sackcloth, which won 69%.)*
 
 ## Engine work
 - **Effect `devour { count | 'all', each, permanent? }`:** eats up to `count` curses from hand (leftmost first). For each one it resolves `each`, fires the `devoured` trigger, and counts toward `devouredThisFight`. With `permanent`, it also records the card for removal from the run deck when the fight ends (`CombatState.purged`, applied in `leave`).

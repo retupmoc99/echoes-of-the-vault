@@ -7,6 +7,8 @@
  *   SIM_KITS=1 npm run sim      (every starting kit, not just each class's first)
  *   SIM_OMENS=1 npm run sim     (each class's first kit under every Daily Omen)
  *   SIM_DESCEND=1 npm run sim   (the Deeper Vault: the bot always Descends after the boss)
+ *   SIM_CLASS=pilgrim           (only this Warden)
+ *   SIM_PICK=rarest|none        (card drafting: the old rarest-first bot, or no reward cards)
  *
  * Runs under Vitest (it already compiles TypeScript), but it is not a test:
  * it never fails, and `npm test` skips it (only *.test.ts files run there).
@@ -16,7 +18,7 @@ import { it } from 'vitest';
 import { CONTENT } from '../data';
 import { createRun, stepRun, type ChorusMember, type RunState } from '../engine';
 import { BALANCE } from '../data/balance';
-import { nextBotAction, setBotDescends } from './bot';
+import { nextBotAction, setBotDescends, setBotPicks, type PickMode } from './bot';
 
 // (The app's tsconfig has no Node types, so reach process through globalThis.)
 const env = (globalThis as { process?: { env: Record<string, string | undefined> } }).process?.env ?? {};
@@ -30,6 +32,7 @@ const ALL_OMENS = Boolean(env.SIM_OMENS);
 /** Always take the Descend door (SIM_DESCEND=1 npm run sim). */
 const DESCEND = Boolean(env.SIM_DESCEND);
 setBotDescends(DESCEND);
+setBotPicks((env.SIM_PICK as PickMode | undefined) ?? 'draft');
 
 const SIM_CHORUS: ChorusMember[] = Object.values(CONTENT.classes).map((c, i) => ({
   echoId: `sim-echo-${i}`,
@@ -94,7 +97,7 @@ function report(classId: string, kitId: string, outcomes: Outcome[], omenId?: st
     ...(DESCEND
       ? [`Floor 2: reached ${pct(outcomes.filter((o) => o.floor > 1).length, n)} | escaped it ${pct(outcomes.filter((o) => o.floor > 1 && o.won).length, outcomes.filter((o) => o.floor > 1).length)} of those`]
       : []),
-    `Turns per fight ${(outcomes.reduce((s, o) => s + o.turns, 0) / Math.max(1, outcomes.reduce((s, o) => s + o.fights, 0))).toFixed(1)} | avg peak Corruption ${(outcomes.reduce((s, o) => s + o.corruption, 0) / n).toFixed(1)}`,
+    `Turns per fight ${(outcomes.reduce((s, o) => s + o.turns, 0) / Math.max(1, outcomes.reduce((s, o) => s + o.fights, 0))).toFixed(1)} | avg peak Corruption ${(outcomes.reduce((s, o) => s + o.corruption, 0) / n).toFixed(1)} | final deck ${(outcomes.reduce((s, o) => s + o.deck.length, 0) / n).toFixed(1)} cards`,
   ];
   const deaths: Record<string, number> = {};
   for (const o of outcomes) if (!o.won) deaths[o.diedAt] = (deaths[o.diedAt] ?? 0) + 1;
@@ -129,7 +132,7 @@ it('balance report', () => {
   const out: string[] = [];
   if (ALL_OMENS) {
     for (const omenId of Object.keys(CONTENT.omens ?? {})) {
-      for (const [classId, cls] of Object.entries(CONTENT.classes)) {
+      for (const [classId, cls] of Object.entries(CONTENT.classes).filter(([id]) => !env.SIM_CLASS || id === env.SIM_CLASS)) {
         const outcomes = Array.from({ length: RUNS }, (_, i) => playLoop(classId, cls.kits[0].id, `sim-${classId}-${i}`, omenId));
         out.push(report(classId, cls.kits[0].id, outcomes, omenId));
       }
@@ -137,7 +140,7 @@ it('balance report', () => {
     console.log(out.join('\n'));
     return;
   }
-  for (const [classId, cls] of Object.entries(CONTENT.classes)) {
+  for (const [classId, cls] of Object.entries(CONTENT.classes).filter(([id]) => !env.SIM_CLASS || id === env.SIM_CLASS)) {
     for (const kit of ALL_KITS ? cls.kits : cls.kits.slice(0, 1)) {
       // Same seeds for every kit of a class, so kits are compared on the same maps.
       const outcomes = Array.from({ length: RUNS }, (_, i) => playLoop(classId, kit.id, `sim-${classId}-${i}`));

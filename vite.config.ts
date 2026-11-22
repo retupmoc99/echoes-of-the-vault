@@ -1,10 +1,13 @@
 import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
+import pkg from './package.json';
 
 export default defineConfig({
   // Relative base so the same build works on GitHub Pages sub-paths and Netlify.
   base: './',
+  // Shown at the foot of Settings (tapping it five times opens test mode).
+  define: { __APP_VERSION__: JSON.stringify(pkg.version) },
   // Hashed build files go to dist/app/, so dist/assets/ holds only the optional art.
   build: { assetsDir: 'app' },
   plugins: [

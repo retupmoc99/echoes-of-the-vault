@@ -17,7 +17,7 @@ export { exportSave, importSave, type ImportResult } from './save/transfer';
 export { createEcho, traitOf, hoursLeft, drainPerHour, loopDepth } from './idle/echoes';
 export { advanceIdle, researchCost, researchComplete, restCap, reportIsEmpty, mergeReports, emptyReport } from './idle/idle';
 export { closeLoop, prepareNextLoop, startLoop, nextRunPreview, runOptionsFor } from './idle/loop';
-export { outpostStep, scoutInfo, type OutpostAction, type ScoutInfo } from './idle/outpost';
+export { outpostStep, scoutInfo, testUnlockIds, type OutpostAction, type ScoutInfo } from './idle/outpost';
 export { AWAKE, addAwakening, awakeningCap, canPushBack, giveValue, lullCost, nextThreshold, stageFor } from './idle/awakening';
 export { enemyName, movesOf } from './combat/phases';
 export { NAMELESS, allyNextCard, livingAllies, traitBattle } from './combat/allies';
