@@ -12,13 +12,13 @@ export * from './idleTypes';
 
 // ───────────────────────────── Shared ids ─────────────────────────────
 
-export type StatusId = 'fracture' | 'bleed' | 'weakened' | 'exposed' | 'paradox';
+export type StatusId = 'fracture' | 'bleed' | 'weakened' | 'exposed' | 'paradox' | 'drowse';
 
 /** Card type decides the accent colour and which triggers react to it. */
 export type CardType = 'strike' | 'ward' | 'overload' | 'rite' | 'temporal' | 'curse';
 
 /** Synergy family, used for reward weighting and the card library. */
-export type Archetype = 'fracture' | 'ward' | 'overload' | 'bleed' | 'delay' | 'echo' | 'unwinding' | 'chorus' | 'communion' | 'remembrance';
+export type Archetype = 'fracture' | 'ward' | 'overload' | 'bleed' | 'delay' | 'echo' | 'unwinding' | 'chorus' | 'communion' | 'remembrance' | 'slumber' | 'dream';
 
 export type Rarity = 'starter' | 'common' | 'uncommon' | 'rare' | 'curse';
 
@@ -33,7 +33,9 @@ export type Amount =
   | { per: 'selfStatus' | 'targetStatus'; status: StatusId; times: number; plus?: number }
   | { per: 'selfWard' | 'overloadsThisTurn' | 'timeline'; times: number; plus?: number }
   /** Allies on the field, allies fallen this fight, or the cost of each ally's next card (Echo-Caller). */
-  | { per: 'allies' | 'alliesFallen' | 'allyTopCost'; times: number; plus?: number };
+  | { per: 'allies' | 'alliesFallen' | 'allyTopCost'; times: number; plus?: number }
+  /** Somnant: foes Asleep right now; half the Awakening stage (rounded down). */
+  | { per: 'foesAsleep' | 'halfAwakening'; times: number; plus?: number };
 
 /**
  * Targets are relative to whoever is acting:
@@ -47,10 +49,12 @@ export type Condition =
   | { kind: 'overloadedThisTurn' }
   | { kind: 'selfStatusAtLeast'; status: StatusId; n: number }
   | { kind: 'targetHasStatus'; status: StatusId }
-  | { kind: 'allyFellThisFight' };
+  | { kind: 'allyFellThisFight' }
+  | { kind: 'targetAsleep' }
+  | { kind: 'anyFoeAsleep' };
 
 export type Effect =
-  | { kind: 'damage'; amount: Amount; target?: 'target' | 'allFoes'; hits?: number }
+  | { kind: 'damage'; amount: Amount; target?: 'target' | 'allFoes' | 'asleepFoes'; hits?: number }
   | { kind: 'ward'; amount: Amount }
   | { kind: 'applyStatus'; status: StatusId; amount: Amount; target: EffectTarget }
   | { kind: 'removeStatus'; status: StatusId; target: EffectTarget }
@@ -87,13 +91,15 @@ export type Effect =
   | { kind: 'playAllyTop'; count: number }
   /** For the rest of the fight: allies act more often, and/or lose HP each time they act. */
   | { kind: 'empowerAllies'; acts?: number; hpLoss?: number }
+  /** Somnant: lower every foe's sleep threshold (bosses only, if set); extra sleeps lift the Sleeper's once-per-fight limit. */
+  | { kind: 'thresholdMod'; amount: number; bossesOnly?: boolean; extraSleeps?: number }
   /** Enemies only: put a card into the player's discard pile (Rot Lantern's Smoke). */
   | { kind: 'addToDiscard'; cardId: string; count?: number }
   | { kind: 'if'; cond: Condition; then: Effect[]; else?: Effect[] };
 
 /** Something that reacts to combat events (used by relics; card "powers" later). */
 export interface Trigger {
-  on: 'combatStart' | 'turnStart' | 'turnEnd' | 'cardPlayed' | 'gainedStatus' | 'delayFired' | 'allyCalled' | 'allyFell';
+  on: 'combatStart' | 'turnStart' | 'turnEnd' | 'cardPlayed' | 'gainedStatus' | 'delayFired' | 'allyCalled' | 'allyFell' | 'foeSlept' | 'foeWoke';
   /** For cardPlayed: only react to this card type. */
   cardType?: CardType;
   /** For gainedStatus: only react to this status. */
@@ -186,6 +192,9 @@ export interface EnemyDef {
    * loop (the Sleeper). Falls back to its own moves if there are none.
    */
   memories?: boolean;
+  /** Somnant: sleep threshold (default by tier) and how many times a fight it can be slept (default unlimited). */
+  sleepThreshold?: number;
+  maxSleeps?: number;
   /** When another enemy in the fight dies, this one gains Ward and/or hits harder (Hollow Pilgrims). */
   onKinDeath?: { ward?: number; damageBonus?: number };
 }
@@ -237,6 +246,8 @@ export interface WardenClassDef {
   /** Starting decks. The first is the default; others need an Outpost unlock. */
   kits: StarterKit[];
   /** Outpost unlock needed to play this class (none = available from the start). */
+  /** A deed that must be done before its unlock Work appears (see docs/design/deed-unlocks.md). */
+  deed?: string;
   unlock?: string;
   /** One line on how the class plays, for the class picker. */
   summary: string;
@@ -358,6 +369,46 @@ export interface OmenMods {
   combat?: Partial<CombatModifiers>;
 }
 
+/**
+ * What the player has done, across every loop: the facts deeds are checked
+ * against (docs/design/deed-unlocks.md). Kept for deeds not built yet too, so
+ * a later Warden's deed credits play that came before it.
+ */
+export interface DeedTally {
+  /** Highest Awakening stage ever reached (5 once a cycle has been completed). */
+  peakAwakening: number;
+  /** Most curses in the deck when a loop closed. */
+  maxCursesCarried: number;
+  /** Elite encounter ids ever beaten. */
+  elitesBeaten: string[];
+  /** Vault Shift ids escaped under. */
+  shiftsEscaped: string[];
+  /** Loops that escaped floor 2. */
+  deepEscapes: number;
+}
+
+/** A deed's condition against the tally. `n` is the target where one is needed. */
+export type DeedGoal =
+  | { kind: 'peakAwakening'; n: number }
+  | { kind: 'cursesCarried'; n: number }
+  | { kind: 'shiftsEscaped'; n: number }
+  | { kind: 'deepEscapes'; n: number }
+  /** Every elite encounter in the content, beaten at least once. */
+  | { kind: 'allElites' };
+
+/** A deed: done once its goal is met. It reveals a Warden's Work. */
+export interface DeedDef {
+  id: string;
+  title: string;
+  flavor: string;
+  /** What to do, shown while it isn't done. */
+  hint: string;
+  /** The Warden it reveals (deeds only show once their Warden exists). */
+  warden: string;
+  /** What counts, as data (content stays plain data, so it can be cloned). */
+  goal: DeedGoal;
+}
+
 /** All content, injected into the engine (so tests can use their own). */
 export interface Content {
   classes: Record<string, WardenClassDef>;
@@ -367,6 +418,8 @@ export interface Content {
   encounters: Record<string, EncounterDef>;
   events: Record<string, EventDef>;
   vaultShifts: Record<string, VaultShiftDef>;
+  /** Deeds that reveal Wardens (optional so test content can skip them). */
+  deeds?: Record<string, DeedDef>;
   /** Daily Descent Omens (optional so test content can skip them). */
   omens?: Record<string, OmenDef>;
   idle: IdleContent;
@@ -450,6 +503,13 @@ export interface EnemyState extends Combatant {
   /** Move id the enemy will use on its next turn (shown as its intent). */
   intent: string;
   history: string[];
+  /** Somnant: Asleep skips its next move; the threshold rises with each sleep. */
+  asleep?: boolean;
+  /** Asleep, but its skipped turn is done: it wakes and acts on its next turn. */
+  waking?: boolean;
+  sleepThreshold?: number;
+  sleeps?: number;
+  maxSleeps?: number;
 }
 
 export interface RelicState {
@@ -602,6 +662,8 @@ export type CombatEvent =
   | { type: 'delayFired'; entryId: string; targetId?: string }
   | { type: 'echoReturned'; count: number }
   | { type: 'rewound'; count: number }
+  | { type: 'fellAsleep'; enemyId: string }
+  | { type: 'woke'; enemyId: string }
   | { type: 'paradoxSnap'; damage: number }
   | { type: 'phaseChange'; enemyId: string; name: string }
   | { type: 'allyCalled'; allyId: string; name: string }

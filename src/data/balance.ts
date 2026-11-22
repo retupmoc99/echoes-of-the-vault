@@ -14,6 +14,7 @@ export const BALANCE = {
     hourThiefMaxHp: 68,
     // Fragile: its allies stand in front of it.
     echoCallerMaxHp: 66,
+    somnantMaxHp: 68,
   },
 
   status: {
@@ -61,6 +62,14 @@ export const BALANCE = {
     lateStageFromRow: 4,
     /** Relative odds of each node type in the middle rows. */
     weights: { fight: 45, event: 22, elite: 10, cache: 10, shrine: 13 },
+  },
+
+  /** Somnant: Drowse needed to put a foe to sleep, and how much more after each sleep. */
+  sleep: {
+    threshold: { normal: 4, elite: 7, boss: 9 },
+    rise: { normal: 2, elite: 3, boss: 3 },
+    /** Attacks on a sleeping foe deal this much more. */
+    damageTakenMult: 1.5,
   },
 
   /** The Deeper Vault: floor 2, reached by Descending after the floor-1 boss. */

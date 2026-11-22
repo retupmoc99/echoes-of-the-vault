@@ -13,6 +13,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { CONTENT } from '../data';
 import { BALANCE } from '../data/balance';
 import {
+  activeDeeds,
+  deedStatus,
   advanceIdle,
   exportSave,
   importSave,
@@ -132,6 +134,19 @@ export function useGame() {
         : `☾ The Sleeper settles: ${awakeningStage === 0 ? 'dormant again' : st.name}.`,
     ]);
   }, [awakeningStage, awakeningCycle, pushNotices]);
+
+  // Announce deeds the moment they're done (a closed loop, the Awakening rising).
+  const doneDeeds = activeDeeds(CONTENT)
+    .filter((d) => deedStatus(save, d, CONTENT).done)
+    .map((d) => d.id)
+    .join(',');
+  const lastDeeds = useRef(doneDeeds);
+  useEffect(() => {
+    const before = new Set(lastDeeds.current.split(',').filter(Boolean));
+    lastDeeds.current = doneDeeds;
+    const fresh = doneDeeds.split(',').filter((id) => id && !before.has(id));
+    pushNotices(fresh.map((id) => `✦ Deed done: ${CONTENT.deeds![id].title}. A new Work stands at the Outpost.`));
+  }, [doneDeeds, pushNotices]);
 
   // ── Idle ticking ──
   const tick = useCallback(() => {

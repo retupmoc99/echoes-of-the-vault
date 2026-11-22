@@ -111,7 +111,17 @@ function combatAction(r: RunState, content: Content): CombatAction {
   const needBlock = incoming > c.player.ward;
   const pick = (needBlock && wards[0]) || others[0] || wards[0];
 
-  const target = enemies.reduce((a, b) => (b.hp < a.hp ? b : a));
+  // Somnant: waking blows go to a sleeper; Drowse goes to the awake foe hitting hardest.
+  const weakest = (list: typeof enemies) => list.reduce((x, y) => (y.hp < x.hp ? y : x));
+  const asleep = enemies.filter((e) => e.asleep);
+  const hits = (e: (typeof enemies)[number]) => {
+    const p = previewIntent(c, e, content);
+    return (p.damage ?? 0) * (p.hits ?? 1);
+  };
+  const awake = enemies.filter((e) => !e.asleep);
+  let target = weakest(enemies);
+  if (pick.def.archetype === 'dream' && asleep.length) target = weakest(asleep);
+  else if (pick.def.archetype === 'slumber' && awake.length) target = awake.reduce((x, y) => (hits(y) > hits(x) ? y : x));
   return needsTarget(pick.def.effects)
     ? { type: 'playCard', uid: pick.card.uid, targetId: target.id }
     : { type: 'playCard', uid: pick.card.uid };

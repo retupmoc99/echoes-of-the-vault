@@ -56,6 +56,12 @@ export function checkPhase(ctx: Ctx, enemy: EnemyState): void {
 
   enemy.phase = next.index;
   enemy.history = [];
+  // A boss's new phase wakes it (no sleeping through its big moments).
+  if (enemy.asleep) {
+    enemy.asleep = false;
+    enemy.waking = false;
+    ctx.events.push({ type: 'woke', enemyId: enemy.id });
+  }
   ctx.events.push({ type: 'phaseChange', enemyId: enemy.id, name: next.phase.name ?? def.name });
   if (next.phase.onEnter) resolveEffects(ctx, next.phase.onEnter, enemy.id, undefined);
   // Show the new phase's first move straight away.

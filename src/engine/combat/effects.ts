@@ -3,13 +3,13 @@
  * Adding a new card never touches this file unless it needs a brand new
  * kind of effect.
  */
-import type { Amount, CombatState, Combatant, Condition, Effect } from '../types';
+import type { Amount, CombatState, Combatant, Condition, Effect, EnemyState } from '../types';
 import { allyActs, callAllies, livingAllies, newestAlly, playAllyTop, releaseAllies } from './allies';
 import { PLAYER_ID, foesOf, getCombatant, isAlive, isEnemy, isOver, type Ctx } from './context';
 import { dealAttack, gainWard, loseHp } from './damage';
 import { drawCards } from './deck';
 import { overloadRelics } from './relics';
-import { addStatus, removeStatus } from './statuses';
+import { addStatus, lowerThresholds, removeStatus } from './statuses';
 import { advanceTimeline, queueDelay, recall, rewind } from './time';
 
 /** Counters some amounts scale with (they only apply to the player). */
@@ -22,6 +22,9 @@ export interface AmountCounts {
   allies?: number;
   alliesFallen?: number;
   allyTopCost?: number;
+  /** Somnant: foes Asleep now; half the Awakening stage. */
+  foesAsleep?: number;
+  halfAwakening?: number;
 }
 
 export function countsOf(s: CombatState, content?: Ctx['content']): AmountCounts {
@@ -32,6 +35,8 @@ export function countsOf(s: CombatState, content?: Ctx['content']): AmountCounts
     allies: allies.length,
     alliesFallen: s.fallen?.length ?? 0,
     allyTopCost: content ? allies.reduce((sum, a) => sum + (a.draw[0] ? (content.cards[a.draw[0]]?.cost ?? 0) : 0), 0) : 0,
+    foesAsleep: s.enemies.filter((e) => e.hp > 0 && e.asleep).length,
+    halfAwakening: Math.floor((s.modifiers.awakeningStage ?? 0) / 2),
   };
 }
 
@@ -65,6 +70,10 @@ export function resolveAmount(
       return plus + (counts.alliesFallen ?? 0) * amount.times;
     case 'allyTopCost':
       return plus + (counts.allyTopCost ?? 0) * amount.times;
+    case 'foesAsleep':
+      return plus + (counts.foesAsleep ?? 0) * amount.times;
+    case 'halfAwakening':
+      return plus + (counts.halfAwakening ?? 0) * amount.times;
   }
 }
 
@@ -78,8 +87,9 @@ export function resolveEffects(ctx: Ctx, effects: Effect[], sourceId: string, ta
 }
 
 /** Who an effect with the given target keyword hits. */
-function targetsFor(ctx: Ctx, keyword: 'self' | 'target' | 'allFoes', source: Combatant, targetId: string | undefined): Combatant[] {
+function targetsFor(ctx: Ctx, keyword: 'self' | 'target' | 'allFoes' | 'asleepFoes', source: Combatant, targetId: string | undefined): Combatant[] {
   if (keyword === 'self') return [source];
+  if (keyword === 'asleepFoes') return ctx.s.enemies.filter((e) => e.hp > 0 && e.asleep);
   if (keyword === 'allFoes') return foesOf(ctx.s, source.id);
   // 'target': you and your allies aim at the chosen enemy. Enemies aim at you,
   // unless an ally is Guarding you.
@@ -123,6 +133,9 @@ function resolveEffect(ctx: Ctx, effect: Effect, source: Combatant, targetId: st
       resolveEffects(ctx, branch, source.id, targetId);
       return;
     }
+    case 'thresholdMod':
+      lowerThresholds(ctx, effect.amount, !!effect.bossesOnly, effect.extraSleeps ?? 0);
+      return;
     case 'addToDiscard': {
       // Enemies foul your deck for this fight (the card is a fight-only copy).
       if (!isEnemy(ctx.s, source.id)) return;
@@ -218,6 +231,12 @@ function checkCondition(ctx: Ctx, cond: Condition, source: Combatant, targetId: 
     }
     case 'allyFellThisFight':
       return (ctx.s.fallen?.length ?? 0) > 0;
+    case 'targetAsleep': {
+      const [target] = targetsFor(ctx, 'target', source, targetId);
+      return !!(target as EnemyState | undefined)?.asleep;
+    }
+    case 'anyFoeAsleep':
+      return ctx.s.enemies.some((e) => e.hp > 0 && e.asleep);
   }
 }
 

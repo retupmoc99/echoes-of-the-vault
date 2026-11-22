@@ -47,7 +47,7 @@ export function EnemyView({ state, enemy, targeted, size, onSelect, onInspect }:
   return (
     <div
       data-fx-id={enemy.id}
-      className={`enemy ${targeted && !dead ? 'targeted' : ''} ${flashing ? 'hit' : ''} ${dead ? 'dead' : ''} ${acting ? 'acting' : ''}`}
+      className={`enemy ${enemy.asleep ? 'asleep' : ''} ${targeted && !dead ? 'targeted' : ''} ${flashing ? 'hit' : ''} ${dead ? 'dead' : ''} ${acting ? 'acting' : ''}`}
       onClick={() => {
         if (dead) return;
         onSelect();
@@ -61,7 +61,7 @@ export function EnemyView({ state, enemy, targeted, size, onSelect, onInspect }:
       </div>
       <div className="enemy-name">{affix ? `${affix.name} ${name}` : name}</div>
       <HpBar hp={enemy.hp} maxHp={enemy.maxHp} ward={enemy.ward} />
-      <StatusChips statuses={enemy.statuses} onInspect={onInspect} />
+      <StatusChips statuses={enemy.statuses} onInspect={onInspect} thresholds={{ drowse: enemy.sleepThreshold }} />
     </div>
   );
 }

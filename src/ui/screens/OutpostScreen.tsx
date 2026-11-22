@@ -9,7 +9,7 @@ import { useState } from 'react';
 import { CONTENT } from '../../data';
 import { BALANCE } from '../../data/balance';
 import { NODE_INFO } from '../../data/nodeTypes';
-import { canPushBack, researchComplete, researchCost, scoutInfo, traitOf, type OutpostAction, type SaveData } from '../../engine';
+import { canPushBack, researchComplete, researchCost, scoutInfo, traitOf, type OutpostAction, type SaveData, activeDeeds, deedStatus, requirementMet } from '../../engine';
 import { AwakeningPanel } from '../components/AwakeningPanel';
 import { DailyCard } from '../components/DailyCard';
 
@@ -211,6 +211,13 @@ function DescendTab({ save, outpost, onEnterRun, onAbandon }: Omit<Props, 'error
         {Object.values(CONTENT.classes).map((c) => {
           const locked = !!c.unlock && !save.outpost.unlocks.includes(c.unlock);
           const unlockName = CONTENT.idle.unlocks.find((u) => u.id === c.unlock)?.name;
+          // A deed-gated Warden shows its deed (and progress) until the deed is done.
+          const deed = c.deed ? CONTENT.deeds?.[c.deed] : undefined;
+          const deedNow = deed ? deedStatus(save, deed, CONTENT) : undefined;
+          const lockedText =
+            deed && deedNow && !deedNow.done
+              ? `Locked. ${deed.title}: ${deed.hint} (${deedNow.progress}/${deedNow.goal})`
+              : `Locked. Build ${unlockName} in Works.`;
           return (
             <button
               key={c.id}
@@ -221,7 +228,7 @@ function DescendTab({ save, outpost, onEnterRun, onAbandon }: Omit<Props, 'error
               <strong>
                 {c.name} · {c.maxHp} HP
               </strong>
-              <span>{locked ? `Locked. Build ${unlockName} in Works.` : c.summary}</span>
+              <span>{locked ? lockedText : c.summary}</span>
             </button>
           );
         })}
@@ -326,7 +333,7 @@ function WorksTab({ save, outpost }: { save: SaveData; outpost: Props['outpost']
 
       <h2 className="panel-title">Works</h2>
       {/* Works that need something else (a Warden's kits) stay hidden until it is built. */}
-      {CONTENT.idle.unlocks.filter((u) => !u.requires || save.outpost.unlocks.includes(u.requires)).map((u) => {
+      {CONTENT.idle.unlocks.filter((u) => requirementMet(save, u.requires, CONTENT)).map((u) => {
         const owned = save.outpost.unlocks.includes(u.id);
         return (
           <div key={u.id} className={`work ${owned ? 'owned' : ''}`}>
@@ -410,8 +417,22 @@ function ArchiveSettings({ save, onSettings, backup, onRestored }: ArchiveProps)
 }
 
 function Fragments({ save }: { save: SaveData }) {
+  const deeds = activeDeeds(CONTENT);
   return (
     <>
+      {deeds.length > 0 && (
+        <div className="deeds">
+          <h4>Deeds</h4>
+          {deeds.map((d) => {
+            const st = deedStatus(save, d, CONTENT);
+            return (
+              <p key={d.id} className={`deed ${st.done ? 'done' : ''}`}>
+                <strong>{st.done ? '✓ ' : ''}{d.title}</strong> {st.done ? d.flavor : `${d.hint} (${st.progress}/${st.goal})`}
+              </p>
+            );
+          })}
+        </div>
+      )}
       {save.outpost.lore.length === 0 && <p className="record">The vault has told you nothing. Yet.</p>}
       {save.outpost.lore.map((id) => {
         const l = CONTENT.idle.lore[id];

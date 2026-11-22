@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.20.0 — The Somnant, and deeds (2026-11-21)
+
+### Added
+- **A fourth Warden, the Somnant.** It builds **Drowse** on foes until they fall **Asleep**: a sleeper skips its next turn, stays asleep through yours, and takes 50% more damage while it dreams. Then it makes the move it had planned.
+  - **The full set:** 24 cards, 7 relics plus its starter, two kits (the Lullaby and the Night-Knife), and its own relic from the Well. Every card and relic has painted art.
+  - **The Awakening link:** its starter relic, *Sleeper's Hum*, grows as the Sleeper stirs. From stage 2, ordinary foes start a fight asleep.
+  - **On screen:** a Drowse chip shows how close a foe is ("◐ 2/4"), and a sleeping foe dims and shows a closed-eye intent.
+- **Deeds.** New Wardens are revealed by doing something in the vault. The Somnant's deed is *You hear it dreaming*: reach the Awakening's third stage. Then its Work appears in Works (170 Shards).
+  - Locked Wardens show their deed and your progress.
+  - A notice marks the moment you complete one.
+  - Archive → Fragments lists your deeds.
+  - Your past play counts: your History and Awakening are credited when the save updates.
+
+### Changed
+- Save version 12 (adds the deed tally). Older saves update automatically.
+
+### Balance
+- The Somnant wins 33% of bot loops at Awakening stage 0, level with the others, and 28% at stage 3. **Flagged:** it's weaker in long fights against big HP pools: 8% at stage 5 (the others: 11–17%), and it escapes floor 2 20% of the time (the others: 28–47%).
+
 ## 0.19.0 — Out of the Well, and first steps (2026-11-21)
 
 ### Added

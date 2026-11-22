@@ -61,6 +61,9 @@ export function createCombat(setup: CombatSetup, content: Content): StepResult {
       if (Object.keys(remembered).length) enemy.memoryMoves = remembered;
     }
     enemy.intent = chooseIntent(rng, patternOf(enemy, content), []);
+    // Somnant: every foe can be put to sleep (bosses rarely; the Sleeper once).
+    enemy.sleepThreshold = def.sleepThreshold ?? BALANCE.sleep.threshold[def.tier];
+    if (def.maxSleeps !== undefined) enemy.maxSleeps = def.maxSleeps;
     if (affix) {
       enemy.affix = affix.id;
       if (affix.damageBonus) enemy.damageBonus = affix.damageBonus;
@@ -181,6 +184,23 @@ function endTurn(ctx: Ctx): string | undefined {
     if (s.timeline.some((t) => t.sourceId === enemy.id)) advanceTimeline(ctx, 1, enemy.id);
     if (isOver(s)) return undefined;
     if (enemy.hp <= 0) continue;
+
+    // Asleep: it skips this move, and sleeps on through your next turn. On the
+    // turn after that it wakes and makes the move it had planned.
+    if (enemy.asleep && !enemy.waking) {
+      enemy.waking = true;
+      tickEndOfTurn(ctx, enemy);
+      if (isOver(s)) return undefined;
+      continue;
+    }
+    if (enemy.asleep) {
+      enemy.asleep = false;
+      enemy.waking = false;
+      ctx.events.push({ type: 'woke', enemyId: enemy.id });
+      fireTriggers(ctx, 'foeWoke', { targetId: enemy.id });
+      if (isOver(s)) return undefined;
+      if (enemy.hp <= 0) continue;
+    }
 
     const move = moveOf(enemy, ctx.content);
     ctx.events.push({ type: 'enemyMove', enemyId: enemy.id, moveId: enemy.intent, moveName: move.name });

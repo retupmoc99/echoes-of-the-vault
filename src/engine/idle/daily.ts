@@ -15,6 +15,7 @@ import { createRun } from '../run/run';
 import type { Content, OmenDef, RunSetup } from '../types';
 import type { LoopRecord, SaveData } from '../save/save';
 import { chorusFrom } from './chorus';
+import { tallyRun } from './deeds';
 import { loopDepth } from './echoes';
 
 const DAY_MS = 86_400_000;
@@ -73,7 +74,7 @@ export function startDaily(save: SaveData, now: number, content: Content): SaveD
 }
 
 /** Close a finished Daily: small flat Shards, a History entry, the day's result. No Echo. */
-export function closeDaily(save: SaveData, now: number): SaveData {
+export function closeDaily(save: SaveData, now: number, content: Content): SaveData {
   const run = save.run;
   if (!run?.daily || run.phase !== 'ended') return save;
   const result = run.result ?? 'death';
@@ -101,6 +102,8 @@ export function closeDaily(save: SaveData, now: number): SaveData {
     run: null,
     meta: { ...save.meta, history: [record, ...save.meta.history].slice(0, BALANCE.history.limit) },
     outpost: { ...save.outpost, shards: save.outpost.shards + shards },
+    // Dailies are real play: they count toward deeds.
+    deeds: tallyRun(save.deeds, run, content),
     daily: {
       ...save.daily,
       escapes: save.daily.escapes + (result === 'victory' ? 1 : 0),

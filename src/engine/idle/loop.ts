@@ -10,6 +10,7 @@ import type { LoopRecord, SaveData } from '../save/save';
 import { SLEEPERS_EYE, SLEEPER_ENCOUNTER, addAwakening, completeCycle, loopAwakening } from './awakening';
 import { chorusFrom, settleChorus } from './chorus';
 import { closeDaily } from './daily';
+import { tallyRun } from './deeds';
 import { createEcho } from './echoes';
 
 /** Roll a Vault Shift; Shifts gated by the Awakening only appear once it's deep enough. */
@@ -100,7 +101,7 @@ export function closeLoop(save: SaveData, content: Content, now: number): SaveDa
   const run = save.run;
   if (!run || run.phase !== 'ended') return save;
   // A Daily is a side room: no Echo, no Awakening, no Chorus cost.
-  if (run.daily) return closeDaily(save, now);
+  if (run.daily) return closeDaily(save, now, content);
 
   const loops = save.meta.loops + 1;
   const echo = createEcho(run, loops, now, content);
@@ -143,6 +144,7 @@ export function closeLoop(save: SaveData, content: Content, now: number): SaveDa
     },
     echoes: hasRoom ? [...settled.echoes, echo] : settled.echoes,
     pendingEcho: hasRoom ? save.pendingEcho : echo,
+    deeds: tallyRun(save.deeds, run, content),
   };
   // Unmaking the Sleeper ends the cycle; any other loop stirs it.
   // A loop that reached floor 2 stirs it a little more.

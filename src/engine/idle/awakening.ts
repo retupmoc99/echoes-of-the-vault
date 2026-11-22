@@ -6,6 +6,7 @@
 import { BALANCE } from '../../data/balance';
 import type { AwakeningState, Content, Echo } from '../types';
 import type { SaveData } from '../save/save';
+import { tallyAwakening } from './deeds';
 
 const A = BALANCE.awakening;
 
@@ -44,6 +45,8 @@ export function completeCycle(save: SaveData, content: Content): SaveData {
     ...save,
     outpost: { ...save.outpost, shards: save.outpost.shards + A.sleeperShards, lore, unlocks },
     world: { ...save.world, awakening: { stage: 0, progress: 0, cycle: a.cycle + 1, lullsThisStage: 0 } },
+    // Unmaking it means it was fully awake.
+    deeds: tallyAwakening(save.deeds, 5),
   };
 }
 
@@ -81,6 +84,7 @@ export function addAwakening(save: SaveData, amount: number, content: Content): 
     ...save,
     world: { ...save.world, awakening },
     outpost: lore === save.outpost.lore ? save.outpost : { ...save.outpost, lore },
+    deeds: tallyAwakening(save.deeds, stage),
   };
 }
 

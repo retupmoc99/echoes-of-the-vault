@@ -23,3 +23,4 @@ export { enemyName, movesOf } from './combat/phases';
 export { NAMELESS, allyNextCard, livingAllies, traitBattle } from './combat/allies';
 export { allyHp, chorusCost, chorusFrom } from './idle/chorus';
 export { dayKey, omenForDay, dailyPlayed, dailySetup, startDaily, closeDaily } from './idle/daily';
+export { newDeedTally, tallyRun, tallyAwakening, deedStatus, activeDeeds, deedDone, requirementMet } from './idle/deeds';

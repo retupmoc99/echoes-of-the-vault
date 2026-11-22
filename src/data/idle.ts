@@ -5,6 +5,11 @@ import type { IdleContent, LoreFragment } from '../engine/types';
 
 const LORE: LoreFragment[] = [
   {
+    id: 'lore-hymnal',
+    title: 'The Hymnal',
+    text: 'The first Wardens sang to the Sleeper every night. When they stopped, it began to dream of them.',
+  },
+  {
     id: 'lore-first-door',
     title: 'The First Door',
     text: 'They did not build the vault to keep things out. Every lock faces inward.',
@@ -158,6 +163,14 @@ export const IDLE_CONTENT: IdleContent = {
       flavor: 'It burns every name the loop ever took. Some of them are yours.',
     },
     {
+      id: 'sleepers-hymnal',
+      name: "The Sleeper's Hymnal",
+      description: 'A fourth Warden: the Somnant, who sings foes to sleep and strikes while they dream.',
+      cost: 170,
+      flavor: 'We sang it to keep the thing asleep. Then we learned it works on anything.',
+      requires: 'deed:you-hear-it-dreaming',
+    },
+    {
       id: 'kit-fault-walker',
       name: 'Kit: The Fault-Walker',
       description: 'A starting deck already cracked: Twin Shards and Hollow Vow.',
@@ -202,6 +215,22 @@ export const IDLE_CONTENT: IdleContent = {
       cost: 60,
       flavor: 'Grief is a weapon if you hold it by the right end.',
       requires: 'lantern-of-names',
+    },
+    {
+      id: 'kit-lullaby',
+      name: 'Kit: The Lullaby',
+      description: 'A Somnant deck that sleeps the whole room: Cradle Song and Heavy Eyelids.',
+      cost: 60,
+      flavor: 'Hush, all of you.',
+      requires: 'sleepers-hymnal',
+    },
+    {
+      id: 'kit-night-knife',
+      name: 'Kit: The Night-Knife',
+      description: 'A Somnant deck for one long dream and one wound: Dreamless Edge and Whisper Down.',
+      cost: 60,
+      flavor: 'Wait until it dreams. Then do not wait.',
+      requires: 'sleepers-hymnal',
     },
     {
       id: 'second-sight',
@@ -265,6 +294,14 @@ export const IDLE_CONTENT: IdleContent = {
     { kind: 'lore', loreId: 'lore-names' },
     { kind: 'card', cardId: 'final-chorus' },
     { kind: 'card', cardId: 'memory-of-victory' },
+    // The Somnant (appended).
+    { kind: 'card', cardId: 'lucid-strike' },
+    { kind: 'card', cardId: 'slumber-ward' },
+    { kind: 'lore', loreId: 'lore-hymnal' },
+    { kind: 'card', cardId: 'undertow-hymn' },
+    { kind: 'card', cardId: 'dreamwalk' },
+    { kind: 'card', cardId: 'long-night' },
+    { kind: 'card', cardId: 'eternal-lullaby' },
     // The Deeper Vault (appended).
     { kind: 'lore', loreId: 'lore-stairs' },
     { kind: 'lore', loreId: 'lore-well' },

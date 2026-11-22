@@ -39,6 +39,12 @@ export const STATUS_INFO: Record<StatusId, StatusInfo> = {
     hue: 165,
     description: `Built by bending time. End of turn at ${st.paradox.snapThreshold}+: the timeline snaps back, dealing ${st.paradox.snapDamagePerStack} damage per stack to you, then Paradox resets.`,
   },
+  drowse: {
+    name: 'Drowse',
+    glyph: '◐',
+    hue: 255,
+    description: 'At its sleep threshold the foe falls Asleep and skips its next turn. Each sleep raises the threshold. Drowse on a sleeping foe is lost.',
+  },
   exposed: {
     name: 'Exposed',
     glyph: '◎',

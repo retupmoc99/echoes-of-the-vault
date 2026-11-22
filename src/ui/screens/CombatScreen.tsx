@@ -163,6 +163,7 @@ export function CombatScreen({ state, error, label, tier, dispatch, onMenu, onCo
           ['timeline', state.timeline.length > 0],
           ['echo-copy', state.piles.hand.some((c) => c.ephemeral)],
           ['paradox', (state.player.statuses.paradox ?? 0) > 0],
+          ['somnant', state.enemies.some((e) => (e.statuses.drowse ?? 0) > 0 || e.asleep)],
           ['statuses', [state.player, ...state.enemies].some((c) => Object.keys(c.statuses).length > 0)],
           ['allies', (state.allies ?? []).some((a) => a.hp > 0)],
         ]}

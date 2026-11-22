@@ -2337,3 +2337,40 @@ body.has-screen-art::before {
 .descend-dock .descend {
   margin-top: 0;
 }
+
+/* Somnant: a sleeping foe dims and breathes slowly. */
+.enemy.asleep .enemy-sigil {
+  filter: saturate(0.5) brightness(0.75);
+  animation: sleep-breathe 3.2s ease-in-out infinite;
+}
+@keyframes sleep-breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(0.97); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .enemy.asleep .enemy-sigil { animation: none; }
+}
+
+/* Archive → Fragments: deeds, above the lore. */
+.deeds {
+  margin-bottom: 14px;
+}
+.deeds h4 {
+  margin: 0 0 6px;
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.deed {
+  margin: 0 0 8px;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--muted);
+}
+.deed strong {
+  color: var(--text);
+}
+.deed.done strong {
+  color: hsl(45 85% 70%);
+}

@@ -10,6 +10,7 @@ import type { SaveData } from '../save/save';
 import { AWAKE, addAwakening, giveValue, lullCost } from './awakening';
 import { advanceIdle, researchComplete } from './idle';
 import { startDaily } from './daily';
+import { requirementMet } from './deeds';
 import { closeLoop, nextRunPreview, prepareNextLoop, ringShiftBell, startLoop } from './loop';
 
 export type OutpostAction =
@@ -56,7 +57,7 @@ function apply(s: SaveData, action: OutpostAction, now: number, content: Content
       const unlock = content.idle.unlocks.find((u) => u.id === action.unlockId);
       if (!unlock) return 'No such work.';
       if (s.outpost.unlocks.includes(unlock.id)) return 'Already built.';
-      if (unlock.requires && !s.outpost.unlocks.includes(unlock.requires)) return 'Not yet available.';
+      if (!requirementMet(s, unlock.requires, content)) return 'Not yet available.';
       if (Math.floor(s.outpost.shards) < unlock.cost) return 'Not enough Shards.';
       return { ...s, outpost: { ...s.outpost, shards: s.outpost.shards - unlock.cost, unlocks: [...s.outpost.unlocks, unlock.id] } };
     }

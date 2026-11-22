@@ -88,6 +88,10 @@ export const HINTS = {
     title: 'The Daily Descent',
     text: 'Once a day, the same vault for everyone, with an Omen that bends one rule. One try. It leaves no Echo and does not stir the Sleeper. Missing a day costs nothing.',
   },
+  somnant: {
+    title: 'Drowse and sleep',
+    text: 'Drowse builds on a foe; the chip shows how close it is (4/6). At its threshold it falls Asleep and skips its next turn. Hit it then: some cards strike far harder at a sleeper.',
+  },
   stairs: {
     title: 'The stairs',
     text: 'Past the boss, the vault goes on. Escape now and the loop ends as a win. Descend and you keep everything for a shorter, harsher floor: escape it for far more Shards, but die there and the loop counts as a death.',

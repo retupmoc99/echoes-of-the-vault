@@ -19,6 +19,8 @@ export function maxStrain(def: RelicDef, bonus = 0): number {
 interface TriggerInfo {
   cardType?: CardType;
   status?: StatusId;
+  /** The foe the event happened to (foeSlept, foeWoke): the trigger's target. */
+  targetId?: string;
 }
 
 function matches(t: Trigger, on: Trigger['on'], info: TriggerInfo): boolean {
@@ -37,7 +39,7 @@ export function fireTriggers(ctx: Ctx, on: Trigger['on'], info: TriggerInfo = {}
     const def = ctx.content.relics[relic.relicId];
     for (const trigger of def.passive ?? []) {
       if (matches(trigger, on, info)) {
-        resolveEffects(ctx, trigger.effects, PLAYER_ID, randomEnemyId(ctx));
+        resolveEffects(ctx, trigger.effects, PLAYER_ID, info.targetId ?? randomEnemyId(ctx));
       }
     }
   }

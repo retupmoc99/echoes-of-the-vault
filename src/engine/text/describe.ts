@@ -51,6 +51,10 @@ function amountPhrase(a: Amount, noun: string): string {
       return `${base}${times} ${unit}per ally fallen this fight`;
     case 'allyTopCost':
       return `${base}${times} ${unit}per cost of each ally's next card`;
+    case 'foesAsleep':
+      return `${base}${times} ${unit}per Asleep foe`;
+    case 'halfAwakening':
+      return `${base}${times} ${unit}per two Awakening stages`;
   }
 }
 
@@ -58,7 +62,7 @@ function amountPhrase(a: Amount, noun: string): string {
 function damageText(e: Extract<Effect, { kind: 'damage' }>, preview?: Preview): string {
   const allFoes = e.target === 'allFoes';
   const hits = e.hits && e.hits > 1 ? ` ×${e.hits}` : '';
-  const suffix = allFoes ? ' to all foes' : '';
+  const suffix = allFoes ? ' to all foes' : e.target === 'asleepFoes' ? ' to every Asleep foe' : '';
 
   if (!preview) {
     const core = typeof e.amount === 'number' ? `${e.amount}` : amountPhrase(e.amount, 'damage');
@@ -85,6 +89,10 @@ function conditionText(c: Condition): string {
       return `If the target has ${statusName(c.status)}`;
     case 'allyFellThisFight':
       return 'If an ally fell this fight';
+    case 'targetAsleep':
+      return 'If the target is Asleep';
+    case 'anyFoeAsleep':
+      return 'If any foe is Asleep';
   }
 }
 
@@ -125,6 +133,8 @@ function effectText(e: Effect, preview?: Preview): string {
       return e.count === 1
         ? 'Return the last card in your discard pile to your hand.'
         : `Return the last ${e.count} cards in your discard pile to your hand.`;
+    case 'thresholdMod':
+      return `This fight, ${e.bossesOnly ? 'bosses fall' : 'foes fall'} Asleep at ${e.amount} less Drowse${e.extraSleeps ? '; the Sleeper can be slept twice' : ''}.`;
     case 'addToDiscard':
       // Card names are title-cased ids (smoke → Smoke); describe has no content to look them up.
       return `Put ${e.count ?? 1} ${e.cardId.replace(/(^|-)(\w)/g, (_, d, c) => (d ? ' ' : '') + c.toUpperCase())} into your discard pile.`;
@@ -194,6 +204,10 @@ function triggerPrefix(t: Trigger): string {
       return 'Whenever you Call an Echo';
     case 'allyFell':
       return 'Whenever an ally falls';
+    case 'foeSlept':
+      return 'Whenever a foe falls Asleep';
+    case 'foeWoke':
+      return 'Whenever a foe wakes';
   }
 }
 

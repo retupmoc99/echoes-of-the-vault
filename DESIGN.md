@@ -328,6 +328,23 @@ Total 460 Shards for the Relic-Breaker's works: roughly 8 to 10 Echo lifetimes o
 - Background keys: `outpost`, `vault`, `combat`, and optional `shift-<id>` per Vault Shift.
 - Specs, budgets, ComfyUI prompts and Blender settings: see `ART_GUIDE.md`.
 
+## Somnant (class 4)
+Built in 0.20. See `docs/design/somnant.md` for the full card and relic list.
+- **Drowse:** a status on foes. At the sleep threshold (normal 4, elite 7, boss 9, the Sleeper 12) the foe falls **Asleep** and its threshold rises (+2 normal, +3 otherwise).
+- **Asleep:** it skips its next turn, stays asleep through your next turn, then makes the move it had planned (its intent shows "Waking: …"). Sleepers take 50% more attack damage. Drowse on a sleeper is lost, and hits don't wake it. A boss's phase change wakes it. Bleed, Fracture and its own delayed attacks still tick while it sleeps.
+- **The Awakening link:** the starter relic, Sleeper's Hum, applies 2 Drowse to every foe as a fight begins, +2 per two Awakening stages.
+- **The Warden:** 68 HP, 24 cards (6 research-locked), 7 relics plus the starter, two kits (the Lullaby, the Night-Knife), and the Drowned Hymnal as its Well relic.
+- **On screen:** a Drowse chip shows progress ("◐ 2/4"). A sleeping foe dims, breathes slowly, and shows a violet closed-eye intent.
+- **Unlock:** the deed *You hear it dreaming* (reach Awakening stage 3), then the Work *The Sleeper's Hymnal* (170 Shards).
+- **Bot check:** 33% at stage 0 (the others: 33–36%), 28% at stage 3. **Flagged:** 8% at stage 5 (the others: 11–17%), and it escapes floor 2 20% of the time (the others: 28–47%). It struggles in long fights against big HP pools (the Sleeper, the Well). If that holds in real play, the likely fix is more damage on its rares, not more sleep.
+
+## Deeds
+See `docs/design/deed-unlocks.md`. New Wardens (the Somnant first) are revealed by a **deed**: something done in the vault that fits the Warden. Then their Work appears with a Shards cost.
+- The save keeps a **tally**: peak Awakening stage, most curses carried, elites beaten, Shifts escaped, and floor-2 escapes. It's updated when loops (and Dailies) close and when the Awakening rises.
+- A deed is done whenever its goal (data) is met. A Work with `requires: 'deed:<id>'` stays hidden until then.
+- Locked Wardens show their deed and progress. A notice marks the moment a deed is done, and Archive → Fragments lists deeds.
+- The Hour-Thief and Echo-Caller stay Shards-only.
+
 ## The Deeper Vault (floor 2)
 Built in 0.18–0.19. See `docs/design/deeper-vault.md`.
 - **The stairs:** after your first escape, beating the floor-1 boss opens a choice. **Escape** ends the loop as a win, as before. **Descend** keeps your deck, relics and Corruption, heals 50% of max HP, and starts floor 2. Dailies never offer the stairs.
@@ -445,15 +462,17 @@ All sound is generated in code with Web Audio (`src/ui/audio/`): no audio files,
 - `localStorage` key `eotv.save`, JSON, synchronous write after every action.
 - `SaveData.version` + `MIGRATIONS[n]` (n → n+1). The old raw save is copied to `eotv.save.backup.vN` before migrating, and the migrated save is written straight away.
 - Corrupt saves are copied to `eotv.save.corrupt.<time>`, never deleted. Saves from a newer version are never overwritten.
-- **v11** (current) contains:
+- **v12** (current) contains:
   - `run`: the whole loop, including any live fight
   - `meta`: loops, victories, deaths, and `history` (the last 20 loops)
   - `nextLoop`, `echoes`, `pendingEcho`, `outpost` (shards, unlocks, research, cards, lore, scouting, kit)
   - `idle.lastTickAt`
   - `world`: `awakening` (stage, progress, cycle, Lulls this stage); `factions` still reserved and empty
   - `daily`: last day played, days played, escapes, best depth, and the last result
+  - `deeds`: the deed tally (peak Awakening, most curses carried, elites beaten, Shifts escaped, floor-2 escapes)
   - `settings`
 - Migration history:
+  - v11 → v12: adds `deeds`, credited from what the save shows: peak stage (5 if a cycle was completed), curses in History's final decks, and Shifts of History's victories. Elites beaten start empty.
   - v10 → v11: adds `daily` (nothing played yet). Runs gain optional `daily` and `omenId`; history rows gain optional `daily` and `omenId`.
   - v9 → v10: a loop in progress gains an empty `chorus`; a live fight gains empty ally state.
   - v8 → v9: a loop in progress gains `awakeningCycle: 1`.
@@ -469,6 +488,8 @@ All sound is generated in code with Web Audio (`src/ui/audio/`): no audio files,
 1. **The Choices pass** (0.16, built): settles the open questions below: pick-your-card event removals, a Search rite on the last Shrines, Echoes recovering while resting, evening out the Relic-Breaker's kits, and a Rewrite card. See `docs/design/choices-pass.md`.
 2. **The Daily Descent** (0.17, built): one shared, date-seeded loop a day, with a rule-bending Omen and a shareable result. It leaves no Echo, doesn't move the Awakening, and there's no streak to break. See `docs/design/daily-descent.md`.
 3. **The Deeper Vault** (0.18–0.19, built): Escape or Descend after the boss, into a shorter, harsher second floor with 9 new enemies; Echoes born there are stronger. See `docs/design/deeper-vault.md`.
+4. **The Somnant** (Warden 4, built in 0.20): builds Drowse until enemies fall Asleep and skip a turn; grows with the Awakening. Unlocked by the first deed. See `docs/design/somnant.md`.
+5. **Deed unlocks** (built in 0.20): new Wardens appear as Works only after a themed deed (reach Awakening stage 3, carry 3 curses, beat every elite, escape under 3 Shifts, escape floor 2). See `docs/design/deed-unlocks.md`.
 
 ## Future hooks (not built)
 - **Classes:** `WardenClassDef` holds the deck, pools, kits, HP and an optional unlock. The Hour-Thief proved the pattern: a new class is mostly data, plus new `Effect` kinds for genuinely new mechanics. Built in 0.14.0 (see "Echo-Caller (class 3)"). **Decided (2026-11-21):** it summons your *real* Outpost Echoes as allies, each fighting from its own deck snapshot, with its trait shaping how it fights. Needs player-side ally combatants. Full design to be agreed before building.

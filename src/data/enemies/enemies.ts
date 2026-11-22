@@ -270,6 +270,8 @@ export const ENEMIES: EnemyDef[] = [
     hp: [150, 160],
     // Opens by replaying the hardest move of each enemy you fought this loop.
     memories: true,
+    // Somnant: it sleeps deeper than other bosses (a higher threshold).
+    sleepThreshold: 12,
     moves: {
       stir: { name: 'Stir', effects: [{ kind: 'damage', amount: 12 }] },
       murmur: {

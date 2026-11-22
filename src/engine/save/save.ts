@@ -14,10 +14,10 @@
  * right after an action cannot lose it.
  */
 import { defaultCombatModifiers } from '../combat/combat';
-import type { Echo, NextLoop, OutpostState, RunState, RunStats, WorldState } from '../types';
+import type { Echo, NextLoop, OutpostState, RunState, RunStats, WorldState, DeedTally } from '../types';
 
 export const SAVE_KEY = 'eotv.save';
-export const SAVE_VERSION = 11;
+export const SAVE_VERSION = 12;
 
 export interface MetaProgress {
   /** Loops completed, by any means. */
@@ -97,6 +97,8 @@ export interface SaveData {
   idle: { lastTickAt: number };
   world: WorldState;
   daily: DailyStats;
+  /** What the player has done, for deeds (docs/design/deed-unlocks.md). */
+  deeds: DeedTally;
   settings: Settings;
 }
 
@@ -245,6 +247,25 @@ export const MIGRATIONS: Record<number, Migration> = {
 
   // v10 → v11: the Daily Descent. Nobody has played one yet.
   10: (v10: Loose) => ({ ...v10, version: 11, daily: { lastPlayed: null, daysPlayed: 0, escapes: 0, bestDepth: 0 } }),
+
+  // v11 → v12: deeds. Credit what the save already shows, so nobody redoes a deed.
+  // Elites beaten weren't recorded before, so that tally starts empty.
+  11: (v11: Loose) => {
+    const a = v11.world?.awakening ?? {};
+    const history: Loose[] = v11.meta?.history ?? [];
+    const CURSES = ['gnawing-static', 'hollow-echo', 'leaden-thought'];
+    return {
+      ...v11,
+      version: 12,
+      deeds: {
+        peakAwakening: (a.cycle ?? 1) > 1 ? 5 : (a.stage ?? 0),
+        maxCursesCarried: Math.max(0, ...history.map((h) => (h.deck ?? []).filter((id: string) => CURSES.includes(id)).length)),
+        elitesBeaten: [],
+        shiftsEscaped: [...new Set(history.filter((h) => h.result === 'victory').map((h) => h.vaultShiftId))],
+        deepEscapes: v11.meta?.deepEscapes ?? 0,
+      },
+    };
+  },
 };
 
 export function newDailyStats(): DailyStats {
@@ -277,6 +298,7 @@ export function newSave(now: number): SaveData {
     meta: { loops: 0, victories: 0, deaths: 0, history: [] },
     ...idleDefaults(now),
     daily: newDailyStats(),
+    deeds: { peakAwakening: 0, maxCursesCarried: 0, elitesBeaten: [], shiftsEscaped: [], deepEscapes: 0 },
   };
 }
 

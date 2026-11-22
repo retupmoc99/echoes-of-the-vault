@@ -22,7 +22,7 @@ The script reads each item's prompt from the tables below (cards by default), pl
 
 Comfy Desktop users: the desktop app may not expose a local API. You can run the install's server directly, from its `ComfyUI` folder: `.venv/Scripts/python.exe main.py --port 8190 --extra-model-paths-config <yaml pointing at your models folder>`.
 
-**Current set (0.19.0):** the full set, 147 images, 4.99 MB (Rewrite in 0.16; floor 2’s 9 enemies, 3 relics and 2 backgrounds in 0.19). The Sleeper, its Eye and The Sleeper's Breath background came in 0.13; the Echo-Caller's 24 cards and 7 relics in 0.14.1. *Soul Lance* and *Severed Thread* were rerolled in 0.14.2.
+**Current set (0.20.0):** the full set, 180 images, 5.46 MB (Rewrite in 0.16; floor 2’s 9 enemies, 3 relics and 2 backgrounds in 0.19; the Somnant’s 24 cards and 9 relics in 0.20). The Sleeper, its Eye and The Sleeper's Breath background came in 0.13; the Echo-Caller's 24 cards and 7 relics in 0.14.1. *Soul Lance* and *Severed Thread* were rerolled in 0.14.2.
 - All 55 cards, picked from ~180 generated images on an RTX 5080 (~6 s each). Weakest, worth a reroll: *Second Hand* (a clock, not a blade), *Loop the Moment*, *Unmake the Hour* and *Mirror Sigil* (pale backgrounds), *Twin Shards* (pillars, not crossed blades).
 - All 8 backgrounds: `npm run art:gen -- --folder backgrounds`. 768×1344 plus a built-in second pass (latent upscale ×1.5, denoise 0.45) to 1152×2016, ~16 s each.
 - All 11 enemies, 18 relics and 6 node icons: `--folder enemies|relics|ui`. Cut out with ComfyUI's built-in Remove Background node and BiRefNet (`birefnet.safetensors`, 424 MB, from huggingface.co/Comfy-Org/BiRefNet, in the `background_removal` models folder). Over budget but kept for detail: *Vein Crawler* (166 KB), *Bone Abacus* (34 KB), *Gilded Gear* (26 KB).
@@ -267,6 +267,52 @@ Add to the style prompt: `a single small object, centred, floating alone in tota
 | mourners-veil | a folded black lace veil with a faint silver shimmer |
 | grave-ledger | a thick black ledger book bound shut with chains, sickly green light leaking from its pages |
 | severed-thread | a thick glowing silver cord snapped in two in the dark, two bold frayed ends close together with bright sparks between them, close-up, no ring, no frame |
+
+#### Somnant cards (`art-raw/cards/<id>.png`, 4:3)
+Shared accent: **muted violet and moonlit silver**: sleep, dreams, lullabies. Add to the style prompt: `muted violet and silver moonlight, soft dreamy haze`. Subjects vary on purpose (moths, candles, cloth, closed eyes, music), so the set isn't 24 sleeping figures.
+
+| ID | Prompt |
+|---|---|
+| dull-blade | a worn blunt sword with a rounded nicked edge resting on dark grey cloth, faint violet sheen on the steel |
+| veil-of-sleep | a heavy grey veil of cloth floating in the dark like a held breath, its folds glowing faint silver |
+| lullaby | three glowing violet musical notes drifting through a dark vault, soft rings of sound spreading from them |
+| nightfall-cut | a single silver blade slicing through a deep violet night sky, a thin crescent moon behind it |
+| heavy-eyelids | a pale stone face with both eyes firmly closed in deep sleep, long lashes resting on the cheeks, faint violet glow along the closed lids |
+| yawn | a dark vaulted room where many small candles lean and dim at once, as if breathed on |
+| whisper-down | a pale hand cupped near a sleeping ear in darkness, faint violet whisper lines curling from the fingers |
+| dream-thief | a shadowy hand pulling a glowing violet thread of dream from the mouth of a sleeping stone head |
+| sleepwalkers-ward | bare feet stepping softly across cold flagstones in the dark, a faint silver shield of mist around them |
+| soft-step | a single bare footprint glowing violet on dark stone, moths gathering around it |
+| pillow-of-ash | a soft pillow made of grey ash and embers resting on dark stone, a thin curl of smoke rising |
+| counting-down | a row of tall candles in the dark, each one shorter than the last, the final one just a wisp of smoke |
+| murmured-name | silver letters of a name dissolving into violet smoke above a dark altar |
+| cradle-song | an old wooden cradle rocking alone in a vast dark vault, violet light spilling from inside it |
+| dreamless-edge | two crossed silver daggers floating in pure black, their blades reflecting a sleeping face |
+| deep-rest | a stone sarcophagus with its lid slightly open, soft violet light and moths drifting out |
+| lucid-strike | a single wide-open glowing violet eye inside a dark storm of swirling sleep mist |
+| slumber-ward | a tall wall of folded grey cloth and soft moonlight standing in darkness |
+| undertow-hymn | a dark flooded chapel, violet light glowing from beneath the still water, faint singing ripples |
+| nightmare | a monstrous shadow bursting out of a sleeping figure's dream bubble, violet and black |
+| sleepers-kiss | pale stone lips pressed to a sleeping stone forehead, a soft violet glow at the touch |
+| dreamwalk | a cloaked figure walking along a path made of floating dream bubbles through a black void |
+| long-night | a huge pale moon low over endless dark vault rooftops, every window dark, stars fading |
+| eternal-lullaby | a vast ancient music box open in the dark, its tiny dancer frozen mid-turn, violet light pouring out |
+
+#### Somnant relics (`art-raw/relics/<id>.png`, 1:1, transparent)
+Add to the negative prompt: `white background, grey background, studio backdrop, floor, table, shadow, pedestal, wall, paper, parchment`.
+Add to the style prompt: `a single small object, centred, floating alone in total black darkness, black void around it, bold readable silhouette, nothing else in the frame, soft violet glow`.
+
+| ID | Prompt |
+|---|---|
+| sleepers-hum | a small two-pronged silver tuning fork, glowing violet ripples of sound spreading from its humming prongs |
+| moth-lantern | a small brass lantern with pale glowing moths clustered on its glass |
+| pillow-stone | a smooth rounded grey stone shaped like a small pillow, a faint silver sheen |
+| cracked-music-box | a small cracked wooden music box, its lid half open, a tiny violet glow inside |
+| dream-catcher | a woven ring of dark wire and hair with a single glowing violet bead at its centre |
+| nightcap | a small dark glass bottle with a cork, violet liquid glowing inside |
+| lethe-vial | a slender glass vial of pale silver water, swirling mist inside |
+| the-last-lullaby | a single torn page of sheet music glowing violet at its edges, curling in on itself |
+| drowned-hymnal | a small waterlogged hymn book, dripping, faint violet light between its swollen pages |
 
 #### Node icons (`art-raw/ui/node-<type>.png`, transparent)
 Add to the style prompt: `a simple bold symmetrical glyph emblem, centred, floating in total black darkness, flat graphic icon, thick glowing lines`.

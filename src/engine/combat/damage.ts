@@ -20,6 +20,8 @@ export function attackDamage(s: CombatState, attacker: Combatant, defender: Comb
   if (isEnemy(s, attacker.id)) dmg += s.modifiers.enemyDamageBonus + ((attacker as EnemyState).damageBonus ?? 0);
   if ((attacker.statuses.weakened ?? 0) > 0) dmg *= 1 - st.weakened.damageReduction;
   if ((defender.statuses.exposed ?? 0) > 0) dmg *= 1 + st.exposed.damageIncrease;
+  // Somnant: a sleeping foe takes more from every blow.
+  if ((defender as EnemyState).asleep) dmg *= BALANCE.sleep.damageTakenMult;
   return Math.max(0, Math.floor(dmg));
 }
 
