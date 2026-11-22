@@ -10,17 +10,20 @@ import { formatAgo } from '../format';
 
 export function LoopHistory({ save }: { save: SaveData }) {
   const { loops, victories, deaths, history } = save.meta;
-  const [open, setOpen] = useState<number>();
+  const [open, setOpen] = useState<string>();
+  // Dailies share a loop number with the loop before them, so the key includes the day.
+  const keyOf = (rec: LoopRecord) => `${rec.loop}:${rec.daily ?? ''}`;
 
   return (
     <div className="history">
       <p className="record">
         Loops {loops} · Escaped {victories} · Fallen {deaths}
         {save.world.awakening.cycle > 1 && ` · Sleeper unmade ${save.world.awakening.cycle - 1}×`}
+        {save.meta.deepEscapes ? ` · Out of the Well ${save.meta.deepEscapes}×` : ''}
       </p>
       {history.length === 0 && <p className="record">No loops recorded yet. Every loop you close from now on is kept here.</p>}
       {history.map((rec) => (
-        <HistoryRow key={rec.loop} rec={rec} open={open === rec.loop} onToggle={() => setOpen(open === rec.loop ? undefined : rec.loop)} />
+        <HistoryRow key={keyOf(rec)} rec={rec} open={open === keyOf(rec)} onToggle={() => setOpen(open === keyOf(rec) ? undefined : keyOf(rec))} />
       ))}
       {history.length >= BALANCE.history.limit && <p className="record">Only the last {BALANCE.history.limit} loops are kept.</p>}
     </div>
@@ -38,10 +41,11 @@ function HistoryRow({ rec, open, onToggle }: { rec: LoopRecord; open: boolean; o
     <article className={`history-row ${won ? 'won' : 'lost'} ${open ? 'open' : ''}`}>
       <button className="history-head" onClick={onToggle} aria-expanded={open}>
         <span className="history-title">
-          Loop {rec.loop} · {rec.unmadeSleeper ? 'Unmade the Sleeper' : won ? 'Escaped' : s.abandoned ? 'Abandoned' : `Fell at depth ${rec.depth}`}
+          {rec.daily ? `☀ Daily ${rec.daily}` : `Loop ${rec.loop}`} · {rec.unmadeSleeper ? 'Unmade the Sleeper' : won && (rec.floor ?? 1) > 1 ? 'Escaped the depths' : won ? 'Escaped' : (rec.floor ?? 1) > 1 ? `Fell on floor 2, depth ${rec.depth}` : s.abandoned ? 'Abandoned' : `Fell at depth ${rec.depth}`}
         </span>
         <span className="history-sub">
-          {warden} · {shift}
+          {warden} · {rec.omenId ? `${CONTENT.omens?.[rec.omenId]?.name ?? 'Omen'} · ` : ''}
+          {shift}
           {rec.awakeningStage > 0 ? ` · ☾ ${CONTENT.awakening.stages[rec.awakeningStage]?.name}` : ''} · {formatAgo(Date.now() - rec.endedAt)}
         </span>
       </button>
@@ -63,11 +67,15 @@ function HistoryRow({ rec, open, onToggle }: { rec: LoopRecord; open: boolean; o
             <dt>Cards removed</dt>
             <dd>{s.cardsRemoved}</dd>
           </dl>
-          <h4>Echo left behind</h4>
-          <p className="record">
-            {rec.echoName}
-            {trait ? ` · ${trait}` : ''}
-          </p>
+          {!rec.daily && (
+            <>
+              <h4>Echo left behind</h4>
+              <p className="record">
+                {rec.echoName}
+                {trait ? ` · ${trait}` : ''}
+              </p>
+            </>
+          )}
           <h4>Relics</h4>
           <p className="record">{rec.relics.map((id) => CONTENT.relics[id]?.name ?? id).join(' · ') || 'None'}</p>
           <h4>Final deck ({rec.deck.length})</h4>

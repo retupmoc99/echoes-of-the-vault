@@ -11,6 +11,16 @@ import { BALANCE } from '../../data/balance';
 import { NODE_INFO } from '../../data/nodeTypes';
 import { canPushBack, researchComplete, researchCost, scoutInfo, traitOf, type OutpostAction, type SaveData } from '../../engine';
 import { AwakeningPanel } from '../components/AwakeningPanel';
+import { DailyCard } from '../components/DailyCard';
+
+/** Loops closed before each Descend-tab panel appears, so a new player meets one thing at a time. */
+const REVEAL = { awakening: 2, daily: 3 };
+
+/** A first-timer has Echoes but has never set one to work: point them at the Echoes tab. */
+function echoesNeverWorked(save: SaveData): boolean {
+  const o = save.outpost;
+  return save.echoes.length > 0 && save.echoes.every((e) => !e.task) && o.shards === 0 && o.research.completed === 0 && o.research.progress === 0 && o.scouting === 0;
+}
 import { BackupPanel } from '../components/BackupPanel';
 import { CardLibrary } from '../components/CardLibrary';
 import { LoopHistory } from '../components/LoopHistory';
@@ -58,6 +68,7 @@ export function OutpostScreen({ save, error, notice, outpost, onSettings, onEnte
             ['awakening', tab === 'descend' && !save.run && save.world.awakening.stage >= 1],
             ['sleeper-awake', tab === 'descend' && !save.run && save.world.awakening.stage >= 5],
             ['new-warden', tab === 'descend' && !save.run && save.outpost.unlocks.includes('stolen-hour') && save.outpost.classId === 'relic-breaker'],
+            ['daily', tab === 'descend' && !save.run && save.meta.loops >= REVEAL.daily],
             ['backup', tab === 'descend' && save.meta.loops >= 3],
           ]}
         />
@@ -73,7 +84,7 @@ export function OutpostScreen({ save, error, notice, outpost, onSettings, onEnte
         {(
           [
             ['descend', 'Descend'],
-            ['echoes', `Echoes${save.pendingEcho ? ' •' : ''}`],
+            ['echoes', `Echoes${save.pendingEcho || echoesNeverWorked(save) ? ' •' : ''}`],
             ['works', 'Works'],
             ['archive', 'Archive'],
           ] as [Tab, string][]
@@ -147,6 +158,8 @@ function DescendTab({ save, outpost, onEnterRun, onAbandon }: Omit<Props, 'error
 
   return (
     <div className="panel">
+      {/* New things arrive one at a time (see FIRST_RUN in DESIGN.md): the Daily from loop 3. */}
+      {save.meta.loops >= REVEAL.daily && <DailyCard save={save} onStart={() => outpost({ type: 'startDaily' }) && onEnterRun()} />}
       <h2 className="panel-title">The next loop</h2>
       <div className="next-shift">
         {scout.shiftKnown && shift ? (
@@ -186,7 +199,7 @@ function DescendTab({ save, outpost, onEnterRun, onAbandon }: Omit<Props, 'error
         </button>
       )}
 
-      {(save.meta.loops > 0 || save.world.awakening.progress > 0) && (
+      {(save.meta.loops >= REVEAL.awakening || save.world.awakening.stage > 0) && (
         <>
           <h2 className="panel-title">The Awakening</h2>
           <AwakeningPanel save={save} onLull={() => outpost({ type: 'lull' })} />
@@ -229,9 +242,12 @@ function DescendTab({ save, outpost, onEnterRun, onAbandon }: Omit<Props, 'error
         </div>
       )}
 
-      <button className="primary-btn wide descend" onClick={() => outpost({ type: 'startLoop' }) && onEnterRun()}>
-        Descend
-      </button>
+      {/* Pinned to the bottom of the scroll area, so the main action is always in reach. */}
+      <div className="descend-dock">
+        <button className="primary-btn wide descend" onClick={() => outpost({ type: 'startLoop' }) && onEnterRun()}>
+          Descend
+        </button>
+      </div>
     </div>
   );
 }
@@ -272,7 +288,7 @@ function EchoesTab({ save, outpost, onInspect }: { save: SaveData; outpost: Prop
           researchDone={researchDone}
           onAssign={(task) => outpost({ type: 'assign', echoId: echo.id, task })}
           onRelease={() => outpost({ type: 'releaseEcho', echoId: echo.id })}
-          onGive={canPushBack(save.world.awakening) ? () => outpost({ type: 'giveEcho', echoId: echo.id }) : undefined}
+          onGive={canPushBack(save.world.awakening) && (save.meta.loops >= REVEAL.awakening || save.world.awakening.stage > 0) ? () => outpost({ type: 'giveEcho', echoId: echo.id }) : undefined}
           onReplace={pending && full ? () => outpost({ type: 'keepPending', replaceId: echo.id }) : undefined}
           onInspect={onInspect}
         />

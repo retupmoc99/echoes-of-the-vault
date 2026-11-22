@@ -9,6 +9,7 @@ import type { Content, NextLoop, OutpostState, RunOptions, RunState } from '../t
 import type { LoopRecord, SaveData } from '../save/save';
 import { SLEEPERS_EYE, SLEEPER_ENCOUNTER, addAwakening, completeCycle, loopAwakening } from './awakening';
 import { chorusFrom, settleChorus } from './chorus';
+import { closeDaily } from './daily';
 import { createEcho } from './echoes';
 
 /** Roll a Vault Shift; Shifts gated by the Awakening only appear once it's deep enough. */
@@ -28,9 +29,11 @@ export function prepareNextLoop(save: SaveData, content: Content): SaveData {
   return { ...save, nextLoop };
 }
 
-export function runOptionsFor(outpost: OutpostState): RunOptions {
+export function runOptionsFor(outpost: OutpostState, victories = 0): RunOptions {
   const has = (id: string) => outpost.unlocks.includes(id);
   return {
+    // The Deeper Vault opens after your first escape.
+    stairs: victories > 0,
     shrinePurge: has('shrine-of-ash'),
     cacheChoices: has('reliquary-key') ? BALANCE.outpost.keyCacheChoices : BALANCE.rewards.cacheRelicChoices,
     rewardRerolls: has('second-sight') ? 1 : 0,
@@ -47,14 +50,24 @@ export function nextRunPreview(save: SaveData, content: Content): RunState | nul
       vaultShiftId: save.nextLoop.vaultShiftId,
       kitId: save.outpost.kitId,
       unlockedCards: save.outpost.cards,
-      options: runOptionsFor(save.outpost),
+      options: runOptionsFor(save.outpost, save.meta.victories),
       awakeningStage: save.world.awakening.stage,
       awakeningCycle: save.world.awakening.cycle,
       extraRelics: save.outpost.unlocks.includes(SLEEPERS_EYE) ? [SLEEPERS_EYE] : [],
       chorus: chorusFrom(save.echoes, content),
+      extraRelicPool: deepRelicsFor(save, content),
     },
     content,
   );
+}
+
+/** Escaping floor 2 once adds the Well's relic for each Warden to its reward pool. */
+export const WELL_UNLOCK = 'the-well';
+function deepRelicsFor(save: SaveData, content: Content): string[] {
+  if (!save.outpost.unlocks.includes(WELL_UNLOCK)) return [];
+  return Object.values(content.relics)
+    .filter((r) => r.deepFor === save.outpost.classId)
+    .map((r) => r.id);
 }
 
 export function startLoop(save: SaveData, content: Content): SaveData {
@@ -74,6 +87,11 @@ export function ringShiftBell(save: SaveData, content: Content): SaveData | stri
   return { ...save, nextLoop: { ...next, vaultShiftId, shiftRerolled: true } };
 }
 
+/** The Sleeper fell this loop (it counts even if you then died on floor 2). */
+function sleeperUnmade(run: RunState): boolean {
+  return run.stats.sleeperUnmade ?? (run.result === 'victory' && run.seenEncounters.includes(SLEEPER_ENCOUNTER));
+}
+
 /**
  * Close a finished loop: record it, leave an Echo, roll the next loop.
  * With all slots full, the Echo waits as `pendingEcho` (an older pending one fades).
@@ -81,6 +99,8 @@ export function ringShiftBell(save: SaveData, content: Content): SaveData | stri
 export function closeLoop(save: SaveData, content: Content, now: number): SaveData {
   const run = save.run;
   if (!run || run.phase !== 'ended') return save;
+  // A Daily is a side room: no Echo, no Awakening, no Chorus cost.
+  if (run.daily) return closeDaily(save, now);
 
   const loops = save.meta.loops + 1;
   const echo = createEcho(run, loops, now, content);
@@ -102,7 +122,8 @@ export function closeLoop(save: SaveData, content: Content, now: number): SaveDa
     echoTraitId: echo.traitId,
     awakeningStage: run.awakeningStage,
   };
-  if (result === 'victory' && run.seenEncounters.includes(SLEEPER_ENCOUNTER)) record.unmadeSleeper = true;
+  if (sleeperUnmade(run)) record.unmadeSleeper = true;
+  if (run.floor > 1) record.floor = run.floor;
 
   const closed: SaveData = {
     ...save,
@@ -112,14 +133,20 @@ export function closeLoop(save: SaveData, content: Content, now: number): SaveDa
       victories: save.meta.victories + (result === 'victory' ? 1 : 0),
       deaths: save.meta.deaths + (result === 'death' ? 1 : 0),
       history: [record, ...save.meta.history].slice(0, BALANCE.history.limit),
+      ...(run.stats.deepBossWon ? { deepEscapes: (save.meta.deepEscapes ?? 0) + 1 } : save.meta.deepEscapes ? { deepEscapes: save.meta.deepEscapes } : {}),
     },
-    // Shards found in the loop (Awakening elites) are banked now.
-    outpost: run.shardsFound ? { ...save.outpost, shards: save.outpost.shards + run.shardsFound } : save.outpost,
+    // Shards found in the loop are banked now; the first escape from floor 2 finds the Well's relics.
+    outpost: {
+      ...save.outpost,
+      shards: save.outpost.shards + run.shardsFound,
+      unlocks: run.stats.deepBossWon && !save.outpost.unlocks.includes(WELL_UNLOCK) ? [...save.outpost.unlocks, WELL_UNLOCK] : save.outpost.unlocks,
+    },
     echoes: hasRoom ? [...settled.echoes, echo] : settled.echoes,
     pendingEcho: hasRoom ? save.pendingEcho : echo,
   };
   // Unmaking the Sleeper ends the cycle; any other loop stirs it.
-  const unmade = result === 'victory' && run.seenEncounters.includes(SLEEPER_ENCOUNTER);
-  const after = unmade ? completeCycle(closed, content) : addAwakening(closed, loopAwakening(result), content);
+  // A loop that reached floor 2 stirs it a little more.
+  const stir = loopAwakening(result) + (run.floor > 1 ? BALANCE.deep.awakeningBonus : 0);
+  const after = sleeperUnmade(run) ? completeCycle(closed, content) : addAwakening(closed, stir, content);
   return prepareNextLoop(after, content);
 }

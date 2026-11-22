@@ -20,7 +20,7 @@ import type {
   StepResult,
 } from '../types';
 import { PLAYER_ID, isOver, livingEnemies, type Ctx } from './context';
-import { checkCombatEnd } from './damage';
+import { checkCombatEnd, loseHp } from './damage';
 import { cardCost, discardHand, drawCards } from './deck';
 import { needsTarget, resolveEffects } from './effects';
 import { chooseIntent } from './intents';
@@ -52,7 +52,7 @@ export function createCombat(setup: CombatSetup, content: Content): StepResult {
   if (!encounter) throw new Error(`Unknown encounter: ${setup.encounterId}`);
 
   const affix = setup.affix;
-  const enemies: EnemyState[] = encounter.enemies.map((defId, i) => {
+  const enemies: EnemyState[] = [...encounter.enemies, ...(setup.extraEnemies ?? [])].map((defId, i) => {
     const def = content.enemies[defId];
     const hp = Math.round(rngInt(rng, def.hp[0], def.hp[1]) * modifiers.enemyHpMult * (affix?.hpMult ?? 1));
     const enemy: EnemyState = { id: `e${i}`, defId, hp, maxHp: hp, ward: affix?.ward ?? 0, statuses: {}, intent: '', history: [] };
@@ -117,7 +117,7 @@ function playCard(ctx: Ctx, uid: string, targetId: string | undefined, pickUid?:
   const card = s.piles.hand[handIndex];
   const def = ctx.content.cards[card.cardId];
   if (def.unplayable) return `${def.name} cannot be played.`;
-  const cost = cardCost(card, def);
+  const cost = cardCost(card, def, s.modifiers);
   if (cost > s.resonance) return 'Not enough Resonance.';
 
   let target: string | undefined;
@@ -205,6 +205,8 @@ function endTurn(ctx: Ctx): string | undefined {
 
 function startPlayerTurn(ctx: Ctx): void {
   const s = ctx.s;
+  // Floor 2's Weight: if the enemies broke through all your Ward, it presses on you.
+  const pressed = !!s.modifiers.weightDamage && s.turn > 0 && s.player.ward === 0;
   s.turn++;
   s.overloadsThisTurn = 0;
   if (!s.player.retainWard) s.player.ward = 0;
@@ -213,15 +215,17 @@ function startPlayerTurn(ctx: Ctx): void {
     ally.ward = 0;
   }
 
+  if (pressed) loseHp(ctx, s.player, s.modifiers.weightDamage!, 'weight');
+  if (isOver(s)) return;
   tickStartOfTurn(ctx, s.player);
   if (isOver(s)) return;
   // Your delayed effects land before you draw.
   if (s.timeline.some((t) => !t.sourceId)) advanceTimeline(ctx, 1);
   if (isOver(s)) return;
 
-  s.resonance = BALANCE.player.resonancePerTurn;
+  s.resonance = BALANCE.player.resonancePerTurn + (s.modifiers.resonanceBonus ?? 0);
   ctx.events.push({ type: 'turnStart', turn: s.turn });
-  drawCards(ctx, BALANCE.player.drawPerTurn);
+  drawCards(ctx, BALANCE.player.drawPerTurn + (s.modifiers.drawBonus ?? 0));
   returnEchoes(ctx);
   fireTriggers(ctx, 'turnStart');
   // Pathfinder allies act at the start of your turn, so you see what they did before you plan.

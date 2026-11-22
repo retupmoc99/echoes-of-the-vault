@@ -14,7 +14,8 @@ export function rollCardReward(r: RunState, content: Content, tier: 'normal' | '
   weights.rare += corruptionTier(r.corruption) * BALANCE.corruption.rareWeightPerTier;
   if (r.awakeningStage >= 3) weights.rare += BALANCE.awakening.rareWeightBonus;
 
-  const count = BALANCE.rewards.choices + (content.vaultShifts[r.vaultShiftId]?.mods.rewardChoicesBonus ?? 0);
+  const omen = r.omenId ? content.omens?.[r.omenId] : undefined;
+  const count = BALANCE.rewards.choices + (content.vaultShifts[r.vaultShiftId]?.mods.rewardChoicesBonus ?? 0) + (omen?.mods.rewardChoicesBonus ?? 0);
   const chosen: CardDef[] = [];
   for (let i = 0; i < count; i++) {
     const rarity = rngWeighted(r.rng, weights);
@@ -34,7 +35,7 @@ export function rollCardReward(r: RunState, content: Content, tier: 'normal' | '
 
 /** Up to `count` distinct class relics the player does not own. */
 export function rollRelics(r: RunState, content: Content, count: number, opts: { allowTainted: boolean }): string[] {
-  const pool = content.classes[r.classId].relicPool.filter((id) => {
+  const pool = [...content.classes[r.classId].relicPool, ...(r.extraRelicPool ?? [])].filter((id) => {
     if (r.relics.includes(id)) return false;
     return opts.allowTainted || !content.relics[id].corruption;
   });

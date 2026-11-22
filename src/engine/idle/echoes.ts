@@ -10,7 +10,8 @@ import type { Content, Echo, EchoTaskKind, EchoTraitDef, RunState, TraitConditio
 const E = BALANCE.echoes;
 
 export function loopDepth(run: RunState): number {
-  return run.position ? run.map.nodes[run.position].row + 1 : 0;
+  // Floor 2 counts on from the depth reached on floor 1.
+  return (run.depthBase ?? 0) + (run.position ? run.map.nodes[run.position].row + 1 : 0);
 }
 
 function statValue(run: RunState, stat: TraitCondition['stat']): number {
@@ -21,9 +22,11 @@ function statValue(run: RunState, stat: TraitCondition['stat']): number {
       return run.deck.length;
     case 'victory':
       return run.result === 'victory' ? 1 : 0;
+    case 'floor':
+      return run.floor;
     default: {
       const v = run.stats[stat];
-      return typeof v === 'boolean' ? (v ? 1 : 0) : v;
+      return typeof v === 'boolean' ? (v ? 1 : 0) : (v ?? 0);
     }
   }
 }

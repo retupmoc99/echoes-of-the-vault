@@ -12,6 +12,7 @@ import {
   createEcho,
   describeCard,
   describeRelic,
+  loopDepth,
   optionAvailable,
   shrineHeal,
   traitOf,
@@ -44,11 +45,13 @@ interface ChamberProps {
   /** Compact chambers hide the big icon to make room (rewards). */
   compact?: boolean;
   hints?: HintCandidate[];
+  /** Background tried before the usual ones (the stairs). */
+  bg?: string;
 }
 
-function Chamber({ run, type, title, onMenu, error, children, actions, compact, hints = [] }: ChamberProps) {
+function Chamber({ run, type, title, onMenu, error, children, actions, compact, hints = [], bg }: ChamberProps) {
   const [info, setInfo] = useState<string>();
-  useScreenAtmosphere(`shift-${run.vaultShiftId}`, 'vault');
+  useScreenAtmosphere(...(bg ? [bg] : []), ...(run.floor > 1 ? ['floor-2'] : []), `shift-${run.vaultShiftId}`, 'vault');
   return (
     <div className="screen">
       <RunHeader run={run} onMenu={onMenu} onInspect={setInfo} />
@@ -337,15 +340,56 @@ function ChorusCosts({ run }: { run: RunState }) {
   );
 }
 
+/** After the floor-1 boss: Escape now, or Descend to floor 2 (the Deeper Vault). */
+export function StairsScreen({ run, error, dispatch, onMenu }: ScreenProps) {
+  const D = BALANCE.deep;
+  const held = run.heldShards ?? 0;
+  const heal = Math.min(run.maxHp - run.hp, Math.round(run.maxHp * D.stairsHeal));
+  return (
+    <Chamber
+      run={run}
+      type="boss"
+      title="The Stairs"
+      bg="stairs"
+      hints={[['stairs', true]]}
+      onMenu={onMenu}
+      error={error}
+      compact
+      actions={
+        <>
+          <button className="primary-btn wide" onClick={() => dispatch({ type: 'escape' })}>
+            Escape now{held ? ` · +${held} Shards` : ' · a win'}
+          </button>
+          <button className="ghost-btn wide descend-btn" onClick={() => dispatch({ type: 'descend' })}>
+            Descend · heal {heal} HP
+          </button>
+        </>
+      }
+    >
+      <p className="chamber-text">Behind the broken Lock, stairs go down into wet dark. Something at the bottom is breathing slowly.</p>
+      <ul className="stairs-rules">
+        <li>Floor 2: {D.rows} rows, harsher fights, richer spoils, a new boss. Echoes born there are Deepborn.</li>
+        <li>The Weight: lose {D.weightDamage} HP each turn the enemies broke all your Ward.</li>
+        <li>
+          Escape it: +{held * 2 + D.escapeShards} Shards. Die there: the loop is a death{held ? ` (you keep ${Math.floor(held / 2)})` : ''}.
+        </li>
+      </ul>
+    </Chamber>
+  );
+}
+
 export function RunEndScreen({ run, onDone }: { run: RunState; onDone: () => void }) {
   const won = run.result === 'victory';
   const unmade = won && run.seenEncounters.includes('the-sleeper');
   const s = run.stats;
-  const depth = run.position ? run.map.nodes[run.position].row + 1 : 0;
+  const depth = loopDepth(run);
+  const omen = run.omenId ? CONTENT.omens?.[run.omenId] : undefined;
+  const D = BALANCE.daily;
   const rows: [string, string | number][] = [
+    ...(run.daily ? ([['Daily', `${run.daily}${omen ? ` · ${omen.name}` : ''}`]] as [string, string][]) : []),
     ['Warden', CONTENT.classes[run.classId].name],
     ['Vault Shift', CONTENT.vaultShifts[run.vaultShiftId].name],
-    ['Depth reached', `${depth} / ${run.map.rows + 1}`],
+    ['Depth reached', `${depth} / ${(run.depthBase ?? 0) + run.map.rows + 1}${run.floor > 1 ? ' · floor 2' : ''}`],
     ['Fights won', s.fightsWon],
     ['Elites slain', s.elitesWon],
     ['Peak Corruption', s.peakCorruption],
@@ -360,7 +404,7 @@ export function RunEndScreen({ run, onDone }: { run: RunState; onDone: () => voi
       <div className="title-rune" aria-hidden>
         {won ? 'ᛞ' : 'ᛉ'}
       </div>
-      <h1>{unmade ? 'The Sleeper is unmade.' : won ? 'The Lock is broken.' : s.abandoned ? 'You let go.' : 'The loop closes.'}</h1>
+      <h1>{unmade && run.floor === 1 ? 'The Sleeper is unmade.' : won && run.stats.deepBossWon ? 'You climb out of the Well.' : won ? 'The Lock is broken.' : s.abandoned ? 'You let go.' : run.daily ? 'The dream ends.' : 'The loop closes.'}</h1>
       <p className="subtitle">
         {unmade
           ? 'It begins to dream again at once. A new cycle.'
@@ -376,8 +420,16 @@ export function RunEndScreen({ run, onDone }: { run: RunState; onDone: () => voi
           </div>
         ))}
       </dl>
-      <ChorusCosts run={run} />
-      <EchoPreview run={run} />
+      {run.daily ? (
+        <p className="subtitle">
+          The Daily leaves no Echo. +{D.finishShards + (won ? D.escapeShards : 0)} Shards. Share the result from the Descend tab.
+        </p>
+      ) : (
+        <>
+          <ChorusCosts run={run} />
+          <EchoPreview run={run} />
+        </>
+      )}
       <button className="primary-btn wide" onClick={onDone}>
         Return to the outpost
       </button>

@@ -17,7 +17,7 @@ import { defaultCombatModifiers } from '../combat/combat';
 import type { Echo, NextLoop, OutpostState, RunState, RunStats, WorldState } from '../types';
 
 export const SAVE_KEY = 'eotv.save';
-export const SAVE_VERSION = 10;
+export const SAVE_VERSION = 11;
 
 export interface MetaProgress {
   /** Loops completed, by any means. */
@@ -26,6 +26,8 @@ export interface MetaProgress {
   deaths: number;
   /** The most recent loops, newest first (capped; see BALANCE.history). */
   history: LoopRecord[];
+  /** Loops that escaped floor 2 (missing = 0). */
+  deepEscapes?: number;
 }
 
 /** One closed loop, as shown in Archive → History. */
@@ -48,6 +50,34 @@ export interface LoopRecord {
   awakeningStage: number;
   /** This loop unmade the Sleeper (ending a cycle). */
   unmadeSleeper?: boolean;
+  /** Deepest floor reached (missing = 1). */
+  floor?: number;
+  /** A Daily Descent (the day), and its Omen. Dailies leave no Echo. */
+  daily?: string;
+  omenId?: string;
+}
+
+/** The Daily Descent's record. Days played is a total, never a streak. */
+export interface DailyStats {
+  /** The last day played (YYYY-MM-DD); one try per day. */
+  lastPlayed: string | null;
+  daysPlayed: number;
+  escapes: number;
+  bestDepth: number;
+  /** The most recent Daily's result, for the result card and sharing. */
+  last?: DailyResult;
+}
+
+export interface DailyResult {
+  day: string;
+  omenId: string;
+  classId: string;
+  result: 'victory' | 'death';
+  depth: number;
+  /** Rows on that day's map, boss included. */
+  rows: number;
+  turns: number;
+  shards: number;
 }
 
 export interface SaveData {
@@ -66,6 +96,7 @@ export interface SaveData {
   /** Last real time idle progress was counted up to. */
   idle: { lastTickAt: number };
   world: WorldState;
+  daily: DailyStats;
   settings: Settings;
 }
 
@@ -211,7 +242,14 @@ export const MIGRATIONS: Record<number, Migration> = {
     }
     return { ...v9, version: 10 };
   },
+
+  // v10 → v11: the Daily Descent. Nobody has played one yet.
+  10: (v10: Loose) => ({ ...v10, version: 11, daily: { lastPlayed: null, daysPlayed: 0, escapes: 0, bestDepth: 0 } }),
 };
+
+export function newDailyStats(): DailyStats {
+  return { lastPlayed: null, daysPlayed: 0, escapes: 0, bestDepth: 0 };
+}
 
 /** The idle-layer defaults as they were introduced in v4 (history: do not change). */
 function v4IdleDefaults(now: number) {
@@ -238,6 +276,7 @@ export function newSave(now: number): SaveData {
     run: null,
     meta: { loops: 0, victories: 0, deaths: 0, history: [] },
     ...idleDefaults(now),
+    daily: newDailyStats(),
   };
 }
 

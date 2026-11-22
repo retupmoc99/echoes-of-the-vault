@@ -1,11 +1,12 @@
 import { BALANCE } from '../../data/balance';
 import { rngShuffle } from '../rng';
-import type { CardDef, CardInstance } from '../types';
+import type { CardDef, CardInstance, CombatModifiers } from '../types';
 import type { Ctx } from './context';
 
-/** What a card in hand costs right now (Rewrite can make a card free this turn). */
-export function cardCost(card: CardInstance, def: CardDef): number {
-  return card.freeThisTurn ? 0 : def.cost;
+/** What a card in hand costs right now: Rewrite can make it free; the Clockwork Omen sets every cost. */
+export function cardCost(card: CardInstance, def: CardDef, mods?: Partial<CombatModifiers>): number {
+  if (card.freeThisTurn) return 0;
+  return mods?.costOverride ?? def.cost;
 }
 
 /** Draw up to `count` cards, reshuffling the discard pile when the draw pile runs out. */

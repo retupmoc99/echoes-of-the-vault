@@ -18,6 +18,7 @@ import type {
   EncounterDef,
   MapNode,
   NodeType,
+  OmenDef,
   RunAction,
   RunSetup,
   RunState,
@@ -39,17 +40,20 @@ export function createRun(setup: RunSetup, content: Content): RunState {
   if (!shift) throw new Error(`Unknown Vault Shift: ${setup.vaultShiftId}`);
   const kit = cls.kits.find((k) => k.id === setup.kitId) ?? cls.kits[0];
   const unlocked = setup.unlockedCards ?? [];
+  const omen = setup.omenId ? content.omens?.[setup.omenId] : undefined;
+  if (setup.omenId && !omen) throw new Error(`Unknown Omen: ${setup.omenId}`);
+  const maxHp = Math.round(cls.maxHp * (omen?.mods.maxHpMult ?? 1));
 
   const run: RunState = {
     seed: setup.seed,
     classId: cls.id,
     floor: 1,
     rng,
-    hp: cls.maxHp,
-    maxHp: cls.maxHp,
+    hp: maxHp,
+    maxHp,
     deck: [...kit.deck],
     relics: [...cls.starterRelics, ...(setup.extraRelics ?? [])],
-    map: generateMap(rng, mapConfigFor(shift)),
+    map: generateMap(rng, mapConfigFor(shift, omen)),
     position: null,
     visited: [],
     phase: 'map',
@@ -83,8 +87,28 @@ export function createRun(setup: RunSetup, content: Content): RunState {
     },
     result: null,
   };
+  if (setup.daily) run.daily = setup.daily;
+  if (setup.extraRelicPool?.length) run.extraRelicPool = [...setup.extraRelicPool];
+  if (omen) applyOmenStart(run, omen, content);
   addCorruption(run, shift.mods.startCorruption ?? 0, content, []);
   return run;
+}
+
+/** An Omen's starting gifts and debts (Daily Descent). */
+function applyOmenStart(run: RunState, omen: OmenDef, content: Content): void {
+  run.omenId = omen.id;
+  const m = omen.mods;
+  if (m.startRelics) run.relics.push(...rollRelics(run, content, m.startRelics, { allowTainted: false }));
+  for (let i = 0; i < (m.startRares ?? 0); i++) {
+    const rares = run.cardPool.filter((id) => content.cards[id].rarity === 'rare');
+    if (rares.length) run.deck.push(rngPick(run.rng, rares));
+  }
+  addCorruption(run, m.startCorruption ?? 0, content, []);
+}
+
+/** The Omen in force for this loop, if any. */
+export function omenOf(r: RunState, content: Content): OmenDef | undefined {
+  return r.omenId ? content.omens?.[r.omenId] : undefined;
 }
 
 function rollVaultShift(rng: RunState['rng'], content: Content, awakeningStage: number): VaultShiftDef {
@@ -93,12 +117,14 @@ function rollVaultShift(rng: RunState['rng'], content: Content, awakeningStage: 
   return content.vaultShifts[rngWeighted(rng, weights)];
 }
 
-function mapConfigFor(shift: VaultShiftDef): MapConfig {
+function mapConfigFor(shift: VaultShiftDef, omen?: OmenDef): MapConfig {
   const weights: MapConfig['weights'] = { ...BALANCE.map.weights };
-  for (const [type, mult] of Object.entries(shift.mods.nodeWeights ?? {}) as [keyof typeof weights, number][]) {
-    weights[type] = Math.round(weights[type] * mult);
+  for (const mods of [shift.mods.nodeWeights, omen?.mods.nodeWeights]) {
+    for (const [type, mult] of Object.entries(mods ?? {}) as [keyof typeof weights, number][]) {
+      weights[type] = Math.round(weights[type] * mult);
+    }
   }
-  return { ...BALANCE.map, weights };
+  return { ...BALANCE.map, rows: BALANCE.map.rows + (omen?.mods.extraRows ?? 0), weights };
 }
 
 export function stepRun(run: RunState, action: RunAction, content: Content): RunStepResult {
@@ -171,6 +197,16 @@ function apply(r: RunState, action: RunAction, content: Content, events: CombatE
       return resolveOption(r, action.index, content, notices);
     case 'leave':
       return leave(r, content);
+    case 'escape':
+      if (r.phase !== 'stairs') return 'There are no stairs here.';
+      r.shardsFound += r.heldShards ?? 0;
+      r.heldShards = 0;
+      endRun(r, 'victory');
+      return undefined;
+    case 'descend':
+      if (r.phase !== 'stairs') return 'There are no stairs here.';
+      descend(r);
+      return undefined;
     case 'abandon':
       r.stats.abandoned = true;
       endRun(r, 'death');
@@ -186,7 +222,7 @@ export function canSearchShrine(r: RunState): boolean {
 
 /** HP restored by resting at a Shrine (the Vault Shift may reduce it). */
 export function shrineHeal(r: RunState, content: Content): number {
-  const mult = content.vaultShifts[r.vaultShiftId]?.mods.shrineHealMult ?? 1;
+  const mult = (content.vaultShifts[r.vaultShiftId]?.mods.shrineHealMult ?? 1) * (omenOf(r, content)?.mods.shrineHealMult ?? 1);
   return Math.round(r.maxHp * BALANCE.shrine.healRatio * mult);
 }
 
@@ -222,19 +258,27 @@ function chooseNode(r: RunState, nodeId: string, content: Content, events: Comba
   }
 }
 
-function encounterPool(node: MapNode, awakeningStage: number, content: Content): EncounterDef[] {
+function encounterPool(node: MapNode, awakeningStage: number, floor: number, content: Content): EncounterDef[] {
   // Awakening-gated encounters join at their stage and push out the ones they replace.
-  const usable = Object.values(content.encounters).filter((e) => (e.minAwakening ?? 0) <= awakeningStage);
+  const usable = Object.values(content.encounters).filter((e) => (e.minAwakening ?? 0) <= awakeningStage && (e.floor ?? 1) === floor);
   const replaced = new Set(usable.map((e) => e.replaces).filter(Boolean));
   const all = usable.filter((e) => !replaced.has(e.id));
   const tier = ({ fight: 'normal', elite: 'elite', boss: 'boss' } as Partial<Record<NodeType, string>>)[node.type];
   if (tier !== 'normal') return all.filter((e) => e.tier === tier);
+  // Floor 2 has a single pool of normal fights.
+  if (floor > 1) return all.filter((e) => e.tier === 'normal');
   const stage = node.row >= BALANCE.map.lateStageFromRow ? 'late' : 'early';
   return all.filter((e) => e.tier === 'normal' && (e.stage ?? 'early') === stage);
 }
 
+/** Omen: Crowded Halls adds an enemy to every normal fight. */
+function extraEnemiesFor(r: RunState, node: MapNode, content: Content): string[] | undefined {
+  const extra = omenOf(r, content)?.mods.extraEnemy;
+  return node.type === 'fight' && extra ? [extra] : undefined;
+}
+
 function startFight(r: RunState, node: MapNode, content: Content, events: CombatEvent[]): void {
-  const pool = encounterPool(node, r.awakeningStage, content);
+  const pool = encounterPool(node, r.awakeningStage, r.floor, content);
   // Prefer encounters not yet seen this loop, so fights don't repeat.
   const fresh = pool.filter((e) => !r.seenEncounters.includes(e.id));
   const encounter = rngPick(r.rng, fresh.length ? fresh : pool);
@@ -259,6 +303,7 @@ function startFight(r: RunState, node: MapNode, content: Content, events: Combat
       // Enemies fought before this one, for an enemy that remembers (the Sleeper).
       memories: r.seenEncounters.slice(0, -1).flatMap((id) => content.encounters[id]?.enemies ?? []),
       chorus: r.chorus,
+      extraEnemies: extraEnemiesFor(r, node, content),
     },
     content,
   );
@@ -337,17 +382,41 @@ function leave(r: RunState, content: Content): string | undefined {
       r.stats.elitesWon++;
       if (r.awakeningStage >= 3) r.shardsFound += BALANCE.awakening.eliteShards;
     }
-    if (type === 'boss') {
-      r.stats.bossWon = true;
-      // Awakening stage 4+: escaping banks Shards (stage 5's Sleeper pays out at the Outpost).
-      if (r.awakeningStage >= 4 && node.encounterId !== 'the-sleeper') r.shardsFound += BALANCE.awakening.escapeShards;
+    if (type === 'boss' && r.floor > 1) {
+      // Out of the depths: the held bonus doubles, plus the floor's own reward.
+      r.stats.deepBossWon = true;
+      r.shardsFound += (r.heldShards ?? 0) * 2 + BALANCE.deep.escapeShards;
+      r.heldShards = 0;
       return void endRun(r, 'victory');
     }
+    if (type === 'boss') {
+      r.stats.bossWon = true;
+      if (node.encounterId === 'the-sleeper') r.stats.sleeperUnmade = true;
+      // Awakening stage 4+: escaping banks Shards (stage 5's Sleeper pays out at the Outpost).
+      const bonus = r.awakeningStage >= 4 && node.encounterId !== 'the-sleeper' ? BALANCE.awakening.escapeShards : 0;
+      if (!r.options.stairs) {
+        r.shardsFound += bonus;
+        return void endRun(r, 'victory');
+      }
+      // The Deeper Vault: Escape now, or Descend with the bonus held.
+      r.heldShards = bonus;
+      r.phase = 'stairs';
+      r.node = null;
+      r.combat = null;
+      return undefined;
+    }
+    if (type === 'elite' && r.floor > 1) r.shardsFound += BALANCE.deep.eliteShards;
     // Spoils: pick a card (elites also drop a relic).
+    const omen = omenOf(r, content);
+    if (omen?.mods.healAfterFight) r.hp = Math.min(r.maxHp, r.hp + omen.mods.healAfterFight);
     const tier = type === 'elite' ? 'elite' : 'normal';
-    const { cards, tainted } = rollCardReward(r, content, tier);
+    // Floor 2's normal fights roll with elite odds.
+    const odds = r.floor > 1 ? 'elite' : tier;
+    const { cards, tainted } = omen?.mods.noCardRewards ? { cards: [], tainted: null } : rollCardReward(r, content, odds);
     const relicId = tier === 'elite' ? (rollRelics(r, content, 1, { allowTainted: false })[0] ?? null) : null;
     r.combat = null;
+    // Omen: Ascetic. With nothing to take, go straight back to the map.
+    if (!cards.length && !relicId) return void backToMap(r);
     r.node = { kind: 'reward', nodeId: node.nodeId, cards, tainted, relicId, cardTaken: false, relicTaken: false };
     return undefined;
   }
@@ -357,6 +426,20 @@ function leave(r: RunState, content: Content): string | undefined {
   return undefined;
 }
 
+/** Down the stairs: floor 2's map, a little healing, everything else carried. */
+function descend(r: RunState): void {
+  const D = BALANCE.deep;
+  r.depthBase = (r.depthBase ?? 0) + r.map.nodes[r.map.bossId].row + 1;
+  r.floor++;
+  r.hp = Math.min(r.maxHp, r.hp + Math.round(r.maxHp * D.stairsHeal));
+  r.map = generateMap(r.rng, { ...BALANCE.map, rows: D.rows, eliteMinRow: 1, shrineMinRow: 1, weights: { ...D.weights } });
+  r.position = null;
+  r.visited = [];
+  r.phase = 'map';
+  r.node = null;
+  r.combat = null;
+}
+
 function backToMap(r: RunState): void {
   r.phase = 'map';
   r.node = null;
@@ -364,6 +447,11 @@ function backToMap(r: RunState): void {
 }
 
 function endRun(r: RunState, result: 'victory' | 'death'): void {
+  // Dying in the depths keeps half of the escape bonus you carried down.
+  if (result === 'death' && r.heldShards) {
+    r.shardsFound += Math.floor(r.heldShards / 2);
+    r.heldShards = 0;
+  }
   r.phase = 'ended';
   r.result = result;
   r.node = null;

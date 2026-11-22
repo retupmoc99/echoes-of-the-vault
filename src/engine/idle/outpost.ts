@@ -9,6 +9,7 @@ import type { Content, EchoTaskKind, IdleReport, MapNode } from '../types';
 import type { SaveData } from '../save/save';
 import { AWAKE, addAwakening, giveValue, lullCost } from './awakening';
 import { advanceIdle, researchComplete } from './idle';
+import { startDaily } from './daily';
 import { closeLoop, nextRunPreview, prepareNextLoop, ringShiftBell, startLoop } from './loop';
 
 export type OutpostAction =
@@ -21,6 +22,7 @@ export type OutpostAction =
   | { type: 'selectKit'; kitId: string }
   | { type: 'ringBell' }
   | { type: 'startLoop' }
+  | { type: 'startDaily' }
   | { type: 'closeLoop' }
   /** Spend Shards to quiet the Sleeper (Awakening progress down). */
   | { type: 'lull' }
@@ -106,6 +108,8 @@ function apply(s: SaveData, action: OutpostAction, now: number, content: Content
     case 'startLoop':
       if (s.run) return 'A loop is already running.';
       return startLoop(s, content);
+    case 'startDaily':
+      return startDaily(s, now, content);
     case 'closeLoop':
       if (s.run?.phase !== 'ended') return 'The loop has not ended.';
       return closeLoop(s, content, now);

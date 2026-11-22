@@ -2251,3 +2251,89 @@ body.has-screen-art::before {
   background: hsl(45 95% 65%);
   box-shadow: 0 0 10px hsl(45 95% 60%);
 }
+
+/* ─────────────── Daily Descent ─────────────── */
+.daily-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 4px 0 14px;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid hsl(42 70% 55% / 0.55);
+  background: linear-gradient(160deg, hsl(42 40% 12% / 0.85), hsl(260 30% 6% / 0.85));
+  box-shadow: 0 0 18px hsl(42 80% 50% / 0.12);
+}
+.daily-card.played {
+  border-color: hsl(42 30% 40% / 0.45);
+  box-shadow: none;
+}
+.daily-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  color: hsl(42 85% 72%);
+}
+.daily-head span {
+  font-size: 12px;
+  color: var(--muted);
+}
+.daily-omen,
+.daily-shift,
+.daily-result,
+.daily-note {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.4;
+}
+.daily-omen b {
+  color: hsl(42 85% 75%);
+}
+.daily-shift {
+  color: hsl(200 70% 72%);
+  font-size: 13px;
+}
+.daily-note {
+  font-size: 12px;
+  color: var(--muted);
+}
+.omen-chip {
+  flex: none;
+  min-height: 44px;
+  padding: 0 10px;
+  border-radius: 16px;
+  border: 1px solid hsl(42 70% 55% / 0.6);
+  background: hsl(42 30% 10% / 0.8);
+  color: hsl(42 85% 75%);
+  font-size: 12px;
+}
+
+/* ─────────────── The Deeper Vault ─────────────── */
+.stairs-rules {
+  margin: 4px 0 0;
+  padding-left: 18px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--muted);
+  text-align: left;
+}
+.stairs-rules li + li {
+  margin-top: 4px;
+}
+.floor-chip {
+  border-color: hsl(205 70% 55% / 0.6);
+  background: hsl(205 30% 10% / 0.8);
+  color: hsl(205 80% 75%);
+}
+
+/* The Descend button stays pinned to the bottom of the Outpost's scroll area. */
+.descend-dock {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  padding: 10px 0 4px;
+  background: linear-gradient(to bottom, transparent, hsl(260 30% 4% / 0.92) 40%);
+}
+.descend-dock .descend {
+  margin-top: 0;
+}

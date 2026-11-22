@@ -254,7 +254,7 @@ describe('Outpost actions', () => {
     const picked = outpostStep(owned, { type: 'selectKit', kitId: 'bastion' }, T0, CONTENT).save;
     const run = outpostStep(picked, { type: 'startLoop' }, T0, CONTENT).save.run!;
     expect(run.deck).toContain('bulwark-slam');
-    expect(run.options).toEqual({ shrinePurge: true, cacheChoices: BALANCE.outpost.keyCacheChoices, rewardRerolls: 1 });
+    expect(run.options).toEqual({ stairs: false, shrinePurge: true, cacheChoices: BALANCE.outpost.keyCacheChoices, rewardRerolls: 1 });
   });
 
   it('a Warden’s kit works stay locked until that Warden is built', () => {

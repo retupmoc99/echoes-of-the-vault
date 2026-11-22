@@ -1,6 +1,6 @@
 # Design proposal: the Deeper Vault
 
-*Status: proposed (2026-11-21). Planned as 0.18.0 (Floor 2 playable) and 0.19.0 (its art and rewards).*
+*Status: built in 0.18.0 (floor 2 playable) and 0.19.0 (art, relics, lore), with the recommended answers (the Sleeper stays on floor 1; half the held bonus on a floor-2 death). Tuned with the bot sim: the boss is 124–130 HP (not 190–200), the stairs heal 50% (not 25%), and enemies are about 15% softer than drafted. Gnawing Dark exposes you instead of stealing Ward, The Unwound gains Ward instead of healing, and The Many-Handed hits many times instead of copying your cards. See DESIGN.md → The Deeper Vault.*
 
 > Past the Lock there are stairs. Nobody who took them has come back the same.
 

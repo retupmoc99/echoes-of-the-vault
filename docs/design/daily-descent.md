@@ -1,6 +1,6 @@
 # Design proposal: the Daily Descent
 
-*Status: proposed (2026-11-21). Planned as 0.17.0, one milestone.*
+*Status: built in 0.17.0 with the recommended answers (standard kit, no Echo). Omens Mirror and Thin Veil were replaced by Heavy Hands and Paper Walls (simpler to read on a phone), Ascetic and Borrowed Strength were simplified, and five Omens were retuned with the bot sim; see DESIGN.md → Daily Descent.*
 
 > The vault dreams one shared dream each day. Everyone who descends walks the same halls.
 

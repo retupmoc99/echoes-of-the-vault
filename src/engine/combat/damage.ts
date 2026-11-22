@@ -8,6 +8,7 @@ import type { AllyState, CombatState, Combatant, EnemyState, HpLossCause } from 
 import { onAllyFell } from './allies';
 import { PLAYER_ID, isAlly, isEnemy, type Ctx } from './context';
 import { checkPhase } from './phases';
+import { addStatus } from './statuses';
 
 /**
  * Damage of one attack hit before Ward.
@@ -30,6 +31,9 @@ export function dealAttack(ctx: Ctx, attacker: Combatant, defender: Combatant, b
   defender.ward -= blocked;
   ctx.events.push({ type: 'attack', sourceId: attacker.id, targetId: defender.id, amount, blocked });
   reduceHp(ctx, defender, amount - blocked);
+  // Omen: Bleeding Moon. Every wound stays open.
+  const bleed = ctx.s.modifiers.bleedOnAttack ?? 0;
+  if (bleed && amount > blocked && defender.hp > 0) addStatus(ctx, defender, 'bleed', bleed);
 }
 
 /** Direct HP loss (Bleed, Fracture, self-harm). Ignores Ward. */
@@ -40,6 +44,9 @@ export function loseHp(ctx: Ctx, target: Combatant, amount: number, cause: HpLos
 }
 
 export function gainWard(ctx: Ctx, target: Combatant, amount: number): void {
+  // Omen: Paper Walls weakens only your own Ward.
+  const mult = ctx.s.modifiers.playerWardMult;
+  if (target.id === PLAYER_ID && mult !== undefined) amount = Math.round(amount * mult);
   if (amount <= 0 || target.hp <= 0) return;
   target.ward += amount;
   ctx.events.push({ type: 'ward', targetId: target.id, amount });
@@ -54,9 +61,21 @@ function reduceHp(ctx: Ctx, target: Combatant, amount: number): void {
   }
   if (target.hp === 0) {
     ctx.events.push({ type: 'death', targetId: target.id });
+    if (target.id !== PLAYER_ID) kinMourn(ctx, target.id);
     checkCombatEnd(ctx);
   } else if (target.id !== PLAYER_ID) {
     checkPhase(ctx, target as EnemyState);
+  }
+}
+
+/** Enemies with onKinDeath react when another enemy in the fight dies. */
+function kinMourn(ctx: Ctx, deadId: string): void {
+  for (const enemy of ctx.s.enemies) {
+    if (enemy.id === deadId || enemy.hp <= 0) continue;
+    const kin = ctx.content.enemies[enemy.defId]?.onKinDeath;
+    if (!kin) continue;
+    if (kin.ward) gainWard(ctx, enemy, kin.ward);
+    if (kin.damageBonus) enemy.damageBonus = (enemy.damageBonus ?? 0) + kin.damageBonus;
   }
 }
 

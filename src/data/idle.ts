@@ -59,6 +59,16 @@ const LORE: LoreFragment[] = [
 export const IDLE_CONTENT: IdleContent = {
   traits: [
     {
+      // Checked first: reaching floor 2 marks an Echo whatever else happened.
+      id: 'deepborn',
+      name: 'Deepborn',
+      description: 'Came back from below the Lock. Heavy, and hard to wear down.',
+      when: [{ stat: 'floor', min: 2 }],
+      mods: { stabilityMult: 1.2 },
+      battle: { wardPerTurn: 4 },
+      battleText: 'Gains 4 Ward each turn.',
+    },
+    {
       id: 'unbroken',
       name: 'Unbroken',
       description: 'Escaped the loop. Holds together far longer.',
@@ -255,6 +265,10 @@ export const IDLE_CONTENT: IdleContent = {
     { kind: 'lore', loreId: 'lore-names' },
     { kind: 'card', cardId: 'final-chorus' },
     { kind: 'card', cardId: 'memory-of-victory' },
+    // The Deeper Vault (appended).
+    { kind: 'lore', loreId: 'lore-stairs' },
+    { kind: 'lore', loreId: 'lore-well' },
+    { kind: 'lore', loreId: 'lore-deepborn' },
   ],
 
   lore: Object.fromEntries(LORE.map((l) => [l.id, l])),

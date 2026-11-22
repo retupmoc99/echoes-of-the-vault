@@ -51,6 +51,16 @@ export function combatModifiersFor(r: RunState, content: Content): CombatModifie
     else mods[key] = value;
   }
 
+  // Floor 2's Weight.
+  if (r.floor > 1) mods.weightDamage = BALANCE.deep.weightDamage;
+
+  // Daily Descent Omen.
+  const omen = r.omenId ? (content.omens?.[r.omenId]?.mods.combat ?? {}) : {};
+  for (const [key, value] of Object.entries(omen) as [keyof CombatModifiers, number][]) {
+    if (key === 'enemyHpMult') mods.enemyHpMult *= value;
+    else (mods as unknown as Record<string, number>)[key] = value;
+  }
+
   const tier = corruptionTier(r.corruption);
   mods.enemyHpMult *= 1 + tier * C.enemyHpPerTier;
   mods.enemyDamageBonus += tier * C.enemyDamagePerTier;

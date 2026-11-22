@@ -8,7 +8,7 @@ export { cardCost } from './combat/deck';
 export { previewIntent, type IntentPreview, type IntentKind } from './combat/intents';
 export { maxStrain } from './combat/relics';
 export { PLAYER_ID, livingEnemies } from './combat/context';
-export { createRun, stepRun, reachableNodes, shrineHeal, canSearchShrine } from './run/run';
+export { createRun, stepRun, reachableNodes, shrineHeal, canSearchShrine, omenOf } from './run/run';
 export { corruptionTier, combatModifiersFor } from './run/corruption';
 export { optionAvailable } from './run/events';
 export { describeCard, describeEffects, describeRelic, type Preview } from './text/describe';
@@ -22,3 +22,4 @@ export { AWAKE, addAwakening, awakeningCap, canPushBack, giveValue, lullCost, ne
 export { enemyName, movesOf } from './combat/phases';
 export { NAMELESS, allyNextCard, livingAllies, traitBattle } from './combat/allies';
 export { allyHp, chorusCost, chorusFrom } from './idle/chorus';
+export { dayKey, omenForDay, dailyPlayed, dailySetup, startDaily, closeDaily } from './idle/daily';

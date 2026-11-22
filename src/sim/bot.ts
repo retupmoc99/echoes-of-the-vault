@@ -14,8 +14,16 @@ import { canSearchShrine, cardCost, livingEnemies, needsTarget, optionAvailable,
 
 const RARITY_RANK: Record<string, number> = { curse: -1, starter: 0, common: 1, uncommon: 2, rare: 3 };
 
+/** Whether the bot takes the Descend door. Set by the balance report. */
+let botDescends = false;
+export function setBotDescends(on: boolean): void {
+  botDescends = on;
+}
+
 export function nextBotAction(r: RunState, content: Content): RunAction {
   if (r.phase === 'map') return { type: 'chooseNode', nodeId: chooseNode(r) };
+  // The sim decides at the stairs (SIM_DESCEND=1 always descends).
+  if (r.phase === 'stairs') return { type: botDescends ? 'descend' : 'escape' };
   const node = r.node!;
   const hpRatio = r.hp / r.maxHp;
 
@@ -94,7 +102,7 @@ function combatAction(r: RunState, content: Content): CombatAction {
   const incoming = intents + dreams;
   const playable = c.piles.hand
     .map((card) => ({ card, def: content.cards[card.cardId] as CardDef }))
-    .filter(({ card, def }) => !def.unplayable && def.type !== 'curse' && cardCost(card, def) <= c.resonance)
+    .filter(({ card, def }) => !def.unplayable && def.type !== 'curse' && cardCost(card, def, c.modifiers) <= c.resonance)
     .sort((a, b) => b.def.cost - a.def.cost);
   if (!playable.length) return { type: 'endTurn' };
 

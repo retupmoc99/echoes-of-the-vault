@@ -23,7 +23,7 @@ export function CardView({ card, preview, affordable, selected, variant, onClick
   return (
     <button className={classes} style={{ ['--hue' as string]: hue }} onClick={onClick} data-card-uid={card.uid}>
       <ArtImg src={artUrl('cards', def.id, def.image)} className="card-art" fallback={null} />
-      <span className={`card-cost ${card.freeThisTurn ? 'free' : ''}`}>{def.unplayable ? '—' : cardCost(card, def)}</span>
+      <span className={`card-cost ${card.freeThisTurn ? 'free' : ''}`}>{def.unplayable ? '—' : cardCost(card, def, preview?.state.modifiers)}</span>
       <span className="card-name">{def.name}</span>
       {card.ephemeral && <span className="echo-tag">Echo · fades</span>}
       {variant === 'detail' && <span className="card-type">{CARD_TYPE_LABEL[def.type]}</span>}

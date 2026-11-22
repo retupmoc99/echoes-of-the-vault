@@ -87,6 +87,8 @@ export type Effect =
   | { kind: 'playAllyTop'; count: number }
   /** For the rest of the fight: allies act more often, and/or lose HP each time they act. */
   | { kind: 'empowerAllies'; acts?: number; hpLoss?: number }
+  /** Enemies only: put a card into the player's discard pile (Rot Lantern's Smoke). */
+  | { kind: 'addToDiscard'; cardId: string; count?: number }
   | { kind: 'if'; cond: Condition; then: Effect[]; else?: Effect[] };
 
 /** Something that reacts to combat events (used by relics; card "powers" later). */
@@ -135,6 +137,8 @@ export interface RelicDef {
   maxStrain?: number;
   /** Tainted relics add this much Corruption when taken. */
   corruption?: number;
+  /** Found at the bottom of the Well: joins this Warden's relic pool once floor 2 has been escaped. */
+  deepFor?: string;
   /** Hand-written rules text for effects outside combat (shown before any passive text). */
   text?: string;
   flavor: string;
@@ -182,6 +186,8 @@ export interface EnemyDef {
    * loop (the Sleeper). Falls back to its own moves if there are none.
    */
   memories?: boolean;
+  /** When another enemy in the fight dies, this one gains Ward and/or hits harder (Hollow Pilgrims). */
+  onKinDeath?: { ward?: number; damageBonus?: number };
 }
 
 /** A boss phase: new moves and pattern once HP falls far enough. */
@@ -209,6 +215,8 @@ export interface EncounterDef {
   minAwakening?: number;
   /** When usable, this encounter replaces that one (Waking variants). */
   replaces?: string;
+  /** The floor it belongs to (default 1). */
+  floor?: number;
 }
 
 /**
@@ -314,6 +322,42 @@ export interface VaultShiftDef {
   image?: string;
 }
 
+/**
+ * A Daily Descent Omen: one rule that bends the whole loop. Every field is
+ * optional; each is applied where the matching rule already lives.
+ */
+export interface OmenDef {
+  id: string;
+  name: string;
+  /** The rule, in one line. */
+  text: string;
+  flavor: string;
+  mods: OmenMods;
+}
+
+export interface OmenMods {
+  maxHpMult?: number;
+  /** Extra cards on every card reward. */
+  rewardChoicesBonus?: number;
+  /** No card rewards at all (elites still drop a relic). */
+  noCardRewards?: boolean;
+  /** HP healed after every fight won. */
+  healAfterFight?: number;
+  /** Random class relics (never tainted) to start with. */
+  startRelics?: number;
+  startCorruption?: number;
+  /** Random rare cards from the class pool added to the starting deck. */
+  startRares?: number;
+  /** Extra map rows before the boss. */
+  extraRows?: number;
+  /** Multipliers on middle-row node odds (0 removes a node type). */
+  nodeWeights?: Partial<Record<'fight' | 'event' | 'elite' | 'cache' | 'shrine', number>>;
+  shrineHealMult?: number;
+  /** An enemy added to every normal fight. */
+  extraEnemy?: string;
+  combat?: Partial<CombatModifiers>;
+}
+
 /** All content, injected into the engine (so tests can use their own). */
 export interface Content {
   classes: Record<string, WardenClassDef>;
@@ -323,6 +367,8 @@ export interface Content {
   encounters: Record<string, EncounterDef>;
   events: Record<string, EventDef>;
   vaultShifts: Record<string, VaultShiftDef>;
+  /** Daily Descent Omens (optional so test content can skip them). */
+  omens?: Record<string, OmenDef>;
   idle: IdleContent;
   awakening: AwakeningContent;
 }
@@ -450,6 +496,17 @@ export interface CombatModifiers {
   fractureDamagePerStack: number;
   fractureSelfDamageRatio: number;
   maxStrainBonus: number;
+  /** Omens (all optional; missing = no change). */
+  drawBonus?: number;
+  resonanceBonus?: number;
+  /** Every card costs this much (unplayable cards stay unplayable; Rewrite still makes a card free). */
+  costOverride?: number;
+  /** Bleed applied by every attack that gets past Ward, on both sides. */
+  bleedOnAttack?: number;
+  /** Multiplier on the Ward you (not enemies or allies) gain. */
+  playerWardMult?: number;
+  /** Floor 2's Weight: HP you lose at the start of each turn you begin with no Ward. */
+  weightDamage?: number;
 }
 
 export interface CombatState {
@@ -503,6 +560,8 @@ export interface CombatSetup {
   memories?: string[];
   /** The loop's Chorus (Echo-Caller). */
   chorus?: ChorusMember[];
+  /** Enemies added to the encounter (Omen: Crowded Halls). */
+  extraEnemies?: string[];
 }
 
 /** An Awakening elite affix: pure numbers, applied when the fight starts. */
@@ -552,7 +611,7 @@ export type CombatEvent =
   | { type: 'victory' }
   | { type: 'defeat' };
 
-export type HpLossCause = 'bleed' | 'fracture' | 'paradox' | 'effect';
+export type HpLossCause = 'bleed' | 'fracture' | 'paradox' | 'effect' | 'weight';
 
 export interface StepResult {
   state: CombatState;
@@ -619,11 +678,24 @@ export interface RunStats {
   abandoned: boolean;
   peakCorruption: number;
   cursesGained: number;
+  /** The Sleeper was unmade this loop (even if the loop then died on floor 2). */
+  sleeperUnmade?: boolean;
+  /** Floor 2's boss was beaten. */
+  deepBossWon?: boolean;
 }
 
 export interface RunState {
   seed: string;
   classId: string;
+  /** Daily Descent: the day (YYYY-MM-DD) this loop belongs to. */
+  daily?: string;
+  /** Daily Descent Omen in force. */
+  omenId?: string;
+  /** Deeper Vault: depth reached on earlier floors (added to this floor's row), and the escape bonus held while descending. */
+  depthBase?: number;
+  heldShards?: number;
+  /** Relics rewards may offer on top of the class pool (the Well's relics). */
+  extraRelicPool?: string[];
   /** Always 1 for now. Hook for deeper multi-floor runs. */
   floor: number;
   rng: RngState;
@@ -635,7 +707,8 @@ export interface RunState {
   /** Node the player stands on; null before the first step. */
   position: string | null;
   visited: string[];
-  phase: 'map' | 'node' | 'ended';
+  /** 'stairs': the floor-1 boss is beaten; Escape or Descend. */
+  phase: 'map' | 'node' | 'stairs' | 'ended';
   node: NodeState | null;
   combat: CombatState | null;
   seenEncounters: string[];
@@ -666,6 +739,8 @@ export interface RunOptions {
   cacheChoices: number;
   /** Times card rewards can be rerolled this loop. */
   rewardRerolls: number;
+  /** The Descend door is offered after the floor-1 boss (after your first escape). */
+  stairs?: boolean;
 }
 
 export interface RunSetup {
@@ -685,6 +760,11 @@ export interface RunSetup {
   /** Researched cards (from the class's locked list) that may appear this loop. */
   unlockedCards?: string[];
   options?: Partial<RunOptions>;
+  /** Daily Descent: the day, and its Omen. */
+  daily?: string;
+  omenId?: string;
+  /** Relics added to the class's reward pool (the Well's relics). */
+  extraRelicPool?: string[];
 }
 
 export type RunAction =
@@ -704,6 +784,9 @@ export type RunAction =
   | { type: 'chooseOption'; index: number }
   /** Leave the current node (after a fight, a cache, an event, a reward). */
   | { type: 'leave' }
+  /** At the stairs: end the loop as a victory, or go down to floor 2. */
+  | { type: 'escape' }
+  | { type: 'descend' }
   | { type: 'abandon' };
 
 export interface RunStepResult {

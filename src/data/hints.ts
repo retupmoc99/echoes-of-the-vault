@@ -84,6 +84,14 @@ export const HINTS = {
     title: 'It is awake',
     text: "The Sleeper now waits at the bottom of every loop, in the Lock's place. It opens with what it remembers of your loop. Lull and Give no longer work: only unmaking it ends the cycle.",
   },
+  daily: {
+    title: 'The Daily Descent',
+    text: 'Once a day, the same vault for everyone, with an Omen that bends one rule. One try. It leaves no Echo and does not stir the Sleeper. Missing a day costs nothing.',
+  },
+  stairs: {
+    title: 'The stairs',
+    text: 'Past the boss, the vault goes on. Escape now and the loop ends as a win. Descend and you keep everything for a shorter, harsher floor: escape it for far more Shards, but die there and the loop counts as a death.',
+  },
   allies: {
     title: 'Your Echoes fight beside you',
     text: 'After you end your turn, each ally plays the next card from the deck it died with, at three-quarters strength, at your target. Enemies still attack you, unless an ally Guards. Every Call, and every fall, costs that Echo stability when the loop ends.',

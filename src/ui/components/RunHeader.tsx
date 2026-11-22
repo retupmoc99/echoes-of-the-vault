@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { CONTENT } from '../../data';
+import { BALANCE } from '../../data/balance';
 import type { RunState } from '../../engine';
 import { CorruptionMeter } from './CorruptionMeter';
 import { DeckSheet } from './DeckSheet';
@@ -31,6 +32,7 @@ export function RunHeader({ run, onMenu, onInspect }: Props) {
   const [deckOpen, setDeckOpen] = useState(false);
   const relics = run.relics.map((relicId) => ({ relicId, strain: 0, cracked: false }));
   const shift = CONTENT.vaultShifts[run.vaultShiftId];
+  const omen = run.omenId ? CONTENT.omens?.[run.omenId] : undefined;
 
   return (
     <header className="run-header">
@@ -54,6 +56,16 @@ export function RunHeader({ run, onMenu, onInspect }: Props) {
       <div className="run-header-row relic-row">
         <RelicBar relics={relics} onInspect={onInspect} />
         {run.awakeningStage > 0 && <AwakeningChip stage={run.awakeningStage} onInspect={onInspect} />}
+        {run.floor > 1 && (
+          <button className="omen-chip floor-chip" onClick={() => onInspect(`Floor 2. The Weight: if enemies break through all your Ward, you lose ${BALANCE.deep.weightDamage} HP as your turn starts.`)}>
+            ⇩ Floor 2
+          </button>
+        )}
+        {omen && (
+          <button className="omen-chip" onClick={() => onInspect(`Daily Omen: ${omen.name}. ${omen.text}`)}>
+            ☀ {omen.name}
+          </button>
+        )}
       </div>
       {deckOpen && <DeckSheet deck={run.deck} title="Your deck" onClose={() => setDeckOpen(false)} />}
     </header>

@@ -123,6 +123,12 @@ function resolveEffect(ctx: Ctx, effect: Effect, source: Combatant, targetId: st
       resolveEffects(ctx, branch, source.id, targetId);
       return;
     }
+    case 'addToDiscard': {
+      // Enemies foul your deck for this fight (the card is a fight-only copy).
+      if (!isEnemy(ctx.s, source.id)) return;
+      for (let i = 0; i < (effect.count ?? 1); i++) ctx.s.piles.discard.push({ uid: `x${ctx.s.nextUid++}`, cardId: effect.cardId });
+      return;
+    }
     case 'delay':
       // Enemies can delay too (the Sleeper's dreams): aimed at you, ticking on their turns.
       if (isPlayer) queueDelay(ctx, effect.effects, effect.turns, targetId);

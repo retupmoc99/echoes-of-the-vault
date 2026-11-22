@@ -38,7 +38,7 @@ export interface Echo {
 
 /** Conditions on how a loop went, used to pick an Echo's trait. All listed bounds must hold. */
 export interface TraitCondition {
-  stat: keyof RunStats | 'depth' | 'deckSize' | 'victory';
+  stat: keyof RunStats | 'depth' | 'deckSize' | 'victory' | 'floor';
   min?: number;
   max?: number;
 }

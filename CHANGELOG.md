@@ -1,5 +1,47 @@
 # Changelog
 
+## 0.19.0 — Out of the Well, and first steps (2026-11-21)
+
+### Added
+- **Painted art for floor 2:** all 9 enemies, the Well's 3 relics, and backgrounds for floor 2 and the stairs.
+- **The Well's relics:** your first escape from floor 2 adds one rare relic per Warden to its reward pool for good: *Drowned Crown* (Relic-Breaker), *Waterclock* (Hour-Thief), *Well-Rope* (Echo-Caller).
+- Three lore fragments from the depths join the end of Research. History counts your escapes from the Well.
+- **Six Warden ideas** written up for later (`docs/design/warden-ideas.md`). Nothing built.
+
+### Changed (first-run pass)
+- **New things arrive one at a time.** After your first loop the Descend tab shows only scouting, the Warden picker and Descend. The Awakening panel (and Give to the Sleeper) arrives from loop 2, the Daily Descent from loop 3, each with a first-time hint.
+- **The Descend button stays in reach,** pinned to the bottom of the Outpost however much is above it.
+- **The Echoes tab shows a dot** until you set your first Echo to work.
+- The Lull button only appears once the Sleeper is close to a stage.
+
+## 0.18.0 — The Deeper Vault (2026-11-21)
+
+### Added
+- **Escape or Descend.** After your first escape, beating the boss opens the stairs. Escape ends the loop as a win; Descend keeps everything, heals half your HP, and takes you to floor 2.
+- **Floor 2:** a shorter, harsher floor of 6 rows with 9 new enemies, each with its own trick: a bell that tolls on a timer, pilgrims who mourn each other, a lantern that fills your deck with Smoke, a body that rewinds, and *The Bottom of the Well* as its boss.
+- **The Weight:** on floor 2, if enemies break through all your Ward, you lose 1 HP as your turn starts.
+- **Bigger rewards below:** floor-2 fights roll rewards with elite odds, elites drop Shards, and escaping pays 60 Shards plus twice any escape bonus you carried down. Die there and you keep half of it.
+- **Deepborn Echoes:** an Echo born on floor 2 is steadier and, called as an ally, gains 4 Ward each turn. Floor-2 loops stir the Sleeper a little more.
+- `SIM_DESCEND=1 npm run sim` plays the bot through floor 2.
+
+### Balance
+- Tuned with the bot until it escapes floor 2 about 28–45% of the time it gets there (first draft: 2–3%). The boss went from 190–200 HP to 124–130, the stairs heal 50% instead of 25%, and floor-2 enemies were softened by about 15%.
+- **Flagged:** the Echo-Caller escapes floor 2 least often (28%). Worth watching in real play.
+
+## 0.17.0 — The Daily Descent (2026-11-21)
+
+### Added
+- **The Daily Descent:** one loop a day, the same for everyone: the same map, Shift, fights and rewards, built from the date.
+  - **One try a day,** with your chosen Warden's standard kit and every card in the pool. It leaves no Echo, doesn't move the Awakening, and pays 25 Shards (plus 50 for escaping).
+  - **An Omen each day:** one rule that bends the loop (Glass Vault, Clockwork, Bleeding Moon and nine more). All 12 come round before any repeats.
+  - **Share** your result from the Descend tab: a short text result through the phone's share sheet.
+  - Days played is a total, never a streak; missing a day costs nothing.
+  - The Daily card appears on the Descend tab after your first loop. Dailies show in History with a ☀.
+- `SIM_OMENS=1 npm run sim` runs the bot under every Omen.
+
+### Changed
+- Save version 11 (adds the Daily record). Older saves update automatically.
+
 ## 0.16.0 — The Choices pass (2026-11-21)
 
 ### Added

@@ -328,6 +328,52 @@ Total 460 Shards for the Relic-Breaker's works: roughly 8 to 10 Echo lifetimes o
 - Background keys: `outpost`, `vault`, `combat`, and optional `shift-<id>` per Vault Shift.
 - Specs, budgets, ComfyUI prompts and Blender settings: see `ART_GUIDE.md`.
 
+## The Deeper Vault (floor 2)
+Built in 0.18–0.19. See `docs/design/deeper-vault.md`.
+- **The stairs:** after your first escape, beating the floor-1 boss opens a choice. **Escape** ends the loop as a win, as before. **Descend** keeps your deck, relics and Corruption, heals 50% of max HP, and starts floor 2. Dailies never offer the stairs.
+- **Floor 2:** 6 rows plus a boss (*The Bottom of the Well*). Node odds Fight 40, Event 20, Elite 15, Cache 15, Shrine 10; elites from row 1. Normal fights roll rewards with elite odds; elites also drop 20 Shards. The last row's Shrines can be Searched.
+- **The Weight:** if the enemies broke through all your Ward, you lose 1 HP as your next turn starts. (Checked before Ward resets; the first draft checked after, so it hit every turn.)
+- **Shards:** any stage-4 escape bonus is *held* while you go down. Escape floor 2 for twice the held bonus plus 60; die there and keep half of it. Unmaking the Sleeper on floor 1 still ends the cycle even if you then die below.
+- **Depth** counts on from floor 1 (floor 2's first row is depth 10), so floor-2 Echoes are much steadier. Echoes from floor 2 get the **Deepborn** trait (stability ×1.2; as allies, +4 Ward each turn). A floor-2 loop adds +2 Awakening progress.
+- **The Well's relics:** the first escape from floor 2 adds one rare relic per Warden to its reward pool for good (Drowned Crown, Waterclock, Well-Rope). History counts escapes from the Well. Three lore fragments join the end of Research.
+- **Enemies** (each leans on a rule floor 1 doesn't use): Drowned Bellringer (a timed toll of 15 you see coming), Hollow Pilgrims (a pair; when one dies the other gains Ward and hits harder), Rot Lantern (adds Smoke, a do-nothing card, to your discard pile), Gnawing Dark, three Stitched Choristers, The Unwound (gains 14 Ward at half HP); elites Keeper of Stairs and The Many-Handed; boss The Bottom of the Well (124–130 HP, three phases: waves, draining, drowning).
+- **Bot check** (`SIM_DESCEND=1 npm run sim`, 600 loops, the bot always descends): it reaches floor 2 in about a third of loops and escapes it 34% (Relic-Breaker), 45% (Hour-Thief), 28% (Echo-Caller) of the time. The first draft was far too hard (2–3%); see the changelog for the passes.
+
+## Daily Descent
+One loop a day, the same for every player (0.17). See `docs/design/daily-descent.md`.
+- **Seed:** `daily:YYYY-MM-DD` from the phone's local date, so every copy builds the same map, Shift, fights and rewards with no server.
+- **Setup:** your chosen Warden with its standard kit, the full card pool, no Outpost works, Awakening and Cycle ignored. The Echo-Caller still Calls your own Echoes (so its Daily differs per player), but Calls cost them nothing.
+- **One try per day.** Starting uses up the day; abandoning counts as a death. It can't start while a normal loop is running, and it leaves the next loop (and its scouting) untouched.
+- **A side room:** no Echo, no Awakening progress, no change to the loop count. It pays 25 Shards, plus 50 for escaping, and adds a History row marked ☀.
+- **Days played** is a total, never a streak. The Descend tab shows a Daily card from your second loop on, then "Done today" with a **Share** button (the phone's share sheet, or the clipboard).
+- **Omens** (`src/data/omens.ts`): 12 one-line rules, rotated by date with no repeat inside 12 days. Each is data applied where the matching rule already lives (map config, rewards, combat modifiers, starting deck).
+
+| Omen | Rule | Bot win rate (RB / HT / EC) |
+|---|---|---|
+| Glass Vault | 20% less max HP; 4-card rewards; Shrines heal 50% | 25 / 19 / 21 |
+| Hoard | 2 extra starting relics; no Caches | 46 / 48 / 42 |
+| Quickened | Draw 6; enemies +20% HP | 22 / 29 / 27 |
+| Bleeding Moon | Attacks past Ward add 1 Bleed, both sides; enemies +15% HP | 38 / 32 / 38 |
+| Quiet Vault | No Events; Shrines and Caches twice as common | 46 / 42 / 43 |
+| Ascetic | No card rewards; enemies +10% HP | 38 / 24 / 27 |
+| Crowded Halls | A Choir Shard joins every normal fight | 19 / 18 / 20 |
+| Borrowed Strength | Start with 2 Corruption and a random rare | 29 / 28 / 18 |
+| Long Night | One extra row; Shrines heal 50% | 47 / 40 / 39 |
+| Heavy Hands | 4 Resonance, draw 4; enemies +15% HP | 48 / 33 / 28 |
+| Paper Walls | 40% less Ward for you; enemies −20% HP | 27 / 22 / 23 |
+| Clockwork | Every card costs 1 | 42 / 43 / 38 |
+
+`SIM_OMENS=1 npm run sim` produces the table (300 loops each). The aim is roughly 20–45%: some days harder, none hopeless. First drafts of Glass Vault (half HP, 2%) and Ascetic (heal 6 per fight, 74%) were retuned.
+
+## First run
+New things arrive one at a time, so a new player isn't met with every system after one loop (0.19):
+- **Loop 0:** the welcome hint, the Warden picker (other Wardens show as locked, with the Work that unlocks them) and Descend.
+- **After loop 1:** scouting appears, and the Echoes tab shows a dot until the first Echo is set to work.
+- **From loop 2:** the Awakening panel, and Give to the Sleeper on Echo cards. The Lull button appears once a stage is close.
+- **From loop 3:** the Daily Descent card, with its own first-time hint.
+- **After the first escape:** the stairs, with a hint.
+- The Descend button is pinned to the bottom of the Outpost's scroll area, so it stays in reach however much is above it.
+
 ## Backups and hints
 - **Save codes:** `EOTV1.<checksum>.<base64 UTF-8 JSON>`.
   - The FNV-1a checksum rejects truncated or edited pastes, and whitespace is ignored.
@@ -399,14 +445,16 @@ All sound is generated in code with Web Audio (`src/ui/audio/`): no audio files,
 - `localStorage` key `eotv.save`, JSON, synchronous write after every action.
 - `SaveData.version` + `MIGRATIONS[n]` (n → n+1). The old raw save is copied to `eotv.save.backup.vN` before migrating, and the migrated save is written straight away.
 - Corrupt saves are copied to `eotv.save.corrupt.<time>`, never deleted. Saves from a newer version are never overwritten.
-- **v10** (current) contains:
+- **v11** (current) contains:
   - `run`: the whole loop, including any live fight
   - `meta`: loops, victories, deaths, and `history` (the last 20 loops)
   - `nextLoop`, `echoes`, `pendingEcho`, `outpost` (shards, unlocks, research, cards, lore, scouting, kit)
   - `idle.lastTickAt`
   - `world`: `awakening` (stage, progress, cycle, Lulls this stage); `factions` still reserved and empty
+  - `daily`: last day played, days played, escapes, best depth, and the last result
   - `settings`
 - Migration history:
+  - v10 → v11: adds `daily` (nothing played yet). Runs gain optional `daily` and `omenId`; history rows gain optional `daily` and `omenId`.
   - v9 → v10: a loop in progress gains an empty `chorus`; a live fight gains empty ally state.
   - v8 → v9: a loop in progress gains `awakeningCycle: 1`.
   - v7 → v8: completes `world.awakening` (adds `cycle` and `lullsThisStage`); a loop in progress runs at stage 0 with no Shards found; history rows gain `awakeningStage: 0`.
@@ -419,14 +467,15 @@ All sound is generated in code with Web Audio (`src/ui/audio/`): no audio files,
 
 ## Next builds (proposed 2026-11-21)
 1. **The Choices pass** (0.16, built): settles the open questions below: pick-your-card event removals, a Search rite on the last Shrines, Echoes recovering while resting, evening out the Relic-Breaker's kits, and a Rewrite card. See `docs/design/choices-pass.md`.
-2. **The Daily Descent** (0.17, not yet agreed): one shared, date-seeded loop a day, with a rule-bending Omen and a shareable result. It leaves no Echo, doesn't move the Awakening, and there's no streak to break. See `docs/design/daily-descent.md`.
-3. **The Deeper Vault** (0.18–0.19, not yet agreed): Escape or Descend after the boss, into a shorter, harsher second floor with 9 new enemies; Echoes born there are stronger. See `docs/design/deeper-vault.md`.
+2. **The Daily Descent** (0.17, built): one shared, date-seeded loop a day, with a rule-bending Omen and a shareable result. It leaves no Echo, doesn't move the Awakening, and there's no streak to break. See `docs/design/daily-descent.md`.
+3. **The Deeper Vault** (0.18–0.19, built): Escape or Descend after the boss, into a shorter, harsher second floor with 9 new enemies; Echoes born there are stronger. See `docs/design/deeper-vault.md`.
 
 ## Future hooks (not built)
 - **Classes:** `WardenClassDef` holds the deck, pools, kits, HP and an optional unlock. The Hour-Thief proved the pattern: a new class is mostly data, plus new `Effect` kinds for genuinely new mechanics. Built in 0.14.0 (see "Echo-Caller (class 3)"). **Decided (2026-11-21):** it summons your *real* Outpost Echoes as allies, each fighting from its own deck snapshot, with its trait shaping how it fights. Needs player-side ally combatants. Full design to be agreed before building.
 - **Factions / awakening:** `SaveData.world` exists (empty). **Decided (2026-11-21):** the Awakening rises with *activity only* (loops played, Echo work done), never with real time away, so breaks are never punished. As it rises, loops get new dangers and new rewards, and the Outpost can push it back. Stages 1–3 built in 0.12.0; see "The Awakening" above.
 - **Echo allies:** each Echo stores its loop's deck snapshot and origin.
-- **Multi-floor runs:** `RunState.floor` exists (always 1). The map generator takes a config, so deeper floors can use their own config.
+- **More floors:** floor 2 is built (see The Deeper Vault). `descend()` works for any floor, so a third floor is mostly a new map config and enemy set.
+- **More Wardens:** six concepts are written up in `docs/design/warden-ideas.md` (the Somnant is the recommended fourth).
 - **Multiplayer:** not planned. To revisit in a later milestone.
 
 ## Open questions / flagged

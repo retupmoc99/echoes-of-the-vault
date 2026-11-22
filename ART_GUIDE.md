@@ -22,7 +22,7 @@ The script reads each item's prompt from the tables below (cards by default), pl
 
 Comfy Desktop users: the desktop app may not expose a local API. You can run the install's server directly, from its `ComfyUI` folder: `.venv/Scripts/python.exe main.py --port 8190 --extra-model-paths-config <yaml pointing at your models folder>`.
 
-**Current set (0.16.0):** the full set, 133 images, 3.85 MB (Rewrite added in 0.16). The Sleeper, its Eye and The Sleeper's Breath background came in 0.13; the Echo-Caller's 24 cards and 7 relics in 0.14.1. *Soul Lance* and *Severed Thread* were rerolled in 0.14.2.
+**Current set (0.19.0):** the full set, 147 images, 4.99 MB (Rewrite in 0.16; floor 2’s 9 enemies, 3 relics and 2 backgrounds in 0.19). The Sleeper, its Eye and The Sleeper's Breath background came in 0.13; the Echo-Caller's 24 cards and 7 relics in 0.14.1. *Soul Lance* and *Severed Thread* were rerolled in 0.14.2.
 - All 55 cards, picked from ~180 generated images on an RTX 5080 (~6 s each). Weakest, worth a reroll: *Second Hand* (a clock, not a blade), *Loop the Moment*, *Unmake the Hour* and *Mirror Sigil* (pale backgrounds), *Twin Shards* (pillars, not crossed blades).
 - All 8 backgrounds: `npm run art:gen -- --folder backgrounds`. 768×1344 plus a built-in second pass (latent upscale ×1.5, denoise 0.45) to 1152×2016, ~16 s each.
 - All 11 enemies, 18 relics and 6 node icons: `--folder enemies|relics|ui`. Cut out with ComfyUI's built-in Remove Background node and BiRefNet (`birefnet.safetensors`, 424 MB, from huggingface.co/Comfy-Org/BiRefNet, in the `background_removal` models folder). Over budget but kept for detail: *Vein Crawler* (166 KB), *Bone Abacus* (34 KB), *Gilded Gear* (26 KB).
@@ -148,6 +148,15 @@ Add to the style prompt: `a single subject, the whole subject in frame, centred,
 | lens-tyrant | 300 magenta | a colossal floating eye-lens cracked with magenta light, orbiting fragments |
 | grieving-lock | 280 violet | an immense round vault-door lock mechanism of four concentric metal rings, a sorrowful weeping face of violet light at its centre, heavy chains, no body |
 | the-sleeper | 320 magenta | a vast half-formed dreaming colossus curled in on itself, featureless face of smooth stone with many closed glowing eyes along its body, trailing threads of magenta light, no body detail below the waist, ancient and enormous |
+| drowned-bellringer | 190 cyan | a drowned bell-ringer made of waterlogged rags and chains, a huge cracked bronze bell hanging where its head should be, dripping water, pale cyan glow |
+| hollow-pilgrim | 35 amber | a hollow hunched pilgrim of empty robes and a walking staff, no face under the hood, a single small amber lantern glow inside the robes |
+| rot-lantern | 80 sickly green | a floating rusted iron lantern pouring out thick sickly green smoke, a burning eye inside the glass instead of a flame |
+| gnawing-dark | 270 violet | a shapeless mass of living darkness with rings of glowing violet teeth spiralling inward, no body, no eyes |
+| stitched-chorister | 330 magenta | a small stitched-together choir doll with three sewn mouths singing, pale cloth body, thick black stitches, magenta glow |
+| the-unwound | 160 jade | a humanoid figure made of a single long unravelling jade thread, coils of loose thread spiralling off its body, glowing jade |
+| keeper-of-stairs | 15 orange | a towering armoured giant whose body is built from stacked stone stair steps, a huge iron key held like a club in one fist, glowing orange eyes and cracks, full figure |
+| the-many-handed | 300 purple | a writhing cluster of dozens of pale grasping arms and hands bursting outward from a dark sphere in every direction, purple glow between the fingers |
+| bottom-of-the-well | 205 deep blue | a colossal drowned face rising out of black water inside a round stone well shaft, its mouth an open whirlpool, deep blue glow |
 
 #### Relics (`art-raw/relics/<id>.png`, 1:1, transparent)
 Add to the negative prompt: `white background, grey background, studio backdrop, floor, table, shadow, pedestal, wall, paper, parchment`.
@@ -166,6 +175,9 @@ Add to the style prompt: `a single small object, centred, floating alone in tota
 | hungering-eye | a single glowing eye set in tarnished metal, hungry, magenta iris |
 | grave-lantern | a lantern of black iron burning a pale green flame |
 | sleepers-eye | a single closed stone eyelid set in a ring of dark iron, a thin line of magenta light leaking from beneath it |
+| drowned-crown | a corroded iron crown dripping with dark water, small blue gems glowing inside the rust |
+| waterclock | a small brass water clock with a glass bulb of glowing blue water dripping into a cup |
+| well-rope | a coil of frayed old rope with a rusted hook, glowing faintly blue where hands have worn it |
 
 #### Hour-Thief cards (`art-raw/cards/<id>.png`, 4:3)
 Shared accent: **pale jade and silver** (Temporal cards), with ember for strikes and cyan for wards. Add to the style prompt: `pale jade and silver glow`. (An earlier "clockwork, hourglass sand, frozen motion" turned every card into an hourglass in a desert.)
@@ -284,6 +296,8 @@ Add to the style prompt: `vast empty environment, calm open space in the middle,
 | shift-restless-engines | colossal dormant machines stirring in the dark, gold seams of light |
 | shift-hollow-bargain | a vast empty throne hall, a single offering table, violet candlelight |
 | shift-sleepers-breath | a vast dark vault whose stone walls swell and sag like slow breathing flesh, faint magenta glow pulsing deep in the cracks |
+| floor-2 | a drowned flooded vault deep underground, still black water covering the floor, broken stone arches half submerged, faint deep blue light from below the water |
+| stairs | a narrow spiral stone staircase descending into black water far below, a shattered iron lock gate at the top, cold blue light rising from the depths |
 
 ## Blender: where 3D beats 2D generation
 The game itself stays 2D. Blender is for making images.

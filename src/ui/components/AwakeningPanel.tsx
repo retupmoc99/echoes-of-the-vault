@@ -64,9 +64,12 @@ export function AwakeningPanel({ save, onLull }: Props) {
       {cycleBonus > 0 && <p className="record">Cycle {a.cycle}: enemies have {cycleBonus}% more HP.</p>}
       <p className="record">It stirs with every loop you close and every hour your Echoes work. Never while you are away.</p>
 
-      <button className="ghost-btn wide" disabled={!canLull} onClick={onLull}>
-        {awake ? 'It is awake. It will not be lulled.' : a.progress <= 0 ? 'The Sleeper is still' : `Lull it (−${A.lull.amount}) · ${cost} Shards`}
-      </button>
+      {/* Lulling only matters once a stage has been reached. */}
+      {(a.stage > 0 || a.progress >= A.thresholds[0] - A.lull.amount) && (
+        <button className="ghost-btn wide" disabled={!canLull} onClick={onLull}>
+          {awake ? 'It is awake. It will not be lulled.' : a.progress <= 0 ? 'The Sleeper is still' : `Lull it (−${A.lull.amount}) · ${cost} Shards`}
+        </button>
+      )}
     </section>
   );
 }

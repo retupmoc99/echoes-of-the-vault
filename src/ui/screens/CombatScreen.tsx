@@ -90,7 +90,7 @@ export function CombatScreen({ state, error, label, tier, dispatch, onMenu, onCo
 
   const selected = state.piles.hand.find((c) => c.uid === selectedUid);
   const selectedDef = selected && CONTENT.cards[selected.cardId];
-  const canPlay = !!selected && !!selectedDef && !selectedDef.unplayable && cardCost(selected, selectedDef) <= state.resonance;
+  const canPlay = !!selected && !!selectedDef && !selectedDef.unplayable && cardCost(selected, selectedDef, state.modifiers) <= state.resonance;
   // Rewrite: choose which discarded card comes back before the card is played.
   const [recalling, setRecalling] = useState(false);
 
@@ -140,7 +140,7 @@ export function CombatScreen({ state, error, label, tier, dispatch, onMenu, onCo
     state.phase === 'player' &&
     !state.piles.hand.some((c) => {
       const def = CONTENT.cards[c.cardId];
-      return !def.unplayable && cardCost(c, def) <= state.resonance;
+      return !def.unplayable && cardCost(c, def, state.modifiers) <= state.resonance;
     });
   const over = state.phase === 'won' || state.phase === 'lost';
 
@@ -234,7 +234,7 @@ export function CombatScreen({ state, error, label, tier, dispatch, onMenu, onCo
               card={card}
               variant="hand"
               preview={{ state, targetId: aim }}
-              affordable={!def.unplayable && cardCost(card, def) <= state.resonance}
+              affordable={!def.unplayable && cardCost(card, def, state.modifiers) <= state.resonance}
               selected={card.uid === selectedUid}
               onClick={() => tapCard(card.uid)}
             />

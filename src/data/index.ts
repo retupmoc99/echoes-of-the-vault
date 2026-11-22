@@ -10,10 +10,12 @@ import { ECHO_CALLER_CARDS } from './cards/echoCaller';
 import { ECHO_CALLER } from './classes/echoCaller';
 import { HOUR_THIEF } from './classes/hourThief';
 import { RELIC_BREAKER } from './classes/relicBreaker';
+import { DEEP_CARDS, DEEP_ENCOUNTERS, DEEP_ENEMIES, DEEP_LORE, DEEP_RELICS } from './enemies/deep';
 import { ENCOUNTERS, ENEMIES, WAKING_ENCOUNTERS, WAKING_ENEMIES } from './enemies/enemies';
 import { AWAKENING_EVENTS, EVENTS } from './events/events';
 import { IDLE_CONTENT } from './idle';
 import { RELICS } from './relics/relics';
+import { OMENS } from './omens';
 import { VAULT_SHIFTS } from './vaultShifts';
 
 function byId<T extends { id: string }>(items: T[]): Record<string, T> {
@@ -27,13 +29,14 @@ function byId<T extends { id: string }>(items: T[]): Record<string, T> {
 
 export const CONTENT: Content = {
   classes: byId([RELIC_BREAKER, HOUR_THIEF, ECHO_CALLER]),
-  cards: byId([...RELIC_BREAKER_CARDS, ...HOUR_THIEF_CARDS, ...ECHO_CALLER_CARDS]),
-  relics: byId(RELICS),
-  enemies: byId([...ENEMIES, ...WAKING_ENEMIES]),
-  encounters: byId([...ENCOUNTERS, ...WAKING_ENCOUNTERS]),
+  cards: byId([...RELIC_BREAKER_CARDS, ...HOUR_THIEF_CARDS, ...ECHO_CALLER_CARDS, ...DEEP_CARDS]),
+  relics: byId([...RELICS, ...DEEP_RELICS]),
+  enemies: byId([...ENEMIES, ...WAKING_ENEMIES, ...DEEP_ENEMIES]),
+  encounters: byId([...ENCOUNTERS, ...WAKING_ENCOUNTERS, ...DEEP_ENCOUNTERS]),
   events: byId([...EVENTS, ...AWAKENING_EVENTS]),
   vaultShifts: byId(VAULT_SHIFTS),
+  omens: byId(OMENS),
   // Awakening lore shows in Fragments like Research lore, so it joins the same table.
-  idle: { ...IDLE_CONTENT, lore: { ...IDLE_CONTENT.lore, ...byId(AWAKENING_LORE) } },
+  idle: { ...IDLE_CONTENT, lore: { ...IDLE_CONTENT.lore, ...byId(AWAKENING_LORE), ...byId(DEEP_LORE) } },
   awakening: AWAKENING_CONTENT,
 };

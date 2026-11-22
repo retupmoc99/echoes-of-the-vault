@@ -63,6 +63,29 @@ export const BALANCE = {
     weights: { fight: 45, event: 22, elite: 10, cache: 10, shrine: 13 },
   },
 
+  /** The Deeper Vault: floor 2, reached by Descending after the floor-1 boss. */
+  deep: {
+    /** Rows before floor 2's boss. */
+    rows: 6,
+    /** Share of max HP healed on the stairs. */
+    stairsHeal: 0.5,
+    /** Escaping floor 2 pays this, plus twice any held escape bonus. */
+    escapeShards: 60,
+    /** Floor-2 elites drop Shards as well as a relic. */
+    eliteShards: 20,
+    /** HP lost at the start of a turn begun with no Ward (The Weight). */
+    weightDamage: 1,
+    /** Extra Awakening progress for a loop that reached floor 2. */
+    awakeningBonus: 2,
+    weights: { fight: 40, event: 20, elite: 15, cache: 15, shrine: 10 },
+  },
+
+  /** The Daily Descent: small and flat, a treat rather than a chore. */
+  daily: {
+    finishShards: 25,
+    escapeShards: 50,
+  },
+
   shrine: {
     /** Fraction of max HP restored by resting. */
     healRatio: 0.3,
