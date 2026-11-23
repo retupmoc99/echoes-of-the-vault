@@ -215,7 +215,7 @@ How Shifts work:
 | Sentinel + Choir Shard | late | | Mixed pair |
 | **Warden Unmade** | elite | 74–80 | Cycle: Mark (2 Exposed + 1 Weakened) → Execute 16 → Riposte (10 Ward + 6) |
 | **Lens Tyrant** | elite | 70–76 | Cycle: Focus (+3 Fracture) → Beam 6×2 → Refract (12 Ward + 2 Bleed). Grows stronger *and* bleeds itself: a race. |
-| **The Grieving Lock** | boss | 140–148 | Opens with Toll, then Shatter 12 (+1 Fracture) → Litany 4×3 → Bind (3 Bleed + 2 Exposed) → Toll (15 Ward + 1 Weakened) |
+| **The Grieving Lock** | boss | 118–124 | Opens with Toll, then Shatter 12 (+1 Fracture) → Litany 4×3 → Bind (3 Bleed + 2 Exposed) → Toll (10 Ward + 1 Weakened). *0.21.2: was 140–148 HP and 15 Ward; no player had beaten it.* |
 
 Enemies use Fracture too: it makes them hit harder and hurts them every turn.
 

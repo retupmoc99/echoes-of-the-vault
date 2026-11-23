@@ -44,7 +44,8 @@ export function effectsValue(effects: Effect[]): number {
       case 'loseHp': v -= e.amount; break;
       case 'delay': v += effectsValue(e.effects) * 0.8; break;
       case 'if': v += Math.max(effectsValue(e.then), 0) * 0.6 + Math.max(effectsValue(e.else ?? []), 0) * 0.4; break;
-      case 'devour': v += effectsValue(e.each) * (e.count === 'all' ? 1.5 : Math.min(e.count, 2)) * 0.7; break;
+      // A curse is in hand well under half the time, and rarely more than one.
+      case 'devour': v += effectsValue(e.each) * (e.count === 'all' || e.count > 1 ? 1.2 : 1) * 0.45; break;
       case 'pay': v += effectsValue(e.then) * 0.7 + effectsValue(e.else ?? []) * 0.3; break;
       case 'ifKilled': v += effectsValue(e.then) * 0.4; break;
       case 'mirrorIntent': v += e.scale * 10 * (e.who === 'all' ? 1.6 : 1) * (e.times ?? 1); break;

@@ -7,6 +7,7 @@
  *   SIM_KITS=1 npm run sim      (every starting kit, not just each class's first)
  *   SIM_OMENS=1 npm run sim     (each class's first kit under every Daily Omen)
  *   SIM_DESCEND=1 npm run sim   (the Deeper Vault: the bot always Descends after the boss)
+ *   SIM_RESEARCH=0              (no research cards, like a new player; default: all of them)
  *   SIM_CLASS=pilgrim           (only this Warden)
  *   SIM_PICK=rarest|none        (card drafting: the old rarest-first bot, or no reward cards)
  *
@@ -57,17 +58,34 @@ interface Outcome {
   deck: string[];
   /** Floor the loop ended on. */
   floor: number;
+  /** HP fraction on entering the floor-1 boss fight (undefined if never reached). */
+  bossHp?: number;
+  /** Turns the floor-1 boss fight lasted. */
+  bossTurns?: number;
+  /** Boss HP fraction left when the loop ended in its fight. */
+  bossLeft?: number;
 }
 
 function playLoop(classId: string, kitId: string, seed: string, omenId?: string): Outcome {
   const cls = CONTENT.classes[classId];
   // The Echo-Caller needs Echoes to Call: three mid-depth ones, carrying each Warden's starting deck.
   const chorus = classId === 'echo-caller' ? SIM_CHORUS : undefined;
-  let r: RunState = createRun({ seed, classId, kitId, unlockedCards: cls.lockedCards, awakeningStage: STAGE, chorus, omenId, options: { stairs: DESCEND } }, CONTENT);
+  let r: RunState = createRun({ seed, classId, kitId, unlockedCards: env.SIM_RESEARCH === '0' ? [] : cls.lockedCards, awakeningStage: STAGE, chorus, omenId, options: { stairs: DESCEND } }, CONTENT);
+  let bossHp: number | undefined;
+  let bossTurns: number | undefined;
+  let bossLeft: number | undefined;
   for (let i = 0; i < 20000 && r.phase !== 'ended'; i++) {
     const res = stepRun(r, nextBotAction(r, CONTENT), CONTENT);
     if (res.error) throw new Error(`${seed}: bot made an illegal move: ${res.error}`);
     r = res.run;
+    const c = r.combat;
+    const atBoss = r.floor === 1 && r.node?.kind === 'combat' && c?.enemies.some((e) => CONTENT.enemies[e.defId]?.tier === 'boss');
+    if (atBoss && c) {
+      if (bossHp === undefined) bossHp = r.hp / r.maxHp;
+      bossTurns = c.turn;
+      const boss = c.enemies.find((e) => CONTENT.enemies[e.defId]?.tier === 'boss')!;
+      bossLeft = Math.max(0, boss.hp) / boss.maxHp;
+    }
   }
   if (r.phase !== 'ended') throw new Error(`${seed}: loop never ended`);
   const last = r.visited.at(-1);
@@ -82,6 +100,9 @@ function playLoop(classId: string, kitId: string, seed: string, omenId?: string)
     corruption: r.stats.peakCorruption,
     deck: r.deck,
     floor: r.floor,
+    bossHp,
+    bossTurns,
+    bossLeft,
   };
 }
 
@@ -97,6 +118,12 @@ function report(classId: string, kitId: string, outcomes: Outcome[], omenId?: st
     ...(DESCEND
       ? [`Floor 2: reached ${pct(outcomes.filter((o) => o.floor > 1).length, n)} | escaped it ${pct(outcomes.filter((o) => o.floor > 1 && o.won).length, outcomes.filter((o) => o.floor > 1).length)} of those`]
       : []),
+    (() => {
+      const at = outcomes.filter((o) => o.bossHp !== undefined);
+      const lost = at.filter((o) => !o.won && o.diedAt === 'boss');
+      const avg = (xs: number[]) => (xs.length ? xs.reduce((s, x) => s + x, 0) / xs.length : 0);
+      return `Boss: HP going in ${(avg(at.map((o) => o.bossHp!)) * 100).toFixed(0)}% | fight lasts ${avg(at.map((o) => o.bossTurns!)).toFixed(1)} turns | when lost, it had ${(avg(lost.map((o) => o.bossLeft!)) * 100).toFixed(0)}% HP left`;
+    })(),
     `Turns per fight ${(outcomes.reduce((s, o) => s + o.turns, 0) / Math.max(1, outcomes.reduce((s, o) => s + o.fights, 0))).toFixed(1)} | avg peak Corruption ${(outcomes.reduce((s, o) => s + o.corruption, 0) / n).toFixed(1)} | final deck ${(outcomes.reduce((s, o) => s + o.deck.length, 0) / n).toFixed(1)} cards`,
   ];
   const deaths: Record<string, number> = {};

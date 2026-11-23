@@ -423,11 +423,11 @@ export const IDLE_CONTENT: IdleContent = {
     { kind: 'card', cardId: 'eternal-lullaby' },
     // Wardens 5–9 (appended).
     { kind: 'card', cardId: 'sin-shield' },
-    { kind: 'card', cardId: 'heavy-heart' },
+    { kind: 'card', cardId: 'sin-bloated' },
     { kind: 'card', cardId: 'glutton' },
     { kind: 'card', cardId: 'maw-of-the-vault' },
     { kind: 'card', cardId: 'last-supper' },
-    { kind: 'card', cardId: 'eat-the-sky' },
+    { kind: 'card', cardId: 'heavy-heart' },
     { kind: 'card', cardId: 'inverse' },
     { kind: 'card', cardId: 'silvering' },
     { kind: 'card', cardId: 'shard-storm' },

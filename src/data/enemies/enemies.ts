@@ -206,12 +206,12 @@ export const ENEMIES: EnemyDef[] = [
     id: 'grieving-lock',
     name: 'The Grieving Lock',
     tier: 'boss',
-    hp: [140, 148],
+    hp: [118, 124],
     moves: {
       toll: {
         name: 'Toll',
         effects: [
-          { kind: 'ward', amount: 15 },
+          { kind: 'ward', amount: 10 },
           { kind: 'applyStatus', status: 'weakened', amount: 1, target: 'target' },
         ],
       },

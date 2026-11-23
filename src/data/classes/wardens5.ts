@@ -22,7 +22,7 @@ export const SIN_EATER: WardenClassDef = {
   starterDeck: SIN_DECK,
   starterRelics: ['black-salt'],
   cardPool: pool(SIN_EATER_CARDS),
-  lockedCards: ['sin-shield', 'heavy-heart', 'glutton', 'maw-of-the-vault', 'last-supper', 'eat-the-sky'],
+  lockedCards: ['sin-shield', 'sin-bloated', 'glutton', 'maw-of-the-vault', 'last-supper', 'heavy-heart'],
   relicPool: ['iron-stomach', 'bone-fork', 'tithe-bowl', 'sin-ledger', 'gilded-tongue', 'the-last-meal', 'ash-crown', ...SHARED_RELICS],
   kits: [
     { id: 'sin-standard', name: 'The Sin-Eater', description: 'Bitter strikes, ash shrouds, one swallow, and the first meal.', deck: SIN_DECK },

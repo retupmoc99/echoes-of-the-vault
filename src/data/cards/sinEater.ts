@@ -73,7 +73,7 @@ export const SIN_EATER_CARDS: CardDef[] = [
 
   // ───────────── Uncommons ─────────────
   { id: 'communion-of-ash', name: 'Communion of Ash', type: 'ward', cost: 1, rarity: 'uncommon', archetype: 'burden', effects: [{ kind: 'ward', amount: perCurse(1, 3, 9) }], flavor: 'Share the weight. It does not get lighter.' },
-  { id: 'gorge', name: 'Gorge', type: 'strike', cost: 2, rarity: 'uncommon', archetype: 'devour', effects: [devour([{ kind: 'damage', amount: 8, target: 'allFoes' }], 3)], flavor: 'More. More. More.' },
+  { id: 'gorge', name: 'Gorge', type: 'strike', cost: 2, rarity: 'uncommon', archetype: 'devour', effects: [{ kind: 'damage', amount: 6, target: 'allFoes' }, devour([{ kind: 'damage', amount: 6, target: 'allFoes' }], 3)], flavor: 'More. More. More.' },
   { id: 'feast-of-crows', name: 'Feast of Crows', type: 'strike', cost: 1, rarity: 'uncommon', archetype: 'devour', effects: [{ kind: 'damage', amount: { per: 'devouredThisFight', times: 4, plus: 5 } }], flavor: 'The birds come for what is left over.' },
   {
     id: 'bile',
@@ -104,5 +104,5 @@ export const SIN_EATER_CARDS: CardDef[] = [
     effects: [{ kind: 'shuffleIn', cardId: 'randomCurse', count: 2 }, { kind: 'gainResonance', amount: 2 }, { kind: 'draw', amount: 2 }],
     flavor: 'Lay the table. Set two more places.',
   },
-  { id: 'eat-the-sky', name: 'Eat the Sky', type: 'strike', cost: 2, rarity: 'rare', archetype: 'devour', effects: [{ kind: 'damage', amount: 16 }, devour([{ kind: 'damage', amount: 16 }])], flavor: 'After the curses, it got ambitious.' },
+  { id: 'eat-the-sky', name: 'Eat the Sky', type: 'strike', cost: 2, rarity: 'rare', archetype: 'devour', effects: [{ kind: 'damage', amount: 12 }, devour([{ kind: 'damage', amount: 12 }])], flavor: 'After the curses, it got ambitious.' },
 ];

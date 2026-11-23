@@ -18,6 +18,14 @@
 - **Communion of Ash:** 3 Ward + 1 per curse (at most 9), was 3 per curse + 3. **Gorge:** 8 per curse eaten, was 7.
 - **Burden caps:** Bitter Feast at most 16, Heavy Heart at most 11 a hit, Sin-Bloated at most 12 a hit, Sin Ledger at most 6, Ash Crown at most 12.
 - **Kits:** the Glutton is Gorge and Sackcloth; the Penitent is just Communion of Ash. Bot: Glutton 48%, Penitent 56%.
+
+**Changed in 0.21.2 (new players):**
+- Without research the Sin-Eater won only 23% of bot loops (71% with it), because its best cards were research-locked and its weakest weren't.
+- **Research swap:** Eat the Sky is now in the starting pool and Sin-Bloated needs research instead. Heavy Heart still needs research.
+- **Eat the Sky:** 12, plus 12 with Devour (was 16 + 16; at full strength in a small pool it won 91%).
+- **Gorge:** 6 to all foes, plus 6 to all per curse eaten (up to 3). Before, it did nothing with no curse in hand.
+- The bot now values Devour bonuses lower (a curse is in hand well under half the time).
+- **Bot:** 60% with no research, 57% with all of it. The Glutton is at 53% and 64%, the Penitent at 55% and 57%.
 *Unlocked by the deed **Fed on sin** (close a loop carrying 3+ curses), then the Work **The Ash Table** (170 Shards).*
 
 > Every curse is a meal. The Sin-Eater is never full.
@@ -62,17 +70,17 @@ That turns the game's punishments into resources. The tainted offer after each f
 | Hungry Eyes | 0 | common | rite | Draw 1. Devour: draw 2 more. |
 | Ash Mouth | 1 | common | strike | Deal 4 to all foes. Devour: deal 4 to all foes again. |
 | Communion of Ash | 1 | uncommon | ward | Gain 4 Ward per curse in your deck. |
-| Gorge | 2 | uncommon | strike | Devour up to 3 curses. Each one: deal 8 to all foes. |
+| Gorge | 2 | uncommon | strike | Deal 6 to all foes. Devour up to 3 curses; each one: deal 6 more to all foes. |
 | Feast of Crows | 1 | uncommon | strike | Deal 5, plus 4 per curse eaten this fight. |
 | Bile | 1 | uncommon | rite | Apply 2 Weakened. Devour: apply 2 Exposed too. |
 | 🔒 Sin Shield | 2 | uncommon | ward | Gain 12 Ward. Devour: your Ward isn't removed next turn. |
 | 🔒 Heavy Heart | 1 | uncommon | strike | Deal 6, plus 2 per curse in your deck, twice. |
 | 🔒 Glutton | 1 | uncommon | rite | Devour: gain 2 Resonance and draw 1. |
 | Absolution | 2 | rare | rite | Devour every curse in hand, **removing them from your deck for good**. Each one: gain 6 Ward. Fade. |
-| Sin-Bloated | 2 | rare | strike | Deal 3 per curse in your deck to all foes, twice. |
+| 🔒 Sin-Bloated | 2 | rare | strike | Deal 3 per curse in your deck to all foes, twice. |
 | 🔒 Maw of the Vault | 3 | rare | strike | Devour every curse in hand. Each one: deal 10 to all foes. |
 | 🔒 Last Supper | 1 | rare | rite | Shuffle 2 random curses into your draw pile. Gain 2 Resonance. Draw 2. Fade. |
-| 🔒 Eat the Sky | 2 | rare | strike | Deal 16. Devour: deal 16 more. |
+| Eat the Sky | 2 | rare | strike | Deal 12. Devour: deal 12 more. |
 
 ### Relics (7, plus the starter and the Well relic)
 | Relic | Rarity | Effect |

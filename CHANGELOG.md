@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.21.2 — An easier Grieving Lock, a fairer Sin-Eater (2026-11-23)
+
+### Balance
+- **The Sin-Eater for new players:** it won only 23% of bot loops without research (71% with it), because its strongest cards were behind research.
+  - **Eat the Sky** is now in the starting pool, at 12 + 12 with Devour (was 16 + 16, research-locked).
+  - **Sin-Bloated** needs research instead.
+  - **Gorge** always hits: 6 to all foes, plus 6 to all per curse eaten (up to 3). It used to do nothing with no curse in hand.
+  - Bot: 60% without research, 57% with it.
+- **The Grieving Lock:** 118–124 HP (was 140–148), and Toll gives 10 Ward (was 15). Players weren't beating it. Its Fracture never fades, so every Shatter makes it hit harder for the rest of the fight, and a 140 HP grind gave it time to snowball. Even the bot lost with the Lock on about a quarter of its HP. Bot win rate against it with no research, at the start: 66–85% (was 46–73%). (The Sin-Eater was the exception, at 29%; see above.)
+
+### Tools
+- The sim can run without research cards (`SIM_RESEARCH=0`), like a new player. It reports HP going into the floor-1 boss, how long the fight lasts, and how much HP the boss had left when it won.
+
 ## 0.21.1 — Test mode and a smarter balance bot (2026-11-22)
 
 ### Added

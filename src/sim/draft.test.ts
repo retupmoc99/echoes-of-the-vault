@@ -14,7 +14,7 @@ describe('the balance bot drafter', () => {
 
   it('skips an offer no better than the deck it would dilute', () => {
     const r = run('sin-eater');
-    expect(draftPick(r, ['bitter-strike'], CONTENT)).toBe(-1);
+    expect(draftPick(r, ['ash-shroud'], CONTENT)).toBe(-1);
   });
 
   it('takes a clearly better card, and prefers what the deck already builds toward', () => {
@@ -29,7 +29,7 @@ describe('the balance bot drafter', () => {
 
   it('weighs the tainted offer only when asked to', () => {
     const r = run('sin-eater');
-    expect(draftPick(r, ['bitter-strike'], CONTENT, 'eat-the-sky')).toBe('tainted');
-    expect(draftPick(r, ['bitter-strike'], CONTENT)).toBe(-1);
+    expect(draftPick(r, ['ash-shroud'], CONTENT, 'eat-the-sky')).toBe('tainted');
+    expect(draftPick(r, ['ash-shroud'], CONTENT)).toBe(-1);
   });
 });
