@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.21.3 — Closer Wardens (2026-11-26)
+
+### Balance
+After the easier Grieving Lock, the bot won 57–80% depending on the Warden and kit. Now every Warden and kit wins 61–73%.
+- **Max HP:**
+  - Relic-Breaker 64 (was 70).
+  - Somnant 64 (was 68).
+  - Tollkeeper 68 (was 70).
+  - Hour-Thief 70 (was 68).
+  - Sin-Eater 70 (was 66).
+- **Kits:**
+  - **The Fuse-Setter** starts with Patient Blade and Accelerate in place of two Stilled Moments. It had too much Ward: 74% against 63%.
+  - **The Miser** and **the Spendthrift** start with a Coin Toss. They now trade two Collector's Blades and an Iron Ledger for their cards, so they have Toll to spend.
+  - **The Drowned** swaps a Tide Strike and a Squall Ward (was two Tide Strikes).
+- **Riptide** costs 1 (was 2).
+
 ## 0.21.2 — An easier Grieving Lock, a fairer Sin-Eater (2026-11-23)
 
 ### Balance

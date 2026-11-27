@@ -52,7 +52,7 @@ The Vault Shifts bend whole loops. The Shiftwright carries three of them **insid
 | Plainsong | 0 | common | rite | Attune Choir. Draw 1. |
 | Squall Line | 1 | common | strike | Deal 4 twice. In Fractured: three times. |
 | Brine Ward | 1 | common | ward | Gain 6 Ward. In Drowned: apply 2 Bleed too. |
-| Riptide | 2 | uncommon | rite | Apply 2 Bleed to all foes. In Drowned: twice. |
+| Riptide | 1 | uncommon | rite | Apply 2 Bleed to all foes. In Drowned: twice. |
 | Skyfall | 2 | uncommon | strike | Deal 4 to all foes, twice. In Fractured: three times. |
 | Chorus of Storms | 1 | uncommon | rite | Draw 2. In Choir: also gain 1 Resonance. |
 | Barometer | 1 | uncommon | ward | Gain 8 Ward. Attune to the next Aspect (Drowned → Fractured → Choir → Drowned). |
@@ -80,7 +80,7 @@ The Vault Shifts bend whole loops. The Shiftwright carries three of them **insid
 | Drowned Vane (the Well) | rare | Whenever you Attune, apply 2 Bleed to all foes. |
 
 ### Kits
-- **The Drowned:** Undertow and Riptide in place of two Tide Strikes. Bleed that never ends.
+- **The Drowned:** Undertow and Riptide in place of a Tide Strike and a Squall Ward. Bleed that never ends. *(0.21.3: was two Tide Strikes, with Riptide at cost 2; the bot won 62% against 68% for the standard deck.)*
 - **The Stormcaller:** Skyfall and Stormglass in place of a Tide Strike and a Squall Ward. Burn for blows.
 
 ## Engine work

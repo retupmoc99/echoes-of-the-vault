@@ -85,7 +85,7 @@ describe('fights', () => {
   it('a won fight records damage and offers a card reward', () => {
     const r = go(finishFight(enter('fight'), 'won', 60), { type: 'leave' });
     expect(r.hp).toBe(60);
-    expect(r.stats).toMatchObject({ fightsWon: 1, damageTaken: 10 });
+    expect(r.stats).toMatchObject({ fightsWon: 1, damageTaken: BALANCE.player.relicBreakerMaxHp - 60 });
     expect(r.combat).toBeNull();
     expect(r.node).toMatchObject({ kind: 'reward', relicId: null, cardTaken: false });
   });

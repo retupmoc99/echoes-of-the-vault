@@ -83,8 +83,8 @@ The Tollkeeper collects **Toll** from everything it kills and spends it, inside 
 | Drowned Coin (the Well) | rare | Whenever you Pay, deal 3 to all foes. |
 
 ### Kits
-- **The Miser:** Golden Hail and Interest in place of a Collector's Blade and an Iron Ledger. Hoard, and let the hoard hit.
-- **The Spendthrift:** Hired Steel and Gilded Ward in place of two Collector's Blades. Spend every coin.
+- **The Miser:** Golden Hail, Counting House and a Coin Toss in place of two Collector's Blades and an Iron Ledger. Hoard, and let the hoard hit. *(0.21.3: Coin Toss added; it was 8 points under the standard deck.)*
+- **The Spendthrift:** Hired Steel, Gilded Ward and a Coin Toss in place of two Collector's Blades and an Iron Ledger. Spend every coin. *(0.21.3: Coin Toss added, for something to spend.)*
 
 ## Engine work
 - **Run state:** `RunState.toll`, passed in as `CombatSetup.toll` and kept as `CombatState.toll` during the fight. The fight's Toll goes back to the run when you leave.

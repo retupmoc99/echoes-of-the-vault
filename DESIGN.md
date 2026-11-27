@@ -60,7 +60,7 @@ Living document: the current design and balance decisions. Numbers marked *(bala
 - Trigger chains are capped at depth 4 *(balance)*.
 
 ## Relic-Breaker (class 1)
-70 HP. Starter: 4× Shard Strike, 4× Ward Sigil, Shatter Lens, Overcharge. Starter relic: Cinder Core.
+64 HP *(balance; was 70 before 0.21.3)*. Starter: 4× Shard Strike, 4× Ward Sigil, Shatter Lens, Overcharge. Starter relic: Cinder Core.
 
 | Archetype | Engine | Payoff |
 |---|---|---|
@@ -98,7 +98,7 @@ Living document: the current design and balance decisions. Numbers marked *(bala
 Relic-Breaker content: 30 cards (4 starter, 23 reward pool, 3 curses) and 11 relics.
 
 ## Hour-Thief (class 2)
-68 HP *(balance; was 64 before 0.11)*: fragile, because its power arrives late.
+70 HP *(balance; was 64 before 0.11, 68 before 0.21.3)*: fragile, because its power arrives late.
 - **Starter deck:** 4× Second Hand, 4× Stilled Moment, Slow Fuse (in 2 turns: deal 16), Stolen Second (Rewind 1, gain 1 Paradox).
 - **Starter relic:** Cracked Hourglass (when a delayed effect lands: gain 3 Ward).
 - **Unlock:** the Outpost Work *The Stolen Hour* (120 Shards). Choose the class on the Descend tab; switching Warden never changes the scouted map.
@@ -333,7 +333,7 @@ Built in 0.20. See `docs/design/somnant.md` for the full card and relic list.
 - **Drowse:** a status on foes. At the sleep threshold (normal 4, elite 7, boss 9, the Sleeper 12) the foe falls **Asleep** and its threshold rises (+2 normal, +3 otherwise).
 - **Asleep:** it skips its next turn, stays asleep through your next turn, then makes the move it had planned (its intent shows "Waking: …"). Sleepers take 50% more attack damage. Drowse on a sleeper is lost, and hits don't wake it. A boss's phase change wakes it. Bleed, Fracture and its own delayed attacks still tick while it sleeps.
 - **The Awakening link:** the starter relic, Sleeper's Hum, applies 2 Drowse to every foe as a fight begins, +2 per two Awakening stages.
-- **The Warden:** 68 HP, 24 cards (6 research-locked), 7 relics plus the starter, two kits (the Lullaby, the Night-Knife), and the Drowned Hymnal as its Well relic.
+- **The Warden:** 64 HP (68 before 0.21.3), 24 cards (6 research-locked), 7 relics plus the starter, two kits (the Lullaby, the Night-Knife), and the Drowned Hymnal as its Well relic.
 - **On screen:** a Drowse chip shows progress ("◐ 2/4"). A sleeping foe dims, breathes slowly, and shows a violet closed-eye intent.
 - **Unlock:** the deed *You hear it dreaming* (reach Awakening stage 3), then the Work *The Sleeper's Hymnal* (170 Shards).
 - **Bot check:** 33% at stage 0 (the others: 33–36%), 28% at stage 3. **Flagged:** 8% at stage 5 (the others: 11–17%), and it escapes floor 2 20% of the time (the others: 28–47%). It struggles in long fights against big HP pools (the Sleeper, the Well). If that holds in real play, the likely fix is more damage on its rares, not more sleep.
@@ -343,11 +343,11 @@ Built in 0.21. Full designs: `docs/design/sin-eater.md`, `mirrorborn.md`, `shift
 
 | Warden | Core rule | Unlock |
 |---|---|---|
-| **Sin-Eater** (66 HP) | **Devour** eats the leftmost curse in hand for a bonus (back next fight). **Burden** cards scale with curses carried. Tainted cards cost it a curse instead of Corruption. | Deed *Fed on sin* (close a loop with 3+ curses), then The Ash Table (170) |
+| **Sin-Eater** (70 HP) | **Devour** eats the leftmost curse in hand for a bonus (back next fight). **Burden** cards scale with curses carried. Tainted cards cost it a curse instead of Corruption. | Deed *Fed on sin* (close a loop with 3+ curses), then The Ash Table (170) |
 | **Mirrorborn** (62 HP) | **Mirror** plays a foe's shown move yourself, turned around. **Steal** mirrors at 50% and robs the foe of its move (bosses: Weakened 2). | Deed *Seen in every glass* (beat every elite), then The Mirror That Kept Its Face (180) |
 | **Shiftwright** (68 HP) | Always in one **Aspect**: Drowned (+1 to Bleed you apply), Fractured (+1 per hit, 1 HP a turn), Choir (+1 draw). Attune cards switch; fights start in the loop's Shift. | Deed *Weathered* (escape under 3 Shifts), then The Weathervane (180) |
 | **Pilgrim** (62 HP) | **Miles:** +1 per chamber (elites 2) for the loop. Road cards grow with Miles. | Deed *Back from the Well* (escape floor 2), then The Worn Road (180) |
-| **Tollkeeper** (70 HP) | **Toll:** from kills; **Pay N** cards spend it for a bonus; Shrines' Tithe (4) and reward rerolls (3) take it too. Never becomes Shards. | The Toll Gate (150), no deed |
+| **Tollkeeper** (68 HP) | **Toll:** from kills; **Pay N** cards spend it for a bonus; Shrines' Tithe (4) and reward rerolls (3) take it too. Never becomes Shards. | The Toll Gate (150), no deed |
 
 - Each has 23–24 cards (6 research-locked), 7 relics plus a starter and a Well relic, two kits, a hint, and painted art.
 - **Engine pieces added:** Devour and fight-only curses, Mirror and Steal (enemy moves resolved from the player), Aspects, run-level Miles and Toll carried into fights, `ifKilled`, once-per-turn relic triggers, relic `combatMods`, intent-reading amounts and conditions, and scaling draw and Resonance amounts.
@@ -365,9 +365,13 @@ The balance bot now **drafts** (`src/sim/draft.ts`). It scores each offered card
 - **All win rates rose about 20 points.** The old 32–37% target was set against the weak bot. With the drafter, the Wardens sit at **45–68%** at stage 0, about **17–28%** at stage 5, and 24–48% for a full floor-2 loop. Whether the game should be harder overall is an open question; the spread between Wardens is what the tuning aims at.
 - **Old flags that were bot artifacts:** the Sin-Eater's 27% (always taking the tainted card) and the Somnant's stage-5 weakness. Both are mid-pack now.
 - **Bot check, standard decks (400 loops, stage 0):** Relic-Breaker 68%, Somnant 60%, Pilgrim 55%, Sin-Eater 54%, Mirrorborn 54%, Shiftwright 53%, Tollkeeper 51%, Hour-Thief 50%, Echo-Caller 45%.
+- **After the 0.21.2 Lock change** every Warden rose about 12 points (57–80%), with the Relic-Breaker at 80%.
+- **0.21.3 spread pass (400 loops, stage 0, all research), standard decks:** Relic-Breaker 70%, Tollkeeper 68%, Somnant 68%, Shiftwright 68%, Pilgrim 67%, Echo-Caller 65%, Mirrorborn 65%, Hour-Thief 63%, Sin-Eater 62%. Every kit is 61–73%, within 7 points of its standard deck.
+  - Max HP: Relic-Breaker 64 (was 70), Somnant 64 (68), Hour-Thief 70 (68), Sin-Eater 70 (66), Tollkeeper 68 (70).
+  - Kits: the Fuse-Setter swaps two Stilled Moments (not a Second Hand and a Stilled Moment); the Miser and the Spendthrift trade two Collector's Blades and an Iron Ledger for their two cards and a Coin Toss; the Drowned swaps a Tide Strike and a Squall Ward. Riptide costs 1 (was 2), which alone was worth about 20 points to the Drowned.
+  - The bot values Ward highly: one ward-for-strike swap moves a kit 5–20 points.
 - **Still open:**
-  - The Relic-Breaker is high and the Echo-Caller low.
-  - Kits more than 5 points off: the Fuse-Setter +11, the Mourner +13, the Spendthrift −10, the Drowned −7, the Glutton −6.
+  - Kits still 6–7 points over their standard deck: the Glutton, the Face-Thief, the Mourner.
   - On a full floor-2 loop the Sin-Eater (46%) and the Pilgrim (48%) lead; the others are at 24–30%, apart from the Relic-Breaker (44%). The Pilgrim is meant to shine there; the Sin-Eater isn't.
 
 ## Deeds

@@ -10,11 +10,11 @@ export const BALANCE = {
     resonancePerTurn: 3,
     drawPerTurn: 5,
     maxHandSize: 10,
-    relicBreakerMaxHp: 70,
-    hourThiefMaxHp: 68,
+    relicBreakerMaxHp: 64,
+    hourThiefMaxHp: 70,
     // Fragile: its allies stand in front of it.
     echoCallerMaxHp: 66,
-    somnantMaxHp: 68,
+    somnantMaxHp: 64,
   },
 
   status: {

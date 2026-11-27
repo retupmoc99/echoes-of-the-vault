@@ -31,8 +31,8 @@ export const HOUR_THIEF: WardenClassDef = {
     {
       id: 'fuse-setter',
       name: 'The Fuse-Setter',
-      description: 'Every blow arrives late, and sooner than they think: Patient Blade and Accelerate in place of a Second Hand and a Stilled Moment.',
-      deck: [...repeat('second-hand', 3), ...repeat('stilled-moment', 3), 'patient-blade', 'accelerate', 'slow-fuse', 'stolen-second'],
+      description: 'Every blow arrives late, and sooner than they think: Patient Blade and Accelerate in place of two Stilled Moments.',
+      deck: [...repeat('second-hand', 4), ...repeat('stilled-moment', 2), 'patient-blade', 'accelerate', 'slow-fuse', 'stolen-second'],
       unlock: 'kit-fuse-setter',
     },
     {

@@ -18,7 +18,7 @@ const SIN_DECK = [...repeat('bitter-strike', 4), ...repeat('ash-shroud', 4), 'sw
 export const SIN_EATER: WardenClassDef = {
   id: 'sin-eater',
   name: 'Sin-Eater',
-  maxHp: 66,
+  maxHp: 70,
   starterDeck: SIN_DECK,
   starterRelics: ['black-salt'],
   cardPool: pool(SIN_EATER_CARDS),
@@ -96,8 +96,8 @@ export const SHIFTWRIGHT: WardenClassDef = {
     {
       id: 'drowned',
       name: 'The Drowned',
-      description: 'Bleed that never ends: Undertow and Riptide in place of two Tide Strikes.',
-      deck: [...repeat('tide-strike', 2), ...repeat('squall-ward', 4), 'undertow', 'riptide', 'turn-the-tide', 'break-the-sky'],
+      description: 'Bleed that never ends: Undertow and Riptide in place of a Tide Strike and a Squall Ward.',
+      deck: [...repeat('tide-strike', 3), ...repeat('squall-ward', 3), 'undertow', 'riptide', 'turn-the-tide', 'break-the-sky'],
       unlock: 'kit-drowned',
     },
     {
@@ -153,7 +153,7 @@ const TOLL_DECK = [...repeat('collectors-blade', 4), ...repeat('iron-ledger', 4)
 export const TOLLKEEPER: WardenClassDef = {
   id: 'tollkeeper',
   name: 'Tollkeeper',
-  maxHp: 70,
+  maxHp: 68,
   starterDeck: TOLL_DECK,
   starterRelics: ['tollhouse-lantern'],
   cardPool: pool(TOLLKEEPER_CARDS),
@@ -164,15 +164,15 @@ export const TOLLKEEPER: WardenClassDef = {
     {
       id: 'miser',
       name: 'The Miser',
-      description: 'Hoard, and let the hoard hit: Golden Hail and Counting House in place of a Collector’s Blade and an Iron Ledger.',
-      deck: [...repeat('collectors-blade', 3), ...repeat('iron-ledger', 3), 'golden-hail', 'counting-house', 'exact-payment', 'bribe-the-dark'],
+      description: 'Hoard, and let the hoard hit: Golden Hail, Counting House and a Coin Toss in place of two Collector’s Blades and an Iron Ledger.',
+      deck: [...repeat('collectors-blade', 2), ...repeat('iron-ledger', 3), 'coin-toss', 'golden-hail', 'counting-house', 'exact-payment', 'bribe-the-dark'],
       unlock: 'kit-miser',
     },
     {
       id: 'spendthrift',
       name: 'The Spendthrift',
-      description: 'Spend every coin: Hired Steel and Gilded Ward in place of a Collector’s Blade and an Iron Ledger.',
-      deck: [...repeat('collectors-blade', 3), ...repeat('iron-ledger', 3), 'hired-steel', 'gilded-ward', 'exact-payment', 'bribe-the-dark'],
+      description: 'Spend every coin: Hired Steel, Gilded Ward and a Coin Toss in place of two Collector’s Blades and an Iron Ledger.',
+      deck: [...repeat('collectors-blade', 2), ...repeat('iron-ledger', 3), 'coin-toss', 'hired-steel', 'gilded-ward', 'exact-payment', 'bribe-the-dark'],
       unlock: 'kit-spendthrift',
     },
   ],

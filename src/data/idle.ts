@@ -338,7 +338,7 @@ export const IDLE_CONTENT: IdleContent = {
     {
       id: 'kit-miser',
       name: "Kit: The Miser",
-      description: "A Tollkeeper deck that hoards: Golden Hail and Counting House.",
+      description: "A Tollkeeper deck that hoards: Golden Hail, Counting House and a Coin Toss.",
       cost: 60,
       flavor: "Count it. Count it again.",
       requires: 'the-toll-gate',
@@ -346,7 +346,7 @@ export const IDLE_CONTENT: IdleContent = {
     {
       id: 'kit-spendthrift',
       name: "Kit: The Spendthrift",
-      description: "A Tollkeeper deck that spends every coin: Hired Steel and Gilded Ward.",
+      description: "A Tollkeeper deck that spends every coin: Hired Steel, Gilded Ward and a Coin Toss.",
       cost: 60,
       flavor: "Coin is for spending. So is life.",
       requires: 'the-toll-gate',
